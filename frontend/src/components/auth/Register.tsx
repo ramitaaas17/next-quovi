@@ -1,24 +1,24 @@
+// frontend/src/components/auth/Register.tsx
 'use client';
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, User, Phone, MapPin } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, User, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 import ParticleBackground from '../common/Particles';
+import { authService } from '@/services/authService';
 
 interface RegisterProps {
   onSwitchToLogin: () => void;
   onBack: () => void;
-  onRegister: (userData: RegisterData) => void;
+  onRegister: (userData: any) => void;
 }
 
 interface RegisterData {
   fullName: string;
   email: string;
-  phone: string;
   password: string;
   confirmPassword: string;
-  location: string;
 }
 
 const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister }) => {
@@ -26,15 +26,14 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
   const [formData, setFormData] = useState<RegisterData>({
     fullName: '',
     email: '',
-    phone: '',
     password: '',
     confirmPassword: '',
-    location: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [apiError, setApiError] = useState<string>('');
 
   const quoviColors = ['#ff6b35', '#f7931e', '#feca57'];
 
@@ -53,12 +52,6 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
       newErrors.email = 'Email inválido';
     }
     
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'El teléfono es requerido';
-    } else if (!/^\+?[\d\s\-\(\)]{10,}$/.test(formData.phone.trim())) {
-      newErrors.phone = 'Teléfono inválido';
-    }
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -68,18 +61,14 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
     
     if (!formData.password) {
       newErrors.password = 'La contraseña es requerida';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'La contraseña debe tener al menos 6 caracteres';
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'La contraseña debe tener al menos 8 caracteres';
     }
     
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = 'Confirma tu contraseña';
     } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = 'Las contraseñas no coinciden';
-    }
-    
-    if (!formData.location.trim()) {
-      newErrors.location = 'La ubicación es requerida';
     }
     
     setErrors(newErrors);
@@ -89,27 +78,44 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
   const handleNext = () => {
     if (step === 1 && validateStep1()) {
       setStep(2);
+      setApiError(''); // Limpiar error al cambiar de paso
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Limpiar error anterior
+    setApiError('');
+    
     if (!validateStep2()) return;
     
     setIsLoading(true);
     
-    // Simular registro
-    setTimeout(() => {
-      onRegister(formData);
+    try {
+      // Llamada real a la API
+      const response = await authService.register(formData);
+      
+      // Registro exitoso
+      console.log('Registro exitoso:', response);
+      onRegister(response.usuario);
+      
+    } catch (error: any) {
+      console.error('Error en registro:', error);
+      setApiError(error.message || 'Error al registrar usuario. Por favor, intenta de nuevo.');
+    } finally {
       setIsLoading(false);
-    }, 2000);
+    }
   };
 
   const handleInputChange = (field: keyof RegisterData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    // Limpiar errores al escribir
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+    if (apiError) {
+      setApiError('');
     }
   };
 
@@ -122,7 +128,6 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      {/* Campo Nombre */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-2">
           Nombre Completo
@@ -140,7 +145,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
                 ? 'border-red-300 focus:ring-red-200' 
                 : 'border-orange-200 focus:ring-orange-200 focus:border-orange-300'
             }`}
-            placeholder="Juan Pérez"
+            placeholder="Quovi User"
           />
         </div>
         <AnimatePresence>
@@ -157,7 +162,6 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
         </AnimatePresence>
       </div>
 
-      {/* Campo Email */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-2">
           Email
@@ -192,42 +196,6 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
         </AnimatePresence>
       </div>
 
-      {/* Campo Teléfono */}
-      <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-2">
-          Teléfono
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Phone className="h-5 w-5 text-orange-400" />
-          </div>
-          <input
-            type="tel"
-            value={formData.phone}
-            onChange={(e) => handleInputChange('phone', e.target.value)}
-            className={`w-full pl-10 pr-4 py-3 border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 bg-white/60 backdrop-blur-sm ${
-              errors.phone 
-                ? 'border-red-300 focus:ring-red-200' 
-                : 'border-orange-200 focus:ring-orange-200 focus:border-orange-300'
-            }`}
-            placeholder="+52 123 456 7890"
-          />
-        </div>
-        <AnimatePresence>
-          {errors.phone && (
-            <motion.p
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              className="text-red-500 text-sm mt-1"
-            >
-              {errors.phone}
-            </motion.p>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Botón Siguiente */}
       <button
         type="button"
         onClick={handleNext}
@@ -248,7 +216,21 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
       transition={{ duration: 0.4 }}
       className="space-y-6"
     >
-      {/* Campo Contraseña */}
+      {/* Error de API */}
+      <AnimatePresence>
+        {apiError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="p-4 bg-red-50 border border-red-200 rounded-2xl flex items-start space-x-3"
+          >
+            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <p className="text-red-700 text-sm">{apiError}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-2">
           Contraseña
@@ -267,11 +249,13 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
                 : 'border-orange-200 focus:ring-orange-200 focus:border-orange-300'
             }`}
             placeholder="••••••••"
+            disabled={isLoading}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-orange-400 hover:text-orange-600 transition-colors"
+            disabled={isLoading}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
@@ -290,7 +274,6 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
         </AnimatePresence>
       </div>
 
-      {/* Campo Confirmar Contraseña */}
       <div>
         <label className="block text-sm font-semibold text-slate-700 mb-2">
           Confirmar Contraseña
@@ -309,11 +292,13 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
                 : 'border-orange-200 focus:ring-orange-200 focus:border-orange-300'
             }`}
             placeholder="••••••••"
+            disabled={isLoading}
           />
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             className="absolute inset-y-0 right-0 pr-3 flex items-center text-orange-400 hover:text-orange-600 transition-colors"
+            disabled={isLoading}
           >
             {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
@@ -332,47 +317,15 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
         </AnimatePresence>
       </div>
 
-      {/* Campo Ubicación */}
-      <div>
-        <label className="block text-sm font-semibold text-slate-700 mb-2">
-          Ubicación
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <MapPin className="h-5 w-5 text-orange-400" />
-          </div>
-          <input
-            type="text"
-            value={formData.location}
-            onChange={(e) => handleInputChange('location', e.target.value)}
-            className={`w-full pl-10 pr-4 py-3 border rounded-2xl focus:outline-none focus:ring-2 transition-all duration-300 bg-white/60 backdrop-blur-sm ${
-              errors.location 
-                ? 'border-red-300 focus:ring-red-200' 
-                : 'border-orange-200 focus:ring-orange-200 focus:border-orange-300'
-            }`}
-            placeholder="Ciudad de México, México"
-          />
-        </div>
-        <AnimatePresence>
-          {errors.location && (
-            <motion.p
-              initial={{ opacity: 0, y: -5 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -5 }}
-              className="text-red-500 text-sm mt-1"
-            >
-              {errors.location}
-            </motion.p>
-          )}
-        </AnimatePresence>
-      </div>
-
-      {/* Botones */}
       <div className="flex space-x-4">
         <button
           type="button"
-          onClick={() => setStep(1)}
-          className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-2xl font-semibold hover:bg-gray-300 transition-all duration-300 flex items-center justify-center space-x-2"
+          onClick={() => {
+            setStep(1);
+            setApiError('');
+          }}
+          disabled={isLoading}
+          className="flex-1 bg-gray-200 text-gray-700 py-3 rounded-2xl font-semibold hover:bg-gray-300 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-50"
         >
           <ArrowLeft className="w-5 h-5" />
           <span>Atrás</span>
@@ -401,14 +354,12 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Fondo de partículas */}
       <ParticleBackground 
         particleCount={40}
         colors={quoviColors}
         className="opacity-30"
       />
       
-      {/* Blobs de fondo */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-20 left-10 w-72 h-72 bg-orange-400/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-yellow-400/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
@@ -421,7 +372,6 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
         transition={{ duration: 0.6 }}
         className="relative z-10 w-full max-w-md mx-4"
       >
-        {/* Botón de regresar */}
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -433,17 +383,14 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
           Volver al inicio
         </motion.button>
 
-        {/* Contenedor principal del formulario */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3, duration: 0.5 }}
           className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-8 relative overflow-hidden"
         >
-          {/* Efecto de brillo sutil */}
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent transform -skew-x-12 -translate-x-full animate-shimmer" />
           
-          {/* Logo y título */}
           <div className="text-center mb-8">
             <motion.div
               initial={{ scale: 0 }}
@@ -479,7 +426,6 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
               Crea tu cuenta y comienza a descubrir sabores únicos
             </motion.p>
 
-            {/* Indicador de progreso */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -495,14 +441,12 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
             </motion.div>
           </div>
 
-          {/* Formulario */}
           <form onSubmit={handleSubmit}>
             <AnimatePresence mode="wait">
               {step === 1 ? renderStep1() : renderStep2()}
             </AnimatePresence>
           </form>
 
-          {/* Divisor - Solo en step 1 */}
           <AnimatePresence>
             {step === 1 && (
               <motion.div
@@ -518,7 +462,6 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
             )}
           </AnimatePresence>
 
-          {/* Link para login - Solo en step 1 */}
           <AnimatePresence>
             {step === 1 && (
               <motion.div
@@ -543,7 +486,6 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
         </motion.div>
       </motion.div>
 
-      {/* Estilos para animación shimmer */}
       <style>{`
         @keyframes shimmer {
           0% { transform: translateX(-100%) skewX(-12deg); }

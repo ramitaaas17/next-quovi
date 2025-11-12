@@ -1,3 +1,4 @@
+// frontend/src/components/auth/AuthContainer.tsx
 'use client';
 
 import React, { useState } from 'react';
@@ -12,61 +13,19 @@ interface AuthContainerProps {
 
 export type AuthMode = 'login' | 'register';
 
-interface RegisterData {
-  fullName: string;
-  email: string;
-  phone: string;
-  password: string;
-  confirmPassword: string;
-  location: string;
-}
-
 const AuthContainer: React.FC<AuthContainerProps> = ({ onAuthComplete, onBack }) => {
   const [mode, setMode] = useState<AuthMode>('login');
 
-  const handleLogin = async (email: string, password: string) => {
-    try {
-      // Aquí harías la llamada real a tu API de login
-      console.log('Login attempt:', { email, password });
-      
-      // Simulación de login exitoso
-      const mockUser = {
-        id: '1',
-        email,
-        fullName: 'Usuario Demo',
-        phone: '+52 123 456 7890',
-        location: 'Ciudad de México',
-        avatar: null,
-        createdAt: new Date().toISOString(),
-      };
-
-      onAuthComplete(mockUser);
-    } catch (error) {
-      console.error('Error en login:', error);
-      // Aquí puedes manejar errores específicos
-    }
+  const handleLogin = async (userData: any) => {
+    // Los datos ya vienen del authService, solo pasarlos al padre
+    console.log('✅ Usuario autenticado:', userData);
+    onAuthComplete(userData);
   };
 
-  const handleRegister = async (userData: RegisterData) => {
-    try {
-      // Aquí harías la llamada real a tu API de registro
-      console.log('Register attempt:', userData);
-      
-      // Simulación de registro exitoso
-      const mockUser = {
-        id: Date.now().toString(),
-        email: userData.email,
-        fullName: userData.fullName,
-        phone: userData.phone,
-        location: userData.location,
-        avatar: null,
-        createdAt: new Date().toISOString(),
-      };
-
-      onAuthComplete(mockUser);
-    } catch (error) {
-      console.error('Error en registro:', error);
-    }
+  const handleRegister = async (userData: any) => {
+    // Los datos ya vienen del authService, solo pasarlos al padre
+    console.log('✅ Usuario registrado:', userData);
+    onAuthComplete(userData);
   };
 
   const switchToRegister = () => {
