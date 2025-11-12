@@ -66,7 +66,6 @@ const AuthContainer: React.FC<AuthContainerProps> = ({ onAuthComplete, onBack })
       onAuthComplete(mockUser);
     } catch (error) {
       console.error('Error en registro:', error);
-      // Aquí puedes manejar errores específicos
     }
   };
 

@@ -1,0 +1,81 @@
+services:
+  # Base de datos MySQL
+  db:
+    image: mysql:8.0
+    container_name: quovi_db
+    environment:
+      MYSQL_ROOT_PASSWORD: quovi_secret
+      MYSQL_DATABASE: quovi_db
+      MYSQL_USER: quovi_user
+      MYSQL_PASSWORD: quovi_secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./backend/BD/quovi.sql:/docker-entrypoint-initdb.d/01-quovi.sql
+      - ./backend/BD/InsertDummyData.sql:/docker-entrypoint-initdb.d/02-InsertDummyData.sql
+    networks:
+      - quovi-network
+
+  # Backend API (Go)
+  backend:
+    build: ./backend
+    container_name: quovi_backend
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: quovi_user
+      DB_PASSWORD: quovi_secret
+      DB_NAME: quovi_db
+    depends_on:
+      - db
+    networks:
+      - quovi-network
+    volumes:
+      - ./backend:/app
+
+  # Microservicio de IA (Python)
+  ai-service:
+    build: ./ai-service
+    container_name: quovi_ai
+    ports:
+      - "5001:5000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: quovi_user
+      DB_PASSWORD: quovi_secret
+      DB_NAME: quovi_db
+    depends_on:
+      - db
+    networks:
+      - quovi-network
+    volumes:
+      - ./ai-service:/app
+
+  # Frontend (Next.js)
+  frontend:
+    build: ./frontend
+    container_name: quovi_frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    depends_on:
+      - backend
+      - ai-service
+    networks:
+      - quovi-network
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
+
+networks:
+  quovi-network:
+    driver: bridge
+
+volumes:
+  db_data:

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Search, User, Heart, LogOut, Users } from 'lucide-react';
+import { Home, Search, User, Heart, LogOut } from 'lucide-react';
 import { useRouter, usePathname } from 'next/navigation';
 import { FloatingDock } from '@/components/common/FloatingDock';
 import Image from 'next/image';
@@ -30,7 +30,6 @@ const Navigation: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  // Verificar si el usuario está autenticado
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const userData = localStorage.getItem('user');
@@ -41,19 +40,14 @@ const Navigation: React.FC = () => {
     }
   }, []);
 
-  // Función para cerrar sesión
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
-      // Limpiar datos del usuario
       localStorage.removeItem('user');
       localStorage.setItem('skipLoader', 'true');
-      
-      // Redirigir al home
       router.push('/');
     }
   };
 
-  // Items del dock según el estado de autenticación
   const dockItems: DockItem[] = isAuthenticated
     ? [
         {
@@ -65,11 +59,6 @@ const Navigation: React.FC = () => {
           title: 'Búsqueda',
           icon: <Search className="w-5 h-5" />,
           href: '/dashboard',
-        },
-        {
-          title: 'Comunidad',
-          icon: <Users className="w-5 h-5" />,
-          href: '/community',
         },
         {
           title: 'Favoritos',
@@ -95,7 +84,6 @@ const Navigation: React.FC = () => {
         },
       ];
 
-  // Handler para clicks en el dock
   const handleDockClick = (e: React.MouseEvent, href: string) => {
     if (href === '#logout') {
       e.preventDefault();
@@ -105,23 +93,17 @@ const Navigation: React.FC = () => {
 
   return (
     <>
-      {/* Navigation Bar */}
       <nav className="fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            {/* Logo con Mascota */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center space-x-3 cursor-pointer group"
               onClick={() => router.push(isAuthenticated ? '/dashboard' : '/')}
             >
-              {/* Contenedor de la mascota */}
               <div className="relative">
-                
-                {/* Contenedor principal de la mascota */}
                 <div className="relative w-14 h-14 r flex items-center justify-center ">
-                  {/* Imagen de la mascota */}
                   <Image
                     src="/images/quoviMain.png"
                     alt="Quovi Mascot"
@@ -129,11 +111,9 @@ const Navigation: React.FC = () => {
                     height={48}
                     priority
                   />
-
                 </div>
               </div>
               
-              {/* Texto Quovi con mejor tipografía y colores */}
               <div className="flex flex-col">
                 <span className="text-3xl font-bold bg-gradient-to-r from-orange-600 via-orange-500 to-red-500 bg-clip-text text-transparent group-hover:from-orange-500 group-hover:via-red-500 group-hover:to-pink-500 transition-all duration-300">
                   Quovi
@@ -144,7 +124,6 @@ const Navigation: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* User Info (solo si está autenticado) */}
             {isAuthenticated && user && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -165,7 +144,6 @@ const Navigation: React.FC = () => {
         </div>
       </nav>
 
-      {/* Floating Dock - Solo visible en dashboard y páginas protegidas */}
       {isAuthenticated && pathname !== '/' && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
           <div onClick={(e) => {
@@ -180,7 +158,6 @@ const Navigation: React.FC = () => {
         </div>
       )}
 
-      {/* Modal de Confirmación de Logout */}
       <AnimatePresence>
         {showLogoutConfirm && (
           <motion.div
@@ -197,7 +174,6 @@ const Navigation: React.FC = () => {
               className="bg-white rounded-3xl shadow-2xl max-w-md w-full mx-4 overflow-hidden"
               onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}
             >
-              {/* Header */}
               <div className="bg-gradient-to-br from-orange-400 to-red-500 p-6 text-center">
                 <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
                   <LogOut className="w-8 h-8 text-white" />
@@ -207,13 +183,11 @@ const Navigation: React.FC = () => {
                 </h2>
               </div>
 
-              {/* Body */}
               <div className="p-6">
                 <p className="text-center text-gray-600 mb-6">
                   ¿Estás seguro de que quieres cerrar sesión? Podrás volver cuando quieras.
                 </p>
 
-                {/* Buttons */}
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
                     onClick={(_: React.MouseEvent<HTMLButtonElement>) => setShowLogoutConfirm(false)}
