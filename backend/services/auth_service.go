@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -44,8 +45,12 @@ func (as *AuthService) RegistrarUsuario(nombre, apellido, email, password string
 		return nil, errors.New("error al procesar la contraseña")
 	}
 
+	// Generar nombreUsuario único a partir del email
+	nombreUsuario := generarNombreUsuarioDesdeEmail(email)
+
 	// Crear el usuario
 	usuario := &models.Usuario{
+		NombreUsuario:   nombreUsuario,
 		Nombre:          nombre,
 		Apellido:        apellido,
 		Email:           email,
@@ -84,7 +89,7 @@ func (as *AuthService) IniciarSesion(email, password, ipAddress, userAgent strin
 	}
 
 	// Generar token JWT
-	token, err := as.GenerarToken(usuario.IDUsuario) // ✅ CORREGIDO: IDUsuario en lugar de ID
+	token, err := as.GenerarToken(usuario.IDUsuario)
 	if err != nil {
 		return "", nil, errors.New("error al generar token")
 	}
@@ -96,7 +101,7 @@ func (as *AuthService) IniciarSesion(email, password, ipAddress, userAgent strin
 
 	// Crear sesión en la BD
 	sesion := &models.Sesion{
-		IDUsuario: usuario.IDUsuario, // ✅ CORREGIDO
+		IDUsuario: usuario.IDUsuario,
 		Token:     token,
 		Provider:  "local",
 		ExpiraEn:  time.Now().Add(24 * time.Hour),
@@ -174,12 +179,20 @@ func (as *AuthService) RegistrarUsuarioGoogle(googleID, email, nombre, apellido,
 		if foto != "" {
 			usuarioEmail.Foto = foto
 		}
+		// Generar nombreUsuario si no tiene
+		if usuarioEmail.NombreUsuario == "" {
+			usuarioEmail.NombreUsuario = generarNombreUsuarioUnico(email, googleID)
+		}
 		as.dbManager.ActualizarUsuario(usuarioEmail)
 		return usuarioEmail, nil
 	}
 
+	// Generar un nombreUsuario único a partir del email
+	nombreUsuario := generarNombreUsuarioUnico(email, googleID)
+
 	// Crear nuevo usuario
 	nuevoUsuario := &models.Usuario{
+		NombreUsuario:   nombreUsuario,
 		GoogleID:        googleID,
 		Email:           email,
 		Nombre:          nombre,
@@ -227,6 +240,49 @@ func validarPassword(password string) error {
 	}
 
 	return nil
+}
+
+// generarNombreUsuarioUnico genera un nombre de usuario único
+func generarNombreUsuarioUnico(email, googleID string) string {
+	// Extraer la parte antes del @ del email
+	partes := strings.Split(email, "@")
+	base := partes[0]
+
+	// Limpiar caracteres especiales
+	base = strings.ReplaceAll(base, ".", "")
+	base = strings.ReplaceAll(base, "+", "")
+	base = strings.ReplaceAll(base, "-", "")
+
+	// Limitar longitud
+	if len(base) > 20 {
+		base = base[:20]
+	}
+
+	// Agregar sufijo único basado en los últimos 8 caracteres del googleID
+	if len(googleID) >= 8 {
+		sufijo := googleID[len(googleID)-8:]
+		return strings.ToLower(base + "_" + sufijo)
+	}
+
+	return strings.ToLower(base + "_" + googleID)
+}
+
+// generarNombreUsuarioDesdeEmail genera un nombre de usuario desde el email (para registro local)
+func generarNombreUsuarioDesdeEmail(email string) string {
+	partes := strings.Split(email, "@")
+	base := partes[0]
+
+	// Limpiar caracteres especiales
+	base = strings.ReplaceAll(base, ".", "")
+	base = strings.ReplaceAll(base, "+", "")
+	base = strings.ReplaceAll(base, "-", "")
+
+	// Limitar longitud a 30 caracteres
+	if len(base) > 30 {
+		base = base[:30]
+	}
+
+	return strings.ToLower(base)
 }
 
 // generarTokenSeguro genera un token aleatorio seguro

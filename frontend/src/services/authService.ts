@@ -113,6 +113,8 @@ class AuthService {
   // LOGIN
   async login(email: string, password: string): Promise<AuthResponse> {
     try {
+      console.log('🔐 Intentando login con:', { email });
+      
       const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: 'POST',
         headers: this.getHeaders(),
@@ -120,6 +122,7 @@ class AuthService {
       });
 
       const data = await response.json();
+      console.log('📡 Respuesta del servidor:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Error al iniciar sesión');
@@ -129,16 +132,22 @@ class AuthService {
       this.saveToken(data.token);
       this.saveUser(data.usuario);
 
+      console.log('✅ Login exitoso, token guardado');
       return data;
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('❌ Login error:', error);
+      throw new Error(error.message || 'Error de conexión con el servidor');
     }
   }
 
   // REGISTRO
   async register(userData: RegisterRequest): Promise<AuthResponse> {
     try {
+      console.log('📝 Intentando registro con:', { 
+        fullName: userData.fullName, 
+        email: userData.email 
+      });
+      
       const response = await fetch(`${API_BASE_URL}/auth/register`, {
         method: 'POST',
         headers: this.getHeaders(),
@@ -146,6 +155,7 @@ class AuthService {
       });
 
       const data = await response.json();
+      console.log('📡 Respuesta del servidor:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Error al registrar usuario');
@@ -155,27 +165,22 @@ class AuthService {
       this.saveToken(data.token);
       this.saveUser(data.usuario);
 
+      console.log('✅ Registro exitoso, token guardado');
       return data;
-    } catch (error) {
-      console.error('Register error:', error);
-      throw error;
+    } catch (error: any) {
+      console.error('❌ Register error:', error);
+      throw new Error(error.message || 'Error de conexión con el servidor');
     }
   }
 
-  // LOGIN CON GOOGLE
-  async loginWithGoogle(credential: string): Promise<AuthResponse> {
+  // LOGIN CON GOOGLE (método corregido)
+  async loginWithGoogle(googleData: GoogleLoginRequest): Promise<AuthResponse> {
     try {
-      // Decodificar el JWT de Google para obtener los datos del usuario
-      const decoded: any = this.decodeGoogleToken(credential);
+      console.log('🔐 Intentando login con Google:', { 
+        email: googleData.email,
+        googleId: googleData.googleId 
+      });
       
-      const googleData: GoogleLoginRequest = {
-        googleId: decoded.sub,
-        email: decoded.email,
-        nombre: decoded.given_name || '',
-        apellido: decoded.family_name || '',
-        foto: decoded.picture || '',
-      };
-
       const response = await fetch(`${API_BASE_URL}/auth/login/google`, {
         method: 'POST',
         headers: this.getHeaders(),
@@ -183,6 +188,7 @@ class AuthService {
       });
 
       const data = await response.json();
+      console.log('📡 Respuesta del servidor:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Error al iniciar sesión con Google');
@@ -192,28 +198,11 @@ class AuthService {
       this.saveToken(data.token);
       this.saveUser(data.usuario);
 
+      console.log('✅ Google login exitoso, token guardado');
       return data;
-    } catch (error) {
-      console.error('Google login error:', error);
-      throw error;
-    }
-  }
-
-  // Decodificar token de Google (JWT)
-  private decodeGoogleToken(token: string): any {
-    try {
-      const base64Url = token.split('.')[1];
-      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(
-        atob(base64)
-          .split('')
-          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-          .join('')
-      );
-      return JSON.parse(jsonPayload);
-    } catch (error) {
-      console.error('Error decoding Google token:', error);
-      throw new Error('Token de Google inválido');
+    } catch (error: any) {
+      console.error('❌ Google login error:', error);
+      throw new Error(error.message || 'Error de conexión con el servidor');
     }
   }
 
@@ -233,8 +222,9 @@ class AuthService {
 
       // Limpiar datos locales
       this.removeToken();
+      console.log('✅ Logout exitoso');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('❌ Logout error:', error);
       // Aunque falle, limpiamos los datos locales
       this.removeToken();
     }
@@ -255,7 +245,7 @@ class AuthService {
 
       return response.ok;
     } catch (error) {
-      console.error('Token verification error:', error);
+      console.error('❌ Token verification error:', error);
       return false;
     }
   }

@@ -11,8 +11,11 @@ const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 export default function GoogleAuthProviderWrapper({ children }: GoogleAuthProviderWrapperProps) {
   if (!GOOGLE_CLIENT_ID) {
-    console.warn('⚠️ NEXT_PUBLIC_GOOGLE_CLIENT_ID no está configurado');
+    console.error(' NEXT_PUBLIC_GOOGLE_CLIENT_ID no está configurado en .env.local');
+    return <>{children}</>;
   }
+
+  console.log('✅ Google OAuth configurado correctamente');
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>

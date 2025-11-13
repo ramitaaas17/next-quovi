@@ -7,12 +7,17 @@ WORKDIR /app
 # Instala git (necesario para algunas dependencias de Go)
 RUN apk add --no-cache git
 
+# Copia go.mod y go.sum primero (para aprovechar la caché de Docker)
+COPY go.mod go.sum* ./
+
+# Descarga las dependencias
+RUN go mod download
+
 # Copia el resto del código
 COPY . .
 
-# Inicializa el módulo de Go si no existe
-RUN go mod init quovi || true
-RUN go mod tidy || true
+# Asegúrate de que las dependencias están sincronizadas
+RUN go mod tidy
 
 # Expone el puerto
 EXPOSE 8080

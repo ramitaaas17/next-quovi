@@ -1,20 +1,20 @@
-# Usa una imagen oficial de Node
 FROM node:20-alpine
 
-# Establece el directorio de trabajo
 WORKDIR /app
 
-# Copia los archivos de dependencias
-COPY package*.json ./
+RUN apk add --no-cache libc6-compat
 
-# Instala las dependencias
-RUN npm install
+COPY package.json package-lock.json* ./
+RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 
-# Copia el resto del código
+# Copia TODO el código (incluyendo next.config, tsconfig, etc.)
 COPY . .
 
-# Expone el puerto en el que Next.js corre por defecto
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=development
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
 EXPOSE 3000
 
-# Comando para iniciar la app en modo desarrollo
 CMD ["npm", "run", "dev"]

@@ -16,6 +16,11 @@ services:
       - ./backend/BD/InsertDummyData.sql:/docker-entrypoint-initdb.d/02-InsertDummyData.sql
     networks:
       - quovi-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pquovi_secret"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   # Backend API (Go)
   backend:
@@ -29,49 +34,33 @@ services:
       DB_USER: quovi_user
       DB_PASSWORD: quovi_secret
       DB_NAME: quovi_db
+      JWT_SECRET: mi-secreto-super-seguro-cambiar-en-produccion-quovi-2024
+      ENVIRONMENT: development
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - quovi-network
     volumes:
       - ./backend:/app
-
-  # Microservicio de IA (Python)
-  ai-service:
-    build: ./ai-service
-    container_name: quovi_ai
-    ports:
-      - "5001:5000"
-    environment:
-      DB_HOST: db
-      DB_PORT: 3306
-      DB_USER: quovi_user
-      DB_PASSWORD: quovi_secret
-      DB_NAME: quovi_db
-    depends_on:
-      - db
-    networks:
-      - quovi-network
-    volumes:
-      - ./ai-service:/app
+    restart: unless-stopped
 
   # Frontend (Next.js)
-  frontend:
+  frontend:  # ← Ahora con 2 espacios
     build: ./frontend
     container_name: quovi_frontend
     ports:
       - "3000:3000"
+    env_file:
+      - ./frontend/.env  
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8080
+      NEXT_TELEMETRY_DISABLED: 1
     depends_on:
       - backend
-      - ai-service
     networks:
       - quovi-network
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
+    restart: unless-stopped
 
 networks:
   quovi-network:
