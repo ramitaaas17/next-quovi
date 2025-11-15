@@ -15,7 +15,7 @@ export default function GoogleAuthProviderWrapper({ children }: GoogleAuthProvid
     return <>{children}</>;
   }
 
-  console.log('✅ Google OAuth configurado correctamente');
+  console.log(' Google OAuth configurado correctamente');
 
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>

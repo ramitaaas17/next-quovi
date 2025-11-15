@@ -8,6 +8,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+	"gorm.io/gorm/schema"
 )
 
 type DBManager struct {
@@ -18,18 +19,22 @@ type DBManager struct {
 func New(dsn string) *DBManager {
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
+		NamingStrategy: schema.NamingStrategy{
+			SingularTable: true, // Usar nombres de tabla singulares
+			NoLowerCase:   true, // NO convertir a minúsculas
+		},
 	})
 	if err != nil {
-		log.Fatalf("❌ Error al conectar con la base de datos: %v", err)
+		log.Fatalf("Error al conectar con la base de datos: %v", err)
 	}
 
-	log.Println("✅ Conexión a la base de datos establecida correctamente")
+	log.Println("Conexión a la base de datos establecida correctamente")
 	return &DBManager{db: db}
 }
 
 // VerificarTablas verifica que las tablas existan (sin modificarlas)
 func (dm *DBManager) VerificarTablas() error {
-	log.Println("🔍 Verificando existencia de tablas...")
+	log.Println("Verificando existencia de tablas...")
 
 	tablas := []string{
 		"usuarios",
@@ -48,12 +53,12 @@ func (dm *DBManager) VerificarTablas() error {
 
 	for _, tabla := range tablas {
 		if !dm.db.Migrator().HasTable(tabla) {
-			log.Printf("⚠️  Tabla '%s' no existe. Ejecuta el script SQL de inicialización primero.", tabla)
+			log.Printf("Tabla '%s' no existe. Ejecuta el script SQL de inicialización primero.", tabla)
 			return errors.New("faltan tablas en la base de datos")
 		}
 	}
 
-	log.Println("✅ Todas las tablas requeridas existen")
+	log.Println("Todas las tablas requeridas existen")
 	return nil
 }
 

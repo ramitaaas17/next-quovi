@@ -78,7 +78,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
   const handleNext = () => {
     if (step === 1 && validateStep1()) {
       setStep(2);
-      setApiError(''); // Limpiar error al cambiar de paso
+      setApiError(''); 
     }
   };
 
@@ -110,7 +110,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
 
   const handleInputChange = (field: keyof RegisterData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    // Limpiar errores al escribir
+  
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }));
     }

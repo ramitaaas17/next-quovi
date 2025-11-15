@@ -18,13 +18,13 @@ const AuthContainer: React.FC<AuthContainerProps> = ({ onAuthComplete, onBack })
 
   const handleLogin = async (userData: any) => {
     // Los datos ya vienen del authService, solo pasarlos al padre
-    console.log('✅ Usuario autenticado:', userData);
+    console.log(' Usuario autenticado:', userData);
     onAuthComplete(userData);
   };
 
   const handleRegister = async (userData: any) => {
     // Los datos ya vienen del authService, solo pasarlos al padre
-    console.log('✅ Usuario registrado:', userData);
+    console.log(' Usuario registrado:', userData);
     onAuthComplete(userData);
   };
 

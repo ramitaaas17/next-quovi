@@ -1,33 +1,19 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { MapPin, Navigation as NavigationIcon } from 'lucide-react';
+import { MapPin, Navigation as NavigationIcon, AlertCircle, Loader2 } from 'lucide-react';
 import Navigation from '@/components/landing/Navigation';
 import SearchBar from '@/components/common/SearchBar';
 import ParticleBackground from '@/components/common/Particles';
 import RestaurantDetailsPanel from '@/components/dashboard/RestaurantDetailsPanel';
 import RouteDisplay from '@/components/dashboard/RouteDisplay';
+import useGeolocation from '@/hooks/useGeolocation';
+import restauranteService, { RestauranteConDistancia } from '@/services/restauranteService';
 
-// Interfaces
-interface Restaurant {
-  id: number;
-  name: string;
-  category: string;
-  rating: number;
-  reviews: number;
-  distance: number;
-  estimatedTime: string;
-  address: string;
-  phone?: string;
-  website?: string;
-  imageUrl?: string;
-  isOpenNow: boolean;
-  openingHours?: string;
-  price: string;
-  description?: string;
-  coords: [number, number];
-  type: string;
-  color: string;
+declare global {
+  interface Window {
+    L: any;
+  }
 }
 
 interface MapControlsProps {
@@ -36,13 +22,6 @@ interface MapControlsProps {
   onLocateMe: () => void;
 }
 
-declare global {
-  interface Window {
-    L: any;
-  }
-}
-
-// Map Controls Component
 const MapControls: React.FC<MapControlsProps> = ({ onZoomIn, onZoomOut, onLocateMe }) => {
   return (
     <div className="absolute top-4 left-4 z-10 space-y-2">
@@ -71,16 +50,22 @@ const MapControls: React.FC<MapControlsProps> = ({ onZoomIn, onZoomOut, onLocate
   );
 };
 
-// Real Map Component
-const RealMapComponent: React.FC<{
-  onRestaurantClick: (restaurant: Restaurant) => void;
-}> = ({ onRestaurantClick }) => {
+interface RealMapComponentProps {
+  onRestaurantClick: (restaurant: RestauranteConDistancia) => void;
+  userLocation: [number, number] | null;
+  restaurantes: RestauranteConDistancia[];
+}
+
+const RealMapComponent: React.FC<RealMapComponentProps> = ({ 
+  onRestaurantClick, 
+  userLocation,
+  restaurantes 
+}) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
 
   useEffect(() => {
     const loadLeaflet = async (): Promise<void> => {
-      // Cargar CSS de Leaflet
       if (!document.querySelector('link[href*="leaflet.min.css"]')) {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
@@ -88,7 +73,6 @@ const RealMapComponent: React.FC<{
         document.head.appendChild(link);
       }
 
-      // Cargar JS de Leaflet
       if (!window.L) {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js';
@@ -105,189 +89,16 @@ const RealMapComponent: React.FC<{
 
     const initMap = () => {
       if (mapRef.current && window.L && !mapInstanceRef.current) {
+        const centerLocation = userLocation || [19.4326, -99.1332];
+        
         const map = window.L.map(mapRef.current, {
           zoomControl: false,
           attributionControl: false
-        }).setView([19.4326, -99.1332], 13);
+        }).setView(centerLocation, 13);
 
         window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors'
         }).addTo(map);
-
-        const createCustomIcon = (emoji: string, color: string) => {
-          return window.L.divIcon({
-            className: 'custom-marker',
-            html: `
-              <div class="relative">
-                <div class="w-12 h-12 ${color} rounded-full flex items-center justify-center shadow-lg border-3 border-white hover:scale-110 transition-transform duration-200 cursor-pointer">
-                  <span class="text-white text-lg">${emoji}</span>
-                </div>
-                <div class="absolute top-10 left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-6 border-l-transparent border-r-transparent border-t-current ${color.replace('bg-', 'text-')}"></div>
-              </div>
-            `,
-            iconSize: [48, 60],
-            iconAnchor: [24, 48]
-          });
-        };
-
-        // Datos de restaurantes
-        const restaurants: Restaurant[] = [
-          {
-            id: 1,
-            name: "Tacos El Güero",
-            coords: [19.4350, -99.1400],
-            type: "🌮",
-            color: "bg-red-500",
-            category: "Comida Mexicana",
-            rating: 4.5,
-            reviews: 127,
-            distance: 1.2,
-            estimatedTime: "5-10 min",
-            address: "Av. Insurgentes Sur 1234, Roma Norte, CDMX",
-            phone: "+52 55 1234 5678",
-            website: "https://tacosguero.com",
-            imageUrl: undefined,
-            isOpenNow: true,
-            openingHours: "Lun-Dom: 9:00 AM - 10:00 PM",
-            price: "$$",
-            description: "Los mejores tacos al pastor de la colonia Roma. Con más de 20 años de experiencia."
-          },
-          {
-            id: 2,
-            name: "Pizza Roma",
-            coords: [19.4300, -99.1280],
-            type: "🍕",
-            color: "bg-orange-500",
-            category: "Comida Italiana",
-            rating: 4.3,
-            reviews: 89,
-            distance: 0.8,
-            estimatedTime: "3-8 min",
-            address: "Calle Orizaba 56, Roma Norte, CDMX",
-            phone: "+52 55 2345 6789",
-            imageUrl: undefined,
-            isOpenNow: true,
-            openingHours: "Mar-Dom: 1:00 PM - 11:00 PM",
-            price: "$$$",
-            description: "Auténtica pizza napolitana con ingredientes importados de Italia."
-          },
-          {
-            id: 3,
-            name: "Café Central",
-            coords: [19.4380, -99.1250],
-            type: "☕",
-            color: "bg-blue-500",
-            category: "Cafetería",
-            rating: 4.7,
-            reviews: 203,
-            distance: 0.5,
-            estimatedTime: "2-5 min",
-            address: "Av. Álvaro Obregón 99, Roma Norte, CDMX",
-            phone: "+52 55 3456 7890",
-            website: "https://cafecentral.mx",
-            imageUrl: undefined,
-            isOpenNow: true,
-            openingHours: "Lun-Vie: 7:00 AM - 9:00 PM",
-            price: "$$",
-            description: "Café de especialidad con granos de origen mexicano tostados artesanalmente."
-          },
-          {
-            id: 4,
-            name: "Green Bowl",
-            coords: [19.4280, -99.1350],
-            type: "🥗",
-            color: "bg-green-500",
-            category: "Comida Saludable",
-            rating: 4.6,
-            reviews: 156,
-            distance: 1.0,
-            estimatedTime: "4-9 min",
-            address: "Calle Colima 234, Roma Sur, CDMX",
-            imageUrl: undefined,
-            isOpenNow: true,
-            openingHours: "Lun-Sáb: 8:00 AM - 8:00 PM",
-            price: "$$$",
-            description: "Bowls saludables con ingredientes orgánicos y opciones veganas."
-          },
-          {
-            id: 5,
-            name: "Burger House",
-            coords: [19.4420, -99.1200],
-            type: "🍔",
-            color: "bg-purple-500",
-            category: "Hamburguesas",
-            rating: 4.4,
-            reviews: 178,
-            distance: 1.5,
-            estimatedTime: "6-12 min",
-            address: "Av. Chapultepec 456, Juárez, CDMX",
-            phone: "+52 55 4567 8901",
-            imageUrl: undefined,
-            isOpenNow: false,
-            openingHours: "Mié-Lun: 12:00 PM - 10:00 PM",
-            price: "$$",
-            description: "Hamburguesas gourmet con carne 100% de res y pan artesanal."
-          },
-          {
-            id: 6,
-            name: "Sushi Bar",
-            coords: [19.4250, -99.1180],
-            type: "🍣",
-            color: "bg-pink-500",
-            category: "Comida Japonesa",
-            rating: 4.8,
-            reviews: 234,
-            distance: 1.3,
-            estimatedTime: "5-11 min",
-            address: "Calle Frontera 78, Roma Sur, CDMX",
-            phone: "+52 55 5678 9012",
-            website: "https://sushibar.mx",
-            imageUrl: undefined,
-            isOpenNow: true,
-            openingHours: "Lun-Dom: 1:00 PM - 11:00 PM",
-            price: "$$$$",
-            description: "Sushi fresco preparado por chef japonés con más de 15 años de experiencia."
-          }
-        ];
-
-        restaurants.forEach(restaurant => {
-          if (restaurant.coords) {
-            const marker = window.L.marker(restaurant.coords, {
-              icon: createCustomIcon(restaurant.type, restaurant.color)
-            }).addTo(map);
-
-            marker.on('click', () => {
-              onRestaurantClick(restaurant);
-            });
-
-            marker.bindPopup(`
-              <div class="text-center p-2">
-                <div class="text-lg mb-2">${restaurant.type}</div>
-                <div class="font-semibold text-gray-800">${restaurant.name}</div>
-                <div class="text-sm text-gray-600 mt-1">${restaurant.category}</div>
-                <div class="flex items-center justify-center mt-2">
-                  <span class="text-yellow-500">★</span>
-                  <span class="text-sm font-medium ml-1">${restaurant.rating}</span>
-                </div>
-              </div>
-            `);
-          }
-        });
-
-        const currentLocationIcon = window.L.divIcon({
-          className: 'current-location-marker',
-          html: `
-            <div class="relative">
-              <div class="w-6 h-6 bg-blue-600 rounded-full border-4 border-white shadow-lg animate-pulse"></div>
-              <div class="absolute inset-0 w-6 h-6 bg-blue-400 rounded-full opacity-30 animate-ping"></div>
-            </div>
-          `,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
-        });
-
-        window.L.marker([19.4326, -99.1332], { icon: currentLocationIcon }).addTo(map)
-          .bindPopup('Tu ubicación actual');
 
         mapInstanceRef.current = map;
       }
@@ -303,6 +114,85 @@ const RealMapComponent: React.FC<{
     };
   }, []);
 
+  useEffect(() => {
+    if (mapInstanceRef.current && window.L) {
+      mapInstanceRef.current.eachLayer((layer: any) => {
+        if (layer instanceof window.L.Marker) {
+          mapInstanceRef.current.removeLayer(layer);
+        }
+      });
+
+      if (userLocation) {
+        const currentLocationIcon = window.L.divIcon({
+          className: 'current-location-marker',
+          html: `
+            <div class="relative">
+              <div class="w-6 h-6 bg-blue-600 rounded-full border-4 border-white shadow-lg animate-pulse"></div>
+              <div class="absolute inset-0 w-6 h-6 bg-blue-400 rounded-full opacity-30 animate-ping"></div>
+            </div>
+          `,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        });
+
+        window.L.marker(userLocation, { icon: currentLocationIcon })
+          .addTo(mapInstanceRef.current)
+          .bindPopup('Tu ubicación actual');
+      }
+
+      restaurantes.forEach(rest => {
+        const emoji = restauranteService.obtenerEmojiCategoria(
+          rest.categorias?.[0]?.nombreCategoria || 'Internacional'
+        );
+        const color = restauranteService.obtenerColorCategoria(
+          rest.categorias?.[0]?.nombreCategoria || 'Internacional'
+        );
+
+        const customIcon = window.L.divIcon({
+          className: 'custom-marker',
+          html: `
+            <div class="relative">
+              <div class="w-12 h-12 ${color} rounded-full flex items-center justify-center shadow-lg border-3 border-white hover:scale-110 transition-transform duration-200 cursor-pointer">
+                <span class="text-white text-lg">${emoji}</span>
+              </div>
+            </div>
+          `,
+          iconSize: [48, 60],
+          iconAnchor: [24, 48]
+        });
+
+        const marker = window.L.marker([rest.latitud, rest.longitud], {
+          icon: customIcon
+        }).addTo(mapInstanceRef.current);
+
+        marker.on('click', () => {
+          onRestaurantClick(rest);
+        });
+
+        const precioRange = restauranteService.obtenerRangoPrecio(rest.precioPromedio);
+        const statusBadge = rest.estaAbierto 
+          ? '<span style="background: #10b981; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Abierto</span>'
+          : '<span style="background: #6b7280; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Cerrado</span>';
+
+        marker.bindPopup(`
+          <div style="text-align: center; padding: 8px;">
+            <div style="font-size: 24px; margin-bottom: 8px;">${emoji}</div>
+            <div style="font-weight: 600; color: #1f2937;">${rest.nombre}</div>
+            <div style="font-size: 13px; color: #6b7280; margin: 4px 0;">
+              ${rest.categorias?.[0]?.nombreCategoria || ''} • ${precioRange}
+            </div>
+            <div style="margin: 6px 0;">${statusBadge}</div>
+            ${rest.distanciaKm > 0 ? `
+              <div style="font-size: 12px; color: #6b7280;">
+                ${restauranteService.formatearDistancia(rest.distanciaKm)} • ${rest.tiempoEstimado}
+              </div>
+            ` : ''}
+          </div>
+        `);
+      });
+    }
+  }, [restaurantes, userLocation, onRestaurantClick]);
+
   const handleZoomIn = (): void => {
     if (mapInstanceRef.current) mapInstanceRef.current.zoomIn();
   };
@@ -312,8 +202,8 @@ const RealMapComponent: React.FC<{
   };
 
   const handleLocateMe = (): void => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView([19.4326, -99.1332], 15);
+    if (mapInstanceRef.current && userLocation) {
+      mapInstanceRef.current.setView(userLocation, 15);
     }
   };
 
@@ -331,6 +221,9 @@ const RealMapComponent: React.FC<{
         <div className="flex items-center space-x-2">
           <MapPin className="w-4 h-4 text-blue-500" />
           <span className="font-semibold text-gray-700">Ciudad de México</span>
+          {userLocation && (
+            <span className="text-xs text-gray-500">• {restaurantes.length} restaurantes</span>
+          )}
         </div>
       </div>
 
@@ -341,19 +234,75 @@ const RealMapComponent: React.FC<{
   );
 };
 
-// Main Dashboard Component
 export default function MapDashboard() {
-  const [selectedRestaurant, setSelectedRestaurant] = useState<Restaurant | null>(null);
+  const [selectedRestaurant, setSelectedRestaurant] = useState<RestauranteConDistancia | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showRoute, setShowRoute] = useState(false);
+  const [restaurantes, setRestaurantes] = useState<RestauranteConDistancia[]>([]);
+  const [cargando, setCargando] = useState(true);
 
-  const userLocation: [number, number] = [19.4326, -99.1332];
+  const { ubicacion, error: errorUbicacion, cargando: cargandoUbicacion, refrescarUbicacion } = useGeolocation(false);
 
-  const handleSearch = (searchTerm: string): void => {
-    console.log('Buscando:', searchTerm);
+  const userLocation: [number, number] | null = ubicacion 
+    ? [ubicacion.latitud, ubicacion.longitud] 
+    : null;
+
+  useEffect(() => {
+    const cargarRestaurantes = async () => {
+      if (!ubicacion) return;
+
+      try {
+        setCargando(true);
+        
+        const data = await restauranteService.obtenerRestaurantesCercanos(
+          ubicacion.latitud,
+          ubicacion.longitud,
+          10
+        );
+
+        setRestaurantes(data);
+      } catch (error) {
+        console.error('Error loading restaurants:', error);
+      } finally {
+        setCargando(false);
+      }
+    };
+
+    cargarRestaurantes();
+  }, [ubicacion]);
+
+  const handleSearch = async (searchTerm: string) => {
+    if (!searchTerm.trim()) {
+      if (ubicacion) {
+        const data = await restauranteService.obtenerRestaurantesCercanos(
+          ubicacion.latitud,
+          ubicacion.longitud,
+          10
+        );
+        setRestaurantes(data);
+      }
+      return;
+    }
+
+    try {
+      setCargando(true);
+
+      const data = await restauranteService.buscarRestaurantes(
+        searchTerm,
+        ubicacion?.latitud,
+        ubicacion?.longitud,
+        10
+      );
+
+      setRestaurantes(data);
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setCargando(false);
+    }
   };
 
-  const handleRestaurantClick = (restaurant: Restaurant) => {
+  const handleRestaurantClick = (restaurant: RestauranteConDistancia) => {
     setSelectedRestaurant(restaurant);
     setShowDetails(true);
   };
@@ -364,20 +313,20 @@ export default function MapDashboard() {
   };
 
   const routeData = selectedRestaurant ? {
-    distance: selectedRestaurant.distance,
-    duration: selectedRestaurant.estimatedTime,
+    distance: selectedRestaurant.distanciaKm,
+    duration: selectedRestaurant.tiempoEstimado,
     steps: [
       {
-        instruction: "Dirígete al norte por Av. Insurgentes Sur hacia Calle Durango",
-        distance: "400 m"
+        instruction: `Dirígete hacia ${selectedRestaurant.nombre}`,
+        distance: `${(selectedRestaurant.distanciaKm * 0.6).toFixed(1)} km`
       },
       {
-        instruction: "Gira a la derecha en Calle Durango",
-        distance: "300 m"
+        instruction: `Continúa por ${selectedRestaurant.direccion}`,
+        distance: `${(selectedRestaurant.distanciaKm * 0.3).toFixed(1)} km`
       },
       {
-        instruction: `Tu destino ${selectedRestaurant.name} estará a la derecha`,
-        distance: "50 m"
+        instruction: `Tu destino ${selectedRestaurant.nombre} estará a la derecha`,
+        distance: `${(selectedRestaurant.distanciaKm * 0.1).toFixed(1)} km`
       }
     ]
   } : undefined;
@@ -403,26 +352,71 @@ export default function MapDashboard() {
             showLocationFilter={true}
             placeholder="¿Antojo de tacos al pastor o un café con leche?"
           />
+
+          {errorUbicacion && (
+            <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start space-x-3">
+              <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="text-sm font-medium text-yellow-800">No pudimos obtener tu ubicación</p>
+                <p className="text-xs text-yellow-700 mt-1">{errorUbicacion}</p>
+                <button
+                  onClick={refrescarUbicacion}
+                  className="mt-2 text-xs font-medium text-yellow-800 hover:text-yellow-900 underline"
+                >
+                  Intentar nuevamente
+                </button>
+              </div>
+            </div>
+          )}
+
+          {(cargando || cargandoUbicacion) && (
+            <div className="mt-4 bg-white rounded-xl p-4 flex items-center justify-center space-x-3">
+              <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
+              <span className="text-sm text-gray-600">
+                {cargandoUbicacion ? 'Obteniendo ubicación...' : 'Cargando restaurantes...'}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 px-4 sm:px-6 lg:px-8 pb-24 max-w-7xl mx-auto w-full">
-          <RealMapComponent onRestaurantClick={handleRestaurantClick} />
+          <RealMapComponent 
+            onRestaurantClick={handleRestaurantClick}
+            userLocation={userLocation}
+            restaurantes={restaurantes}
+          />
         </div>
       </div>
 
       <RestaurantDetailsPanel
         isOpen={showDetails}
         onClose={() => setShowDetails(false)}
-        restaurant={selectedRestaurant}
+        restaurant={selectedRestaurant ? {
+          id: selectedRestaurant.idRestaurante,
+          name: selectedRestaurant.nombre,
+          category: selectedRestaurant.categorias?.[0]?.nombreCategoria || 'Restaurante',
+          rating: selectedRestaurant.calificacionPromedio,
+          reviews: selectedRestaurant.totalReseñas,
+          distance: selectedRestaurant.distanciaKm,
+          estimatedTime: selectedRestaurant.tiempoEstimado,
+          address: selectedRestaurant.direccion,
+          phone: selectedRestaurant.telefono,
+          website: selectedRestaurant.sitioweb,
+          imageUrl: selectedRestaurant.imagenes?.[0]?.url,
+          isOpenNow: selectedRestaurant.estaAbierto,
+          openingHours: selectedRestaurant.horarioHoy,
+          price: restauranteService.obtenerRangoPrecio(selectedRestaurant.precioPromedio),
+          description: selectedRestaurant.descripcion,
+        } : null}
         onShowRoute={handleShowRoute}
       />
 
       <RouteDisplay
         isVisible={showRoute}
         onClose={() => setShowRoute(false)}
-        startLocation={userLocation}
-        endLocation={selectedRestaurant?.coords || userLocation}
-        restaurantName={selectedRestaurant?.name || ''}
+        startLocation={userLocation || [19.4326, -99.1332]}
+        endLocation={selectedRestaurant ? [selectedRestaurant.latitud, selectedRestaurant.longitud] : userLocation || [19.4326, -99.1332]}
+        restaurantName={selectedRestaurant?.nombre || ''}
         routeData={routeData}
       />
     </div>

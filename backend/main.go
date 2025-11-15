@@ -19,47 +19,47 @@ func main() {
 	// Cargar variables de entorno
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("⚠️  No se encontró archivo .env, usando variables de entorno del sistema")
+		log.Println("WARNING: .env file not found, using system environment variables")
 	}
 
 	// Configuración de la base de datos
 	dbUser := getEnv("DB_USER", "quovi_user")
 	dbPassword := getEnv("DB_PASSWORD", "quovi_secret")
-	dbHost := getEnv("DB_HOST", "db") // "db" para Docker, "localhost" para local
+	dbHost := getEnv("DB_HOST", "db")
 	dbPort := getEnv("DB_PORT", "3306")
 	dbName := getEnv("DB_NAME", "quovi_db")
 
 	// Construir DSN para MySQL
 	dsn := dbUser + ":" + dbPassword + "@tcp(" + dbHost + ":" + dbPort + ")/" + dbName + "?charset=utf8mb4&parseTime=True&loc=Local"
 
-	log.Println("🔌 Intentando conectar a la base de datos...")
-	log.Printf("   Host: %s:%s", dbHost, dbPort)
-	log.Printf("   Database: %s", dbName)
+	log.Println("Connecting to database...")
+	log.Printf("Host: %s:%s", dbHost, dbPort)
+	log.Printf("Database: %s", dbName)
 
 	// Inicializar base de datos
 	dbManager := repository.New(dsn)
 
-	// ✅ Verificar tablas (esperar a que MySQL termine de ejecutar los scripts)
-	log.Println("⏳ Esperando a que la base de datos esté lista...")
-	time.Sleep(2 * time.Second) // Pequeña pausa para asegurar que MySQL terminó
+	// Verificar tablas
+	log.Println("Waiting for database to be ready...")
+	time.Sleep(2 * time.Second)
 
 	if err := dbManager.VerificarTablas(); err != nil {
-		log.Println("⚠️  Error verificando tablas:", err)
-		log.Println("🔄 Reintentando en 5 segundos...")
+		log.Println("ERROR: Failed to verify tables, retrying in 5 seconds...")
 		time.Sleep(5 * time.Second)
 
-		// Segundo intento
 		if err := dbManager.VerificarTablas(); err != nil {
-			log.Fatalf("❌ No se pudo conectar a la base de datos: %v", err)
+			log.Fatalf("FATAL: Could not connect to database: %v", err)
 		}
 	}
 
 	// Inicializar servicios
 	jwtSecret := getEnv("JWT_SECRET", "mi-secreto-super-seguro-cambiar-en-produccion")
 	authService := services.NewAuthService(dbManager, jwtSecret)
+	restauranteService := services.NewRestauranteService(dbManager)
 
 	// Inicializar handlers
 	authHandler := handlers.NewAuthHandler(authService)
+	restauranteHandler := handlers.NewRestauranteHandler(restauranteService)
 
 	// Configurar Gin en modo release para producción
 	if getEnv("ENVIRONMENT", "development") == "production" {
@@ -72,9 +72,9 @@ func main() {
 	// Middlewares de seguridad globales
 	router.Use(middleware.SecurityHeaders())
 	router.Use(middleware.InputSanitization())
-	router.Use(middleware.MaxBodySize(5 * 1024 * 1024)) // 5MB máximo
+	router.Use(middleware.MaxBodySize(5 * 1024 * 1024))
 
-	// Configurar CORS - Obtener origins desde variable de entorno
+	// Configurar CORS
 	corsOrigins := getCORSOrigins()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     corsOrigins,
@@ -84,12 +84,11 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	// Rutas públicas - API de autenticación
+	// API Routes
 	api := router.Group("/api")
 	{
-		// Rate limiter para autenticación (5 intentos por minuto)
+		// Auth routes
 		authRateLimiter := middleware.NewRateLimiter(5)
-
 		auth := api.Group("/auth")
 		auth.Use(middleware.ValidateContentType("application/json"))
 		auth.Use(authRateLimiter.Middleware())
@@ -100,18 +99,43 @@ func main() {
 			auth.POST("/logout", authHandler.Logout)
 		}
 
-		// Rutas protegidas - requieren autenticación
+		// Public restaurant routes
+		restaurantes := api.Group("/restaurantes")
+		{
+			restaurantes.GET("", restauranteHandler.ObtenerTodosLosRestaurantes)
+			restaurantes.GET("/:id", restauranteHandler.ObtenerRestaurantePorID)
+			restaurantes.POST("/cercanos", restauranteHandler.ObtenerRestaurantesCercanos)
+			restaurantes.POST("/buscar", restauranteHandler.BuscarRestaurantes)
+		}
+
+		// Categories routes
+		categorias := api.Group("/categorias")
+		{
+			categorias.GET("", restauranteHandler.ObtenerCategorias)
+			categorias.GET("/:id/restaurantes", restauranteHandler.ObtenerRestaurantesPorCategoria)
+		}
+
+		// Cities routes
+		api.GET("/ciudades", restauranteHandler.ObtenerCiudades)
+
+		// Protected routes
 		protected := api.Group("/")
 		protected.Use(authHandler.VerificarToken)
 		{
-			// Aquí irán las rutas protegidas (perfil, favoritos, etc.)
 			protected.GET("/perfil", func(c *gin.Context) {
 				userID := c.GetUint("userID")
 				c.JSON(200, gin.H{
-					"message": "Ruta protegida",
+					"message": "Protected route",
 					"userID":  userID,
 				})
 			})
+
+			favoritos := protected.Group("/favoritos")
+			{
+				favoritos.GET("", restauranteHandler.ObtenerFavoritos)
+				favoritos.POST("", restauranteHandler.AgregarFavorito)
+				favoritos.DELETE("/:id", restauranteHandler.EliminarFavorito)
+			}
 		}
 	}
 
@@ -124,40 +148,50 @@ func main() {
 		})
 	})
 
-	// Ruta raíz - Información de la API
+	// Root endpoint
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"message": "Bienvenido a Quovi API",
+			"message": "Quovi API",
 			"version": "1.0.0",
 			"status":  "running",
 			"endpoints": gin.H{
 				"health": "GET /health",
 				"auth": gin.H{
-					"register":    "POST /api/auth/register",
-					"login":       "POST /api/auth/login",
-					"loginGoogle": "POST /api/auth/login/google",
-					"logout":      "POST /api/auth/logout",
+					"register": "POST /api/auth/register",
+					"login":    "POST /api/auth/login",
+					"google":   "POST /api/auth/login/google",
+					"logout":   "POST /api/auth/logout",
 				},
-				"protected": gin.H{
-					"perfil": "GET /api/perfil (requiere token)",
+				"restaurantes": gin.H{
+					"all":      "GET /api/restaurantes",
+					"byId":     "GET /api/restaurantes/:id",
+					"cercanos": "POST /api/restaurantes/cercanos",
+					"buscar":   "POST /api/restaurantes/buscar",
+				},
+				"categorias": gin.H{
+					"all":          "GET /api/categorias",
+					"restaurantes": "GET /api/categorias/:id/restaurantes",
+				},
+				"ciudades": "GET /api/ciudades",
+				"favoritos": gin.H{
+					"get":    "GET /api/favoritos (auth required)",
+					"add":    "POST /api/favoritos (auth required)",
+					"remove": "DELETE /api/favoritos/:id (auth required)",
 				},
 			},
-			"documentation": "https://github.com/tuusuario/quovi",
 		})
 	})
 
-	// Iniciar servidor
+	// Start server
 	port := getEnv("PORT", "8080")
-	log.Printf("🚀 Servidor Quovi iniciado en puerto %s", port)
-	log.Printf("🏥 Health check: http://localhost:%s/health", port)
-	log.Printf("🔐 API Auth: http://localhost:%s/api/auth", port)
+	log.Printf("Server starting on port %s", port)
+	log.Printf("Health check: http://localhost:%s/health", port)
 
 	if err := router.Run(":" + port); err != nil {
-		log.Fatalf("❌ Error al iniciar servidor: %v", err)
+		log.Fatalf("FATAL: Failed to start server: %v", err)
 	}
 }
 
-// getEnv obtiene una variable de entorno o retorna un valor por defecto
 func getEnv(key, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
@@ -166,10 +200,8 @@ func getEnv(key, defaultValue string) string {
 	return value
 }
 
-// getCORSOrigins obtiene los orígenes permitidos para CORS
 func getCORSOrigins() []string {
 	corsOriginsStr := getEnv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001")
-	// Separar por comas y limpiar espacios
 	origins := strings.Split(corsOriginsStr, ",")
 	for i, origin := range origins {
 		origins[i] = strings.TrimSpace(origin)

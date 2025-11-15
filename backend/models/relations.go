@@ -75,20 +75,5 @@ func (Favorito) TableName() string {
 	return "favoritos"
 }
 
-// Restaurante - Modelo simplificado para las relaciones
-type Restaurante struct {
-	IDRestaurante        uint      `gorm:"column:idRestaurante;primaryKey;autoIncrement" json:"idRestaurante"`
-	Nombre               string    `gorm:"column:nombre;size:100;not null" json:"nombre"`
-	Direccion            string    `gorm:"column:direccion;size:200;not null" json:"direccion"`
-	IDCiudad             uint      `gorm:"column:idCiudad;not null" json:"idCiudad"`
-	Latitud              float64   `gorm:"column:latitud;type:decimal(10,8);not null" json:"latitud"`
-	Longitud             float64   `gorm:"column:longitud;type:decimal(11,8);not null" json:"longitud"`
-	CalificacionPromedio float64   `gorm:"column:calificacionPromedio;type:decimal(3,2);default:0" json:"calificacionPromedio"`
-	TotalReseñas         int       `gorm:"column:totalReseñas;default:0" json:"totalReseñas"`
-	Activo               bool      `gorm:"column:activo;default:true" json:"activo"`
-	FechaRegistro        time.Time `gorm:"column:fechaRegistro;not null;default:CURRENT_TIMESTAMP" json:"fechaRegistro"`
-}
-
-func (Restaurante) TableName() string {
-	return "restaurantes"
-}
+// ⚠️ NOTA: El modelo completo de Restaurante está en restaurante.go
+// Esta relación se resuelve automáticamente por GORM cuando ambos archivos están en el mismo paquete
