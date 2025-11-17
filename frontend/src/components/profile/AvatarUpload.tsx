@@ -27,26 +27,22 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const [dragActive, setDragActive] = useState(false);
 
   const handleFileSelect = (file: File) => {
-    // Validar tipo de archivo
     if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona una imagen válida');
+      alert('Por favor selecciona una imagen valida');
       return;
     }
 
-    // Validar tamaño (5MB máximo)
     if (file.size > 5 * 1024 * 1024) {
       alert('La imagen no debe superar los 5MB');
       return;
     }
 
-    // Crear preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreview(reader.result as string);
     };
     reader.readAsDataURL(file);
 
-    // Subir archivo
     handleUpload(file);
   };
 
@@ -100,39 +96,19 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   };
 
   const displayImage = preview || currentAvatar;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 
   return (
     <>
       <div className="flex flex-col items-center">
-        {/* Avatar Container */}
         <motion.div 
           className="relative group"
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 300 }}
         >
-          {/* Anillo externo animado */}
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: 'linear-gradient(45deg, rgba(251,146,60,0.5), rgba(249,115,22,0.5))',
-              padding: '4px',
-            }}
-            animate={{
-              rotate: 360,
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-          >
-            <div className="w-full h-full rounded-full bg-gradient-to-br from-orange-400 to-red-500" />
-          </motion.div>
-          
-          {/* Avatar */}
           <div 
-            className="relative w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-2xl overflow-hidden cursor-pointer"
-            onClick={() => !disabled && fileInputRef.current?.click()}
+            className="relative w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-xl overflow-hidden cursor-pointer border-4 border-orange-500"
+            onClick={() => !disabled && !isUploading && fileInputRef.current?.click()}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -146,28 +122,25 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
             {displayImage ? (
               <Image 
-                src={displayImage.startsWith('http') ? displayImage : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'}${displayImage}`}
+                src={displayImage.startsWith('http') ? displayImage : `${apiUrl}${displayImage}`}
                 alt={userName}
                 fill
                 className="object-cover"
+                unoptimized
               />
             ) : (
-              <span className="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-orange-500 to-red-500">
+              <span className="text-5xl font-bold text-orange-500">
                 {userName.charAt(0).toUpperCase()}
               </span>
             )}
 
-            {/* Overlay con botones */}
-            {!disabled && (
+            {!disabled && !isUploading && (
               <motion.div 
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                initial={{ opacity: 0 }}
-                whileHover={{ opacity: 1 }}
               >
                 <div className="flex space-x-2">
-                  <motion.button
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
+                  <button
+                    type="button"
                     className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -175,12 +148,11 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                     }}
                   >
                     <Camera className="w-5 h-5 text-white" />
-                  </motion.button>
+                  </button>
 
                   {currentAvatar && onDelete && (
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
+                    <button
+                      type="button"
                       className="w-10 h-10 bg-red-500/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -188,13 +160,12 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                       }}
                     >
                       <Trash2 className="w-5 h-5 text-white" />
-                    </motion.button>
+                    </button>
                   )}
                 </div>
               </motion.div>
             )}
 
-            {/* Drag & Drop overlay */}
             {dragActive && (
               <div className="absolute inset-0 bg-blue-500/60 backdrop-blur-sm flex items-center justify-center z-10">
                 <Upload className="w-8 h-8 text-white animate-bounce" />
@@ -202,20 +173,20 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
             )}
           </div>
           
-          {/* Botón de cámara mejorado */}
-          {!disabled && (
-            <motion.button 
-              className="absolute bottom-2 right-2 w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-xl hover:shadow-2xl transition-all group"
-              whileHover={{ scale: 1.1, rotate: 15 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => fileInputRef.current?.click()}
+          {!disabled && !isUploading && (
+            <button 
+              type="button"
+              className="absolute bottom-0 right-0 w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center shadow-xl hover:bg-orange-600 transition-all"
+              onClick={(e) => {
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
             >
-              <Camera className="w-5 h-5 text-white group-hover:scale-110 transition-transform" />
-            </motion.button>
+              <Camera className="w-5 h-5 text-white" />
+            </button>
           )}
         </motion.div>
 
-        {/* Input oculto */}
         <input
           ref={fileInputRef}
           type="file"
@@ -228,7 +199,6 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
           disabled={disabled || isUploading}
         />
 
-        {/* Instrucciones */}
         {!disabled && (
           <p className="text-sm text-gray-500 mt-4 text-center">
             Haz clic o arrastra una imagen<br />
@@ -237,7 +207,6 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         )}
       </div>
 
-      {/* Modal de confirmación para eliminar */}
       <AnimatePresence>
         {showDeleteConfirm && (
           <motion.div
@@ -254,22 +223,23 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
               className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-gradient-to-br from-red-400 to-red-500 p-6 text-center">
+              <div className="bg-red-500 p-6 text-center">
                 <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
                   <Trash2 className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-white">
-                  ¿Eliminar foto de perfil?
+                  Eliminar foto de perfil
                 </h3>
               </div>
 
               <div className="p-6">
                 <p className="text-center text-gray-600 mb-6">
-                  Esta acción no se puede deshacer. Tu foto de perfil será eliminada permanentemente.
+                  Esta accion no se puede deshacer. Tu foto de perfil sera eliminada permanentemente.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
+                    type="button"
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={isUploading}
                     className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-2xl font-semibold transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50"
@@ -277,9 +247,10 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                     Cancelar
                   </button>
                   <button
+                    type="button"
                     onClick={handleDelete}
                     disabled={isUploading}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-2xl font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:scale-105 disabled:opacity-50 flex items-center justify-center"
+                    className="flex-1 px-6 py-3 bg-red-500 text-white rounded-2xl font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:bg-red-600 disabled:opacity-50 flex items-center justify-center"
                   >
                     {isUploading ? (
                       <>

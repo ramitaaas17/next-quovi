@@ -1,21 +1,11 @@
+// frontend/src/hooks/usePerfil.ts
+
 import { useState } from 'react';
-import perfilService, { Perfil, ActualizarPerfilData, CambiarPasswordData } from '@/services/perfilService';
+import perfilService, { Perfil, ActualizarPerfilData } from '@/services/perfilService';
 
-interface UsePerfilReturn {
-  perfil: Perfil | null;
-  cargando: boolean;
-  error: string | null;
-  obtenerPerfil: () => Promise<void>;
-  actualizarPerfil: (datos: ActualizarPerfilData) => Promise<void>;
-  subirFoto: (file: File) => Promise<void>;
-  eliminarFoto: () => Promise<void>;
-  cambiarPassword: (datos: CambiarPasswordData) => Promise<void>;
-  eliminarCuenta: (password: string) => Promise<void>;
-}
-
-export const usePerfil = (): UsePerfilReturn => {
+export const usePerfil = () => {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
-  const [cargando, setCargando] = useState<boolean>(false);
+  const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const obtenerPerfil = async () => {
@@ -25,8 +15,8 @@ export const usePerfil = (): UsePerfilReturn => {
       const data = await perfilService.obtenerPerfil();
       setPerfil(data);
     } catch (err: any) {
-      setError(err.message);
-      console.error('Error al obtener perfil:', err);
+      setError(err.message || 'Error al obtener perfil');
+      console.error('Error obteniendo perfil:', err);
     } finally {
       setCargando(false);
     }
@@ -39,7 +29,7 @@ export const usePerfil = (): UsePerfilReturn => {
       const data = await perfilService.actualizarPerfil(datos);
       setPerfil(data);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Error al actualizar perfil');
       throw err;
     } finally {
       setCargando(false);
@@ -53,7 +43,7 @@ export const usePerfil = (): UsePerfilReturn => {
       const data = await perfilService.subirFotoPerfil(file);
       setPerfil(data);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Error al subir foto');
       throw err;
     } finally {
       setCargando(false);
@@ -67,34 +57,7 @@ export const usePerfil = (): UsePerfilReturn => {
       const data = await perfilService.eliminarFotoPerfil();
       setPerfil(data);
     } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  const cambiarPassword = async (datos: CambiarPasswordData) => {
-    try {
-      setCargando(true);
-      setError(null);
-      await perfilService.cambiarPassword(datos);
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  const eliminarCuenta = async (password: string) => {
-    try {
-      setCargando(true);
-      setError(null);
-      await perfilService.eliminarCuenta(password);
-      setPerfil(null);
-    } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Error al eliminar foto');
       throw err;
     } finally {
       setCargando(false);
@@ -109,9 +72,5 @@ export const usePerfil = (): UsePerfilReturn => {
     actualizarPerfil,
     subirFoto,
     eliminarFoto,
-    cambiarPassword,
-    eliminarCuenta,
   };
 };
-
-export default usePerfil;

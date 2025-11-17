@@ -6,7 +6,9 @@ import { ArrowLeft, Edit3, Loader2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/landing/Navigation';
 import ParticleBackground from '@/components/common/Particles';
-import { AvatarUpload, ProfileForm, ProfileHeader } from '@/components/profile';
+import AvatarUpload from '@/components/profile/AvatarUpload';
+import ProfileForm from '@/components/profile/ProfileForm';
+import ProfileHeader from '@/components/profile/ProfileHeader';
 import { usePerfil } from '@/hooks/usePerfil';
 
 export default function ProfilePage() {

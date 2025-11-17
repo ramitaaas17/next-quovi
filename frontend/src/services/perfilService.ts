@@ -2,7 +2,6 @@
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
-// Tipos
 export interface Perfil {
   idUsuario: number;
   nombreUsuario: string;
@@ -26,7 +25,6 @@ export interface CambiarPasswordData {
   passwordNueva: string;
 }
 
-// Helper para obtener el token
 const getToken = (): string | null => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('token');
@@ -34,7 +32,6 @@ const getToken = (): string | null => {
   return null;
 };
 
-// Helper para headers con autenticación
 const getAuthHeaders = (): HeadersInit => {
   const token = getToken();
   return {
@@ -44,7 +41,6 @@ const getAuthHeaders = (): HeadersInit => {
 };
 
 class PerfilService {
-  // Obtener perfil del usuario autenticado
   async obtenerPerfil(): Promise<Perfil> {
     const response = await fetch(`${API_URL}/perfil`, {
       method: 'GET',
@@ -60,7 +56,6 @@ class PerfilService {
     return data.data;
   }
 
-  // Actualizar información del perfil
   async actualizarPerfil(datos: ActualizarPerfilData): Promise<Perfil> {
     const response = await fetch(`${API_URL}/perfil`, {
       method: 'PUT',
@@ -75,7 +70,6 @@ class PerfilService {
 
     const data = await response.json();
     
-    // Actualizar localStorage
     if (typeof window !== 'undefined') {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       localStorage.setItem('user', JSON.stringify({ ...user, ...data.data }));
@@ -84,7 +78,6 @@ class PerfilService {
     return data.data;
   }
 
-  // Subir foto de perfil (multipart)
   async subirFotoPerfil(file: File): Promise<Perfil> {
     const formData = new FormData();
     formData.append('foto', file);
@@ -105,40 +98,14 @@ class PerfilService {
 
     const data = await response.json();
     
-    // Actualizar localStorage
     if (typeof window !== 'undefined') {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      localStorage.setItem('user', JSON.stringify({ ...user, ...data.data }));
+      localStorage.setItem('user', JSON.stringify({ ...user, foto: data.data.foto }));
     }
 
     return data.data;
   }
 
-  // Subir foto de perfil (base64)
-  async subirFotoPerfilBase64(imageData: string, extension: string): Promise<Perfil> {
-    const response = await fetch(`${API_URL}/perfil/foto/base64`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify({ imageData, extension }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Error al subir foto');
-    }
-
-    const data = await response.json();
-    
-    // Actualizar localStorage
-    if (typeof window !== 'undefined') {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      localStorage.setItem('user', JSON.stringify({ ...user, ...data.data }));
-    }
-
-    return data.data;
-  }
-
-  // Eliminar foto de perfil
   async eliminarFotoPerfil(): Promise<Perfil> {
     const response = await fetch(`${API_URL}/perfil/foto`, {
       method: 'DELETE',
@@ -152,16 +119,14 @@ class PerfilService {
 
     const data = await response.json();
     
-    // Actualizar localStorage
     if (typeof window !== 'undefined') {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
-      localStorage.setItem('user', JSON.stringify({ ...user, ...data.data }));
+      localStorage.setItem('user', JSON.stringify({ ...user, foto: '' }));
     }
 
     return data.data;
   }
 
-  // Cambiar contraseña
   async cambiarPassword(datos: CambiarPasswordData): Promise<void> {
     const response = await fetch(`${API_URL}/perfil/cambiar-password`, {
       method: 'POST',
@@ -175,7 +140,6 @@ class PerfilService {
     }
   }
 
-  // Actualizar nombre de usuario
   async actualizarNombreUsuario(nombreUsuario: string): Promise<Perfil> {
     const response = await fetch(`${API_URL}/perfil/nombre-usuario`, {
       method: 'PUT',
@@ -190,7 +154,6 @@ class PerfilService {
 
     const data = await response.json();
     
-    // Actualizar localStorage
     if (typeof window !== 'undefined') {
       const user = JSON.parse(localStorage.getItem('user') || '{}');
       localStorage.setItem('user', JSON.stringify({ ...user, ...data.data }));
@@ -199,7 +162,6 @@ class PerfilService {
     return data.data;
   }
 
-  // Eliminar cuenta
   async eliminarCuenta(password: string): Promise<void> {
     const response = await fetch(`${API_URL}/perfil/cuenta`, {
       method: 'DELETE',
@@ -212,7 +174,6 @@ class PerfilService {
       throw new Error(error.message || 'Error al eliminar cuenta');
     }
 
-    // Limpiar localStorage
     if (typeof window !== 'undefined') {
       localStorage.removeItem('user');
       localStorage.removeItem('token');
