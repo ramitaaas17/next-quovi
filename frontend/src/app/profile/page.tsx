@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Edit3, Loader2 } from 'lucide-react';
+import { ArrowLeft, Edit3, Loader2, AlertCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Navigation from '@/components/landing/Navigation';
 import ParticleBackground from '@/components/common/Particles';
@@ -12,6 +12,9 @@ import { usePerfil } from '@/hooks/usePerfil';
 export default function ProfilePage() {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  
   const { 
     perfil, 
     cargando, 
@@ -23,22 +26,34 @@ export default function ProfilePage() {
   } = usePerfil();
 
   useEffect(() => {
-    // Verificar autenticación
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push('/');
-        return;
+    const checkAuth = () => {
+      if (typeof window !== 'undefined') {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          router.push('/');
+          return;
+        }
+        setIsAuthenticated(true);
+        setIsCheckingAuth(false);
       }
-    }
+    };
 
-    // Cargar perfil
-    obtenerPerfil();
-  }, [router, obtenerPerfil]);
+    checkAuth();
+  }, [router]);
+
+  useEffect(() => {
+    if (isAuthenticated && !perfil && !cargando) {
+      obtenerPerfil();
+    }
+  }, [isAuthenticated, perfil, cargando]);
 
   const handleSave = async (data: { nombre: string; apellido: string; email: string }) => {
-    await actualizarPerfil(data);
-    setIsEditing(false);
+    try {
+      await actualizarPerfil(data);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+    }
   };
 
   const handleCancel = () => {
@@ -46,15 +61,22 @@ export default function ProfilePage() {
   };
 
   const handleUploadAvatar = async (file: File) => {
-    await subirFoto(file);
+    try {
+      await subirFoto(file);
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+    }
   };
 
   const handleDeleteAvatar = async () => {
-    await eliminarFoto();
+    try {
+      await eliminarFoto();
+    } catch (error) {
+      console.error('Error deleting avatar:', error);
+    }
   };
 
-  // Loading state
-  if (cargando && !perfil) {
+  if (isCheckingAuth || (cargando && !perfil)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-pink-50">
         <div className="flex flex-col items-center space-y-4">
@@ -62,44 +84,56 @@ export default function ProfilePage() {
             <div className="animate-spin rounded-full h-16 w-16 border-4 border-orange-200"></div>
             <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-orange-500 absolute top-0"></div>
           </div>
-          <p className="text-gray-600 font-medium">Cargando perfil...</p>
+          <p className="text-gray-600 font-medium">
+            {isCheckingAuth ? 'Verificando sesión...' : 'Cargando perfil...'}
+          </p>
         </div>
       </div>
     );
   }
 
-  // Error state
   if (error && !perfil) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 to-pink-50">
-        <div className="text-center">
-          <p className="text-red-600 font-medium mb-4">{error}</p>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="px-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors"
-          >
-            Volver al inicio
-          </button>
+        <div className="max-w-md w-full mx-4">
+          <div className="bg-white rounded-3xl shadow-2xl p-8 text-center">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="w-8 h-8 text-red-600" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-800 mb-2">Error al cargar perfil</h2>
+            <p className="text-red-600 mb-6">{error}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => obtenerPerfil()}
+                className="flex-1 px-6 py-3 bg-orange-500 text-white rounded-xl font-semibold hover:bg-orange-600 transition-colors"
+              >
+                Reintentar
+              </button>
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Volver
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!perfil) return null;
+  if (!perfil || !isAuthenticated) return null;
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Particle Background */}
       <ParticleBackground 
         particleCount={30}
         colors={['#fb923c', '#f97316', '#ea580c', '#fdba74', '#fed7aa']}
         className="absolute inset-0"
       />
       
-      {/* Background con gradiente mejorado */}
       <div className="absolute inset-0 bg-gradient-to-br from-orange-50/90 via-amber-50/90 to-red-50/90 backdrop-blur-sm"></div>
 
-      {/* Decoraciones flotantes */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
           className="absolute top-20 right-10 w-32 h-32 bg-orange-300/20 rounded-full blur-3xl"
@@ -129,9 +163,7 @@ export default function ProfilePage() {
 
       <Navigation />
 
-      {/* Main Content */}
       <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 md:pt-32 pb-24">
-        {/* Back Button */}
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -144,7 +176,6 @@ export default function ProfilePage() {
           <span className="font-semibold">Volver al inicio</span>
         </motion.button>
 
-        {/* Profile Card */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -155,14 +186,12 @@ export default function ProfilePage() {
             boxShadow: '0 25px 50px -12px rgba(251, 146, 60, 0.3), 0 0 0 1px rgba(251, 146, 60, 0.1), inset 0 1px 0 rgba(255,255,255,0.6)'
           }}
         >
-          {/* Header */}
           <ProfileHeader 
             nombreCompleto={`${perfil.nombre} ${perfil.apellido}`}
             fechaRegistro={perfil.fechaRegistro}
             emailVerificado={perfil.emailVerificado}
           />
 
-          {/* Avatar Section */}
           <div className="flex justify-center -mt-16 pb-6 relative z-10">
             <AvatarUpload 
               currentAvatar={perfil.foto}
@@ -173,7 +202,6 @@ export default function ProfilePage() {
             />
           </div>
 
-          {/* Content */}
           <div className="p-8 md:p-10">
             <AnimatePresence mode="wait">
               {isEditing ? (
@@ -201,9 +229,7 @@ export default function ProfilePage() {
                   exit={{ opacity: 0 }}
                   className="space-y-6"
                 >
-                  {/* Display Info */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Nombre */}
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-3">
                         Nombre
@@ -213,7 +239,6 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {/* Apellido */}
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-3">
                         Apellido
@@ -223,7 +248,6 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {/* Email */}
                     <div className="md:col-span-2">
                       <label className="block text-sm font-bold text-gray-700 mb-3">
                         Correo electrónico
@@ -233,7 +257,6 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {/* Nombre de usuario */}
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-3">
                         Nombre de usuario
@@ -243,7 +266,6 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {/* Proveedor */}
                     <div>
                       <label className="block text-sm font-bold text-gray-700 mb-3">
                         Tipo de cuenta
@@ -254,7 +276,6 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  {/* Edit Button */}
                   <motion.div 
                     className="flex justify-center pt-4 mt-8 border-t border-orange-200/30"
                     initial={{ opacity: 0 }}
@@ -276,7 +297,6 @@ export default function ProfilePage() {
           </div>
         </motion.div>
 
-        {/* Loading Overlay */}
         <AnimatePresence>
           {cargando && (
             <motion.div

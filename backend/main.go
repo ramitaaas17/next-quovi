@@ -16,30 +16,25 @@ import (
 )
 
 func main() {
-	// Cargar variables de entorno
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("WARNING: .env file not found, using system environment variables")
 	}
 
-	// Configuración de la base de datos
 	dbUser := getEnv("DB_USER", "quovi_user")
 	dbPassword := getEnv("DB_PASSWORD", "quovi_secret")
 	dbHost := getEnv("DB_HOST", "db")
 	dbPort := getEnv("DB_PORT", "3306")
 	dbName := getEnv("DB_NAME", "quovi_db")
 
-	// Construir DSN para MySQL
 	dsn := dbUser + ":" + dbPassword + "@tcp(" + dbHost + ":" + dbPort + ")/" + dbName + "?charset=utf8mb4&parseTime=True&loc=Local"
 
 	log.Println("Connecting to database...")
 	log.Printf("Host: %s:%s", dbHost, dbPort)
 	log.Printf("Database: %s", dbName)
 
-	// Inicializar base de datos
 	dbManager := repository.New(dsn)
 
-	// Verificar tablas
 	log.Println("Waiting for database to be ready...")
 	time.Sleep(2 * time.Second)
 
@@ -52,29 +47,25 @@ func main() {
 		}
 	}
 
-	// Inicializar servicios
 	jwtSecret := getEnv("JWT_SECRET", "mi-secreto-super-seguro-cambiar-en-produccion")
 	authService := services.NewAuthService(dbManager, jwtSecret)
 	restauranteService := services.NewRestauranteService(dbManager)
+	perfilService := services.NewPerfilService(dbManager)
 
-	// Inicializar handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	restauranteHandler := handlers.NewRestauranteHandler(restauranteService)
+	perfilHandler := handlers.NewPerfilHandler(perfilService)
 
-	// Configurar Gin en modo release para producción
 	if getEnv("ENVIRONMENT", "development") == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	// Configurar Gin
 	router := gin.Default()
 
-	// Middlewares de seguridad globales
 	router.Use(middleware.SecurityHeaders())
 	router.Use(middleware.InputSanitization())
 	router.Use(middleware.MaxBodySize(5 * 1024 * 1024))
 
-	// Configurar CORS
 	corsOrigins := getCORSOrigins()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     corsOrigins,
@@ -84,10 +75,10 @@ func main() {
 		AllowCredentials: true,
 	}))
 
-	// API Routes
+	router.Static("/uploads", "./uploads")
+
 	api := router.Group("/api")
 	{
-		// Auth routes
 		authRateLimiter := middleware.NewRateLimiter(5)
 		auth := api.Group("/auth")
 		auth.Use(middleware.ValidateContentType("application/json"))
@@ -99,7 +90,6 @@ func main() {
 			auth.POST("/logout", authHandler.Logout)
 		}
 
-		// Public restaurant routes
 		restaurantes := api.Group("/restaurantes")
 		{
 			restaurantes.GET("", restauranteHandler.ObtenerTodosLosRestaurantes)
@@ -108,27 +98,28 @@ func main() {
 			restaurantes.POST("/buscar", restauranteHandler.BuscarRestaurantes)
 		}
 
-		// Categories routes
 		categorias := api.Group("/categorias")
 		{
 			categorias.GET("", restauranteHandler.ObtenerCategorias)
 			categorias.GET("/:id/restaurantes", restauranteHandler.ObtenerRestaurantesPorCategoria)
 		}
 
-		// Cities routes
 		api.GET("/ciudades", restauranteHandler.ObtenerCiudades)
 
-		// Protected routes
 		protected := api.Group("/")
 		protected.Use(authHandler.VerificarToken)
 		{
-			protected.GET("/perfil", func(c *gin.Context) {
-				userID := c.GetUint("userID")
-				c.JSON(200, gin.H{
-					"message": "Protected route",
-					"userID":  userID,
-				})
-			})
+			perfil := protected.Group("/perfil")
+			{
+				perfil.GET("", perfilHandler.ObtenerPerfil)
+				perfil.PUT("", perfilHandler.ActualizarPerfil)
+				perfil.POST("/foto", perfilHandler.SubirFotoPerfil)
+				perfil.POST("/foto/base64", perfilHandler.SubirFotoPerfilBase64)
+				perfil.DELETE("/foto", perfilHandler.EliminarFotoPerfil)
+				perfil.POST("/cambiar-password", perfilHandler.CambiarPassword)
+				perfil.PUT("/nombre-usuario", perfilHandler.ActualizarNombreUsuario)
+				perfil.DELETE("/cuenta", perfilHandler.EliminarCuenta)
+			}
 
 			favoritos := protected.Group("/favoritos")
 			{
@@ -139,7 +130,6 @@ func main() {
 		}
 	}
 
-	// Health check
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
@@ -148,44 +138,16 @@ func main() {
 		})
 	})
 
-	// Root endpoint
 	router.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "Quovi API",
 			"version": "1.0.0",
 			"status":  "running",
-			"endpoints": gin.H{
-				"health": "GET /health",
-				"auth": gin.H{
-					"register": "POST /api/auth/register",
-					"login":    "POST /api/auth/login",
-					"google":   "POST /api/auth/login/google",
-					"logout":   "POST /api/auth/logout",
-				},
-				"restaurantes": gin.H{
-					"all":      "GET /api/restaurantes",
-					"byId":     "GET /api/restaurantes/:id",
-					"cercanos": "POST /api/restaurantes/cercanos",
-					"buscar":   "POST /api/restaurantes/buscar",
-				},
-				"categorias": gin.H{
-					"all":          "GET /api/categorias",
-					"restaurantes": "GET /api/categorias/:id/restaurantes",
-				},
-				"ciudades": "GET /api/ciudades",
-				"favoritos": gin.H{
-					"get":    "GET /api/favoritos (auth required)",
-					"add":    "POST /api/favoritos (auth required)",
-					"remove": "DELETE /api/favoritos/:id (auth required)",
-				},
-			},
 		})
 	})
 
-	// Start server
 	port := getEnv("PORT", "8080")
 	log.Printf("Server starting on port %s", port)
-	log.Printf("Health check: http://localhost:%s/health", port)
 
 	if err := router.Run(":" + port); err != nil {
 		log.Fatalf("FATAL: Failed to start server: %v", err)

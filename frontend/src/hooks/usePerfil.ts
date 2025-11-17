@@ -1,5 +1,4 @@
-// frontend/src/hooks/usePerfil.ts
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import perfilService, { Perfil, ActualizarPerfilData, CambiarPasswordData } from '@/services/perfilService';
 
 interface UsePerfilReturn {
@@ -19,7 +18,7 @@ export const usePerfil = (): UsePerfilReturn => {
   const [cargando, setCargando] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const obtenerPerfil = useCallback(async () => {
+  const obtenerPerfil = async () => {
     try {
       setCargando(true);
       setError(null);
@@ -31,9 +30,9 @@ export const usePerfil = (): UsePerfilReturn => {
     } finally {
       setCargando(false);
     }
-  }, []);
+  };
 
-  const actualizarPerfil = useCallback(async (datos: ActualizarPerfilData) => {
+  const actualizarPerfil = async (datos: ActualizarPerfilData) => {
     try {
       setCargando(true);
       setError(null);
@@ -45,9 +44,9 @@ export const usePerfil = (): UsePerfilReturn => {
     } finally {
       setCargando(false);
     }
-  }, []);
+  };
 
-  const subirFoto = useCallback(async (file: File) => {
+  const subirFoto = async (file: File) => {
     try {
       setCargando(true);
       setError(null);
@@ -59,9 +58,9 @@ export const usePerfil = (): UsePerfilReturn => {
     } finally {
       setCargando(false);
     }
-  }, []);
+  };
 
-  const eliminarFoto = useCallback(async () => {
+  const eliminarFoto = async () => {
     try {
       setCargando(true);
       setError(null);
@@ -73,9 +72,9 @@ export const usePerfil = (): UsePerfilReturn => {
     } finally {
       setCargando(false);
     }
-  }, []);
+  };
 
-  const cambiarPassword = useCallback(async (datos: CambiarPasswordData) => {
+  const cambiarPassword = async (datos: CambiarPasswordData) => {
     try {
       setCargando(true);
       setError(null);
@@ -86,9 +85,9 @@ export const usePerfil = (): UsePerfilReturn => {
     } finally {
       setCargando(false);
     }
-  }, []);
+  };
 
-  const eliminarCuenta = useCallback(async (password: string) => {
+  const eliminarCuenta = async (password: string) => {
     try {
       setCargando(true);
       setError(null);
@@ -100,7 +99,7 @@ export const usePerfil = (): UsePerfilReturn => {
     } finally {
       setCargando(false);
     }
-  }, []);
+  };
 
   return {
     perfil,
