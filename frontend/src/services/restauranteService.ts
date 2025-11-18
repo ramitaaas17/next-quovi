@@ -79,6 +79,7 @@ export interface RestauranteConDistancia extends Restaurante {
   tiempoEstimado: string;
   estaAbierto: boolean;
   horarioHoy?: string;
+  esFavorito?: boolean;
 }
 
 export interface ObtenerRestaurantesCercanosRequest {
@@ -117,7 +118,7 @@ class RestauranteService {
   // Obtener todos los restaurantes
   async obtenerTodosLosRestaurantes(): Promise<Restaurante[]> {
     try {
-      console.log('📍 Obteniendo todos los restaurantes...');
+      console.log(' Obteniendo todos los restaurantes...');
       
       const response = await fetch(`${API_BASE_URL}/restaurantes`, {
         method: 'GET',
@@ -129,10 +130,10 @@ class RestauranteService {
       }
 
       const data = await response.json();
-      console.log('✅ Restaurantes obtenidos:', data.total);
+      console.log(' Restaurantes obtenidos:', data.total);
       return data.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo restaurantes:', error);
+      console.error(' Error obteniendo restaurantes:', error);
       throw error;
     }
   }
@@ -152,10 +153,10 @@ class RestauranteService {
       }
 
       const data = await response.json();
-      console.log('✅ Restaurante obtenido:', data.data.nombre);
+      console.log(' Restaurante obtenido:', data.data.nombre);
       return data.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo restaurante:', error);
+      console.error(' Error obteniendo restaurante:', error);
       throw error;
     }
   }
@@ -180,10 +181,10 @@ class RestauranteService {
       }
 
       const data = await response.json();
-      console.log('✅ Restaurantes cercanos encontrados:', data.total);
+      console.log(' Restaurantes cercanos encontrados:', data.total);
       return data.data;
     } catch (error: any) {
-      console.error('❌ Error buscando restaurantes cercanos:', error);
+      console.error(' Error buscando restaurantes cercanos:', error);
       throw error;
     }
   }
@@ -216,10 +217,10 @@ class RestauranteService {
       }
 
       const data = await response.json();
-      console.log('✅ Búsqueda completada:', data.total, 'resultados');
+      console.log(' Búsqueda completada:', data.total, 'resultados');
       return data.data;
     } catch (error: any) {
-      console.error('❌ Error en búsqueda:', error);
+      console.error(' Error en búsqueda:', error);
       throw error;
     }
   }
@@ -275,7 +276,7 @@ class RestauranteService {
       const data = await response.json();
       return data.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo restaurantes por categoría:', error);
+      console.error(' Error obteniendo restaurantes por categoría:', error);
       throw error;
     }
   }
@@ -297,7 +298,7 @@ class RestauranteService {
       const data = await response.json();
       return data.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo ciudades:', error);
+      console.error(' Error obteniendo ciudades:', error);
       throw error;
     }
   }
@@ -329,7 +330,7 @@ class RestauranteService {
       const data = await response.json();
       return data.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo favoritos:', error);
+      console.error(' Error obteniendo favoritos:', error);
       throw error;
     }
   }
@@ -337,7 +338,7 @@ class RestauranteService {
   // Agregar restaurante a favoritos
   async agregarFavorito(idRestaurante: number): Promise<void> {
     try {
-      console.log('❤️ Agregando a favoritos:', idRestaurante);
+      console.log(' Agregando a favoritos:', idRestaurante);
       
       const response = await fetch(`${API_BASE_URL}/favoritos`, {
         method: 'POST',
@@ -350,9 +351,9 @@ class RestauranteService {
         throw new Error(data.message || 'Error al agregar favorito');
       }
 
-      console.log('✅ Agregado a favoritos exitosamente');
+      console.log(' Agregado a favoritos exitosamente');
     } catch (error: any) {
-      console.error('❌ Error agregando favorito:', error);
+      console.error(' Error agregando favorito:', error);
       throw error;
     }
   }
@@ -360,7 +361,7 @@ class RestauranteService {
   // Eliminar restaurante de favoritos
   async eliminarFavorito(idRestaurante: number): Promise<void> {
     try {
-      console.log('💔 Eliminando de favoritos:', idRestaurante);
+      console.log(' Eliminando de favoritos:', idRestaurante);
       
       const response = await fetch(`${API_BASE_URL}/favoritos/${idRestaurante}`, {
         method: 'DELETE',
@@ -371,9 +372,9 @@ class RestauranteService {
         throw new Error('Error al eliminar favorito');
       }
 
-      console.log('✅ Eliminado de favoritos exitosamente');
+      console.log(' Eliminado de favoritos exitosamente');
     } catch (error: any) {
-      console.error('❌ Error eliminando favorito:', error);
+      console.error(' Error eliminando favorito:', error);
       throw error;
     }
   }

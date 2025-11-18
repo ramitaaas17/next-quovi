@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Star, Clock, Phone, Globe, Navigation as NavigationIcon, Heart } from 'lucide-react';
+import { X, MapPin, Star, Clock, Phone, Globe, Navigation as NavigationIcon } from 'lucide-react';
 import DistanceInfo from './DistanceInfo';
+import FavoriteButton from './FavoriteButton';
 
 interface RestaurantDetailsPanelProps {
   isOpen: boolean;
@@ -24,6 +25,7 @@ interface RestaurantDetailsPanelProps {
     openingHours?: string;
     price: string;
     description?: string;
+    isFavorite?: boolean;
   } | null;
   onShowRoute: () => void;
 }
@@ -40,7 +42,6 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -49,7 +50,6 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
             onClick={onClose}
           />
 
-          {/* Panel deslizante */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
@@ -57,7 +57,6 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed right-0 top-0 h-full w-full sm:w-[500px] bg-white shadow-2xl z-50 overflow-y-auto"
           >
-            {/* Header con imagen */}
             <div className="relative h-64 bg-gradient-to-br from-orange-100 to-red-100">
               {restaurant.imageUrl ? (
                 <img 
@@ -71,15 +70,12 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
                 </div>
               )}
 
-              {/* Botones superiores */}
               <div className="absolute top-4 right-4 flex space-x-2">
-                <motion.button
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  className="w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg"
-                >
-                  <Heart className="w-5 h-5 text-gray-600" />
-                </motion.button>
+                <FavoriteButton
+                  restaurantId={restaurant.id}
+                  initialIsFavorite={restaurant.isFavorite || false}
+                  size="md"
+                />
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
@@ -90,7 +86,6 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
                 </motion.button>
               </div>
 
-              {/* Badge de estado */}
               <div className="absolute bottom-4 left-4">
                 <span className={`px-4 py-2 rounded-full text-sm font-semibold shadow-lg ${
                   restaurant.isOpenNow 
@@ -102,9 +97,7 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
               </div>
             </div>
 
-            {/* Contenido */}
             <div className="p-6 space-y-6">
-              {/* Título y rating */}
               <div>
                 <h2 className="text-2xl font-bold text-gray-800 mb-2">{restaurant.name}</h2>
                 <div className="flex items-center space-x-4">
@@ -120,14 +113,12 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
                 </div>
               </div>
 
-              {/* Distancia Info Component */}
               <DistanceInfo 
                 distance={restaurant.distance}
                 estimatedTime={restaurant.estimatedTime}
                 userLocation="Tu ubicación"
               />
 
-              {/* Botón de ruta grande */}
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -138,7 +129,6 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
                 <span>Trazar ruta</span>
               </motion.button>
 
-              {/* Descripción */}
               {restaurant.description && (
                 <div>
                   <h3 className="font-bold text-gray-800 mb-2">Acerca de</h3>
@@ -146,11 +136,9 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
                 </div>
               )}
 
-              {/* Información de contacto */}
               <div className="space-y-3">
                 <h3 className="font-bold text-gray-800">Información</h3>
                 
-                {/* Dirección */}
                 <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-xl">
                   <MapPin className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
                   <div>
@@ -159,7 +147,6 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
                   </div>
                 </div>
 
-                {/* Horario */}
                 {restaurant.openingHours && (
                   <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-xl">
                     <Clock className="w-5 h-5 text-orange-500 flex-shrink-0 mt-0.5" />
@@ -170,7 +157,6 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
                   </div>
                 )}
 
-                {/* Teléfono */}
                 {restaurant.phone && (
                   <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                     <Phone className="w-5 h-5 text-orange-500" />
@@ -183,7 +169,6 @@ const RestaurantDetailsPanel: React.FC<RestaurantDetailsPanelProps> = ({
                   </div>
                 )}
 
-                {/* Sitio web */}
                 {restaurant.website && (
                   <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-xl">
                     <Globe className="w-5 h-5 text-orange-500" />

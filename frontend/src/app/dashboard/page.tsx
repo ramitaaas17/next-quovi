@@ -260,7 +260,32 @@ export default function MapDashboard() {
           10
         );
 
-        setRestaurantes(data);
+        const token = localStorage.getItem('token');
+        if (token) {
+          try {
+            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
+            const favResponse = await fetch(`${API_URL}/favoritos`, {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            const favData = await favResponse.json();
+            const favIds = new Set(favData.data?.map((r: any) => r.idRestaurante) || []);
+            
+            const dataConFavoritos = data.map(r => ({
+              ...r,
+              esFavorito: favIds.has(r.idRestaurante)
+            }));
+            
+            setRestaurantes(dataConFavoritos);
+          } catch (err) {
+            console.error('Error loading favorites:', err);
+            setRestaurantes(data);
+          }
+        } else {
+          setRestaurantes(data);
+        }
       } catch (error) {
         console.error('Error loading restaurants:', error);
       } finally {
@@ -270,7 +295,6 @@ export default function MapDashboard() {
 
     cargarRestaurantes();
   }, [ubicacion]);
-
   const handleSearch = async (searchTerm: string) => {
     if (!searchTerm.trim()) {
       if (ubicacion) {
