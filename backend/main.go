@@ -47,14 +47,22 @@ func main() {
 		}
 	}
 
+	// ========================================
+	// INYECCIÓN DE DEPENDENCIAS - SERVICES
+	// ========================================
 	jwtSecret := getEnv("JWT_SECRET", "mi-secreto-super-seguro-cambiar-en-produccion")
 	authService := services.NewAuthService(dbManager, jwtSecret)
 	restauranteService := services.NewRestauranteService(dbManager)
 	perfilService := services.NewPerfilService(dbManager)
+	platilloService := services.NewPlatilloService(dbManager) // ✅ NUEVO
 
+	// ========================================
+	// INYECCIÓN DE DEPENDENCIAS - HANDLERS
+	// ========================================
 	authHandler := handlers.NewAuthHandler(authService)
 	restauranteHandler := handlers.NewRestauranteHandler(restauranteService)
 	perfilHandler := handlers.NewPerfilHandler(perfilService)
+	platilloHandler := handlers.NewPlatilloHandler(platilloService) // ✅ NUEVO
 
 	if getEnv("ENVIRONMENT", "development") == "production" {
 		gin.SetMode(gin.ReleaseMode)
@@ -62,6 +70,9 @@ func main() {
 
 	router := gin.Default()
 
+	// ========================================
+	// MIDDLEWARE GLOBAL
+	// ========================================
 	router.Use(middleware.SecurityHeaders())
 	router.Use(middleware.InputSanitization())
 	router.Use(middleware.MaxBodySize(5 * 1024 * 1024))
@@ -77,8 +88,14 @@ func main() {
 
 	router.Static("/uploads", "./uploads")
 
+	// ========================================
+	// RUTAS DE LA API
+	// ========================================
 	api := router.Group("/api")
 	{
+		// ========================================
+		// AUTENTICACIÓN (público, con rate limiting)
+		// ========================================
 		authRateLimiter := middleware.NewRateLimiter(5)
 		auth := api.Group("/auth")
 		auth.Use(middleware.ValidateContentType("application/json"))
@@ -90,25 +107,40 @@ func main() {
 			auth.POST("/logout", authHandler.Logout)
 		}
 
+		// ========================================
+		// RESTAURANTES (público)
+		// ========================================
 		restaurantes := api.Group("/restaurantes")
 		{
 			restaurantes.GET("", restauranteHandler.ObtenerTodosLosRestaurantes)
 			restaurantes.GET("/:id", restauranteHandler.ObtenerRestaurantePorID)
+			restaurantes.GET("/:id/platillos", platilloHandler.ObtenerPlatillosPorRestaurante)       // ✅ NUEVO
+			restaurantes.GET("/:id/platillos/destacados", platilloHandler.ObtenerPlatilloDestacados) // ✅ NUEVO
 			restaurantes.POST("/cercanos", restauranteHandler.ObtenerRestaurantesCercanos)
 			restaurantes.POST("/buscar", restauranteHandler.BuscarRestaurantes)
 		}
 
+		// ========================================
+		// CATEGORÍAS (público)
+		// ========================================
 		categorias := api.Group("/categorias")
 		{
 			categorias.GET("", restauranteHandler.ObtenerCategorias)
 			categorias.GET("/:id/restaurantes", restauranteHandler.ObtenerRestaurantesPorCategoria)
 		}
 
+		// ========================================
+		// CIUDADES (público)
+		// ========================================
 		api.GET("/ciudades", restauranteHandler.ObtenerCiudades)
 
+		// ========================================
+		// RUTAS PROTEGIDAS (requieren autenticación)
+		// ========================================
 		protected := api.Group("/")
 		protected.Use(authHandler.VerificarToken)
 		{
+			// PERFIL
 			perfil := protected.Group("/perfil")
 			{
 				perfil.GET("", perfilHandler.ObtenerPerfil)
@@ -121,6 +153,7 @@ func main() {
 				perfil.DELETE("/cuenta", perfilHandler.EliminarCuenta)
 			}
 
+			// FAVORITOS
 			favoritos := protected.Group("/favoritos")
 			{
 				favoritos.GET("", restauranteHandler.ObtenerFavoritos)
@@ -130,6 +163,9 @@ func main() {
 		}
 	}
 
+	// ========================================
+	// RUTAS DE SALUD Y ROOT
+	// ========================================
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
@@ -146,6 +182,9 @@ func main() {
 		})
 	})
 
+	// ========================================
+	// INICIAR SERVIDOR
+	// ========================================
 	port := getEnv("PORT", "8080")
 	log.Printf("Server starting on port %s", port)
 

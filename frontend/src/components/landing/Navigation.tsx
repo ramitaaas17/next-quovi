@@ -63,7 +63,7 @@ const Navigation: React.FC = () => {
         {
           title: 'Favoritos',
           icon: <Heart className="w-5 h-5" />,
-          href: '/favorites',
+          href: '/favoritos',
         },
         {
           title: 'Perfil',
