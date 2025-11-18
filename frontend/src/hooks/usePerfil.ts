@@ -1,5 +1,3 @@
-// frontend/src/hooks/usePerfil.ts
-
 import { useState } from 'react';
 import perfilService, { Perfil, ActualizarPerfilData } from '@/services/perfilService';
 
@@ -40,7 +38,7 @@ export const usePerfil = () => {
     try {
       setCargando(true);
       setError(null);
-      const data = await perfilService.subirFotoPerfil(file);
+      const data = await perfilService.subirFotoPerfilBase64(file);
       setPerfil(data);
     } catch (err: any) {
       setError(err.message || 'Error al subir foto');

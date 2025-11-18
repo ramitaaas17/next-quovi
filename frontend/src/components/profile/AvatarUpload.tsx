@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Camera, Trash2, Upload, X } from 'lucide-react';
+import { Camera, Trash2, Upload, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
 
 interface AvatarUploadProps {
@@ -25,15 +25,18 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleFileSelect = (file: File) => {
+    setUploadError(null);
+
     if (!file.type.startsWith('image/')) {
-      alert('Por favor selecciona una imagen valida');
+      setUploadError('Por favor selecciona una imagen válida');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('La imagen no debe superar los 5MB');
+      setUploadError('La imagen no debe superar los 5MB');
       return;
     }
 
@@ -47,13 +50,19 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   };
 
   const handleUpload = async (file: File) => {
+    setUploadError(null);
+    
     try {
       setIsUploading(true);
       await onUpload(file);
       setPreview(null);
-    } catch (error) {
+      
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error: any) {
       console.error('Error al subir imagen:', error);
-      alert('Error al subir la imagen');
+      setUploadError(error.message || 'Error al subir la imagen');
       setPreview(null);
     } finally {
       setIsUploading(false);
@@ -63,13 +72,15 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const handleDelete = async () => {
     if (!onDelete) return;
     
+    setUploadError(null);
+    
     try {
       setIsUploading(true);
       await onDelete();
       setShowDeleteConfirm(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error al eliminar foto:', error);
-      alert('Error al eliminar la foto');
+      setUploadError(error.message || 'Error al eliminar la foto');
     } finally {
       setIsUploading(false);
     }
@@ -121,13 +132,29 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
             )}
 
             {displayImage ? (
-              <Image 
-                src={displayImage.startsWith('http') ? displayImage : `${apiUrl}${displayImage}`}
-                alt={userName}
-                fill
-                className="object-cover"
-                unoptimized
-              />
+              displayImage.startsWith('data:image') ? (
+                <img 
+                  src={displayImage}
+                  alt={userName}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    console.error('Error loading image');
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              ) : (
+                <Image 
+                  src={displayImage.startsWith('http') ? displayImage : `${apiUrl}${displayImage}`}
+                  alt={userName}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                  onError={(e) => {
+                    console.error('Error loading image');
+                    e.currentTarget.style.display = 'none';
+                  }}
+                />
+              )
             ) : (
               <span className="text-5xl font-bold text-orange-500">
                 {userName.charAt(0).toUpperCase()}
@@ -199,7 +226,18 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
           disabled={disabled || isUploading}
         />
 
-        {!disabled && (
+        {uploadError && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-2 max-w-xs"
+          >
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-red-600">{uploadError}</p>
+          </motion.div>
+        )}
+
+        {!disabled && !uploadError && (
           <p className="text-sm text-gray-500 mt-4 text-center">
             Haz clic o arrastra una imagen<br />
             <span className="text-xs">PNG, JPG, GIF hasta 5MB</span>
@@ -234,7 +272,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
 
               <div className="p-6">
                 <p className="text-center text-gray-600 mb-6">
-                  Esta accion no se puede deshacer. Tu foto de perfil sera eliminada permanentemente.
+                  Esta acción no se puede deshacer. Tu foto de perfil será eliminada permanentemente.
                 </p>
 
                 <div className="flex flex-col sm:flex-row gap-3">

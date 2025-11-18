@@ -1,8 +1,11 @@
 package services
 
 import (
+	"encoding/base64"
 	"errors"
+	"fmt"
 	"mime/multipart"
+	"strings"
 
 	"github.com/tuusuario/quovi/models"
 	"github.com/tuusuario/quovi/repository"
@@ -14,21 +17,17 @@ type PerfilService struct {
 	dbManager *repository.DBManager
 }
 
-// NewPerfilService crea una nueva instancia del servicio de perfil
 func NewPerfilService(dbManager *repository.DBManager) *PerfilService {
 	return &PerfilService{
 		dbManager: dbManager,
 	}
 }
 
-// ObtenerPerfil obtiene el perfil completo del usuario
 func (ps *PerfilService) ObtenerPerfil(userID uint) (*models.Usuario, error) {
 	return ps.dbManager.ObtenerUsuarioPorID(userID)
 }
 
-// ActualizarPerfil actualiza la información básica del perfil
 func (ps *PerfilService) ActualizarPerfil(userID uint, nombre, apellido, email string) (*models.Usuario, error) {
-	// Validar inputs
 	if err := utils.ValidarNombre(nombre, "Nombre"); err != nil {
 		return nil, err
 	}
@@ -43,93 +42,61 @@ func (ps *PerfilService) ActualizarPerfil(userID uint, nombre, apellido, email s
 		return nil, err
 	}
 
-	// Sanitizar inputs
 	nombre = utils.SanitizarInput(nombre)
 	apellido = utils.SanitizarInput(apellido)
 	email = utils.SanitizarInput(email)
 
-	// Actualizar en la base de datos
 	err := ps.dbManager.ActualizarPerfil(userID, nombre, apellido, email)
 	if err != nil {
 		return nil, err
 	}
 
-	// Obtener usuario actualizado
 	return ps.dbManager.ObtenerUsuarioPorID(userID)
 }
 
-// ActualizarFotoPerfil actualiza la foto de perfil del usuario
 func (ps *PerfilService) ActualizarFotoPerfil(userID uint, file *multipart.FileHeader) (*models.Usuario, error) {
-	// Obtener usuario actual para eliminar foto antigua si existe
-	usuario, err := ps.dbManager.ObtenerUsuarioPorID(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Guardar nueva imagen
-	imageURL, err := utils.GuardarImagen(file, userID)
-	if err != nil {
-		return nil, err
-	}
-
-	// Eliminar foto antigua si existe
-	if usuario.Foto != "" {
-		utils.EliminarImagen(usuario.Foto)
-	}
-
-	// Actualizar en la base de datos
-	err = ps.dbManager.ActualizarFotoPerfil(userID, imageURL)
-	if err != nil {
-		// Si falla la actualización, eliminar la nueva imagen
-		utils.EliminarImagen(imageURL)
-		return nil, err
-	}
-
-	// Obtener usuario actualizado
-	return ps.dbManager.ObtenerUsuarioPorID(userID)
+	return nil, errors.New("método no disponible, usar base64")
 }
 
-// ActualizarFotoPerfilBase64 actualiza la foto usando base64
 func (ps *PerfilService) ActualizarFotoPerfilBase64(userID uint, base64Image string, extension string) (*models.Usuario, error) {
-	// Obtener usuario actual
-	usuario, err := ps.dbManager.ObtenerUsuarioPorID(userID)
-	if err != nil {
-		return nil, err
+	if base64Image == "" {
+		return nil, errors.New("imagen base64 vacía")
 	}
 
-	// Guardar nueva imagen
-	imageURL, err := utils.GuardarBase64Image(base64Image, userID, extension)
+	imageData, err := base64.StdEncoding.DecodeString(base64Image)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("formato base64 inválido")
 	}
 
-	// Eliminar foto antigua si existe
-	if usuario.Foto != "" {
-		utils.EliminarImagen(usuario.Foto)
+	if len(imageData) > 5*1024*1024 {
+		return nil, errors.New("la imagen excede el tamaño máximo de 5MB")
 	}
 
-	// Actualizar en la base de datos
-	err = ps.dbManager.ActualizarFotoPerfil(userID, imageURL)
+	allowedExtensions := map[string]bool{
+		"jpg":  true,
+		"jpeg": true,
+		"png":  true,
+		"gif":  true,
+		"webp": true,
+	}
+
+	extension = strings.ToLower(extension)
+	if !allowedExtensions[extension] {
+		return nil, errors.New("formato de imagen no permitido")
+	}
+
+	base64URL := fmt.Sprintf("data:image/%s;base64,%s", extension, base64Image)
+
+	err = ps.dbManager.ActualizarFotoPerfil(userID, base64URL)
 	if err != nil {
-		utils.EliminarImagen(imageURL)
 		return nil, err
 	}
 
 	return ps.dbManager.ObtenerUsuarioPorID(userID)
 }
 
-// EliminarFotoPerfil elimina la foto de perfil del usuario
 func (ps *PerfilService) EliminarFotoPerfil(userID uint) (*models.Usuario, error) {
-	usuario, err := ps.dbManager.ObtenerUsuarioPorID(userID)
-	if err != nil {
-		return nil, err
-	}
-
-	if usuario.Foto != "" {
-		utils.EliminarImagen(usuario.Foto)
-	}
-
-	err = ps.dbManager.ActualizarFotoPerfil(userID, "")
+	err := ps.dbManager.ActualizarFotoPerfil(userID, "")
 	if err != nil {
 		return nil, err
 	}
@@ -137,43 +104,34 @@ func (ps *PerfilService) EliminarFotoPerfil(userID uint) (*models.Usuario, error
 	return ps.dbManager.ObtenerUsuarioPorID(userID)
 }
 
-// CambiarPassword cambia la contraseña del usuario
 func (ps *PerfilService) CambiarPassword(userID uint, passwordActual, passwordNueva string) error {
-	// Obtener usuario
 	usuario, err := ps.dbManager.ObtenerUsuarioPorID(userID)
 	if err != nil {
 		return err
 	}
 
-	// Si el usuario es de Google/OAuth, no tiene contraseña local
 	if usuario.Provider != "local" {
 		return errors.New("no puedes cambiar la contraseña de una cuenta de Google")
 	}
 
-	// Verificar contraseña actual
 	err = bcrypt.CompareHashAndPassword([]byte(usuario.Password), []byte(passwordActual))
 	if err != nil {
 		return errors.New("la contraseña actual es incorrecta")
 	}
 
-	// Validar nueva contraseña
 	if err := utils.ValidarPassword(passwordNueva); err != nil {
 		return err
 	}
 
-	// Hashear nueva contraseña
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(passwordNueva), 12)
 	if err != nil {
 		return errors.New("error al procesar la nueva contraseña")
 	}
 
-	// Actualizar en la base de datos
 	return ps.dbManager.CambiarPassword(userID, string(hashedPassword))
 }
 
-// ActualizarNombreUsuario actualiza el nombre de usuario
 func (ps *PerfilService) ActualizarNombreUsuario(userID uint, nombreUsuario string) (*models.Usuario, error) {
-	// Validar nombre de usuario
 	if len(nombreUsuario) < 3 {
 		return nil, errors.New("el nombre de usuario debe tener al menos 3 caracteres")
 	}
@@ -182,10 +140,8 @@ func (ps *PerfilService) ActualizarNombreUsuario(userID uint, nombreUsuario stri
 		return nil, errors.New("el nombre de usuario no puede exceder 30 caracteres")
 	}
 
-	// Sanitizar
 	nombreUsuario = utils.SanitizarInput(nombreUsuario)
 
-	// Actualizar
 	err := ps.dbManager.ActualizarNombreUsuario(userID, nombreUsuario)
 	if err != nil {
 		return nil, err
@@ -194,15 +150,12 @@ func (ps *PerfilService) ActualizarNombreUsuario(userID uint, nombreUsuario stri
 	return ps.dbManager.ObtenerUsuarioPorID(userID)
 }
 
-// EliminarCuenta desactiva la cuenta del usuario
 func (ps *PerfilService) EliminarCuenta(userID uint, password string) error {
-	// Obtener usuario
 	usuario, err := ps.dbManager.ObtenerUsuarioPorID(userID)
 	if err != nil {
 		return err
 	}
 
-	// Si es cuenta local, verificar contraseña
 	if usuario.Provider == "local" {
 		err = bcrypt.CompareHashAndPassword([]byte(usuario.Password), []byte(password))
 		if err != nil {
@@ -210,11 +163,5 @@ func (ps *PerfilService) EliminarCuenta(userID uint, password string) error {
 		}
 	}
 
-	// Eliminar foto si existe
-	if usuario.Foto != "" {
-		utils.EliminarImagen(usuario.Foto)
-	}
-
-	// Desactivar cuenta
 	return ps.dbManager.EliminarCuenta(userID)
 }

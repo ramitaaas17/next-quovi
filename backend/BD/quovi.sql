@@ -16,19 +16,16 @@ CREATE TABLE IF NOT EXISTS usuarios (
     password VARCHAR(255),
     nombre VARCHAR(100),
     apellido VARCHAR(100),
-    foto VARCHAR(500),
+    foto LONGTEXT,
     
-    -- Campos para OAuth
     googleId VARCHAR(255) UNIQUE,
     provider VARCHAR(20) DEFAULT 'local',
     emailVerificado BOOLEAN DEFAULT FALSE,
     
-    -- Metadatos
     fechaRegistro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     ultimoAcceso TIMESTAMP NULL,
     activo BOOLEAN DEFAULT TRUE,
     
-    -- Validaciones
     CONSTRAINT chk_provider CHECK (provider IN ('local', 'google', 'facebook', 'apple')),
     CONSTRAINT chk_auth_method CHECK (
         (provider = 'local' AND password IS NOT NULL) OR 
