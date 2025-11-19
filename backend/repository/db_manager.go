@@ -41,7 +41,7 @@ func (dm *DBManager) VerificarTablas() error {
 		"sesiones",
 		"busquedas",
 		"restaurantes",
-		"reseñas",
+		"resenas",
 		"favoritos",
 		"ciudades",
 		"categorias_cocina",

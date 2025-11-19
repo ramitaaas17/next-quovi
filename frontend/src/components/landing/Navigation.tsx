@@ -30,19 +30,47 @@ const Navigation: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  useEffect(() => {
+  // Función para cargar datos del usuario desde localStorage
+  const loadUserData = () => {
     if (typeof window !== 'undefined') {
       const userData = localStorage.getItem('user');
       if (userData) {
+        const parsedUser = JSON.parse(userData);
+        console.log('User data from localStorage:', parsedUser);
         setIsAuthenticated(true);
-        setUser(JSON.parse(userData));
+        setUser(parsedUser);
       }
     }
+  };
+
+  useEffect(() => {
+    loadUserData();
+
+    // Escuchar cambios en localStorage desde otras pestañas/ventanas
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'user') {
+        loadUserData();
+      }
+    };
+
+    // Escuchar evento personalizado para cambios en la misma pestaña
+    const handleUserUpdate = () => {
+      loadUserData();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('userUpdated', handleUserUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('userUpdated', handleUserUpdate);
+    };
   }, []);
 
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('user');
+      localStorage.removeItem('token');
       localStorage.setItem('skipLoader', 'true');
       router.push('/');
     }
@@ -91,6 +119,36 @@ const Navigation: React.FC = () => {
     }
   };
 
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+  
+  // Obtener la foto del perfil
+  const getFotoUrl = () => {
+    if (!user) return null;
+    
+    const foto = (user as any).avatar || (user as any).foto || (user as any).photo || (user as any).picture;
+    
+    if (!foto) return null;
+    
+    // Si es base64, agregarle el prefijo si no lo tiene
+    if (foto.includes('base64')) {
+      if (foto.startsWith('data:image')) {
+        return foto;
+      }
+      // Si es base64 pero sin el prefijo data:image
+      return `data:image/jpeg;base64,${foto}`;
+    }
+    
+    // Si es URL completa
+    if (foto.startsWith('http')) {
+      return foto;
+    }
+    
+    // Si es ruta relativa del servidor
+    return `${apiUrl}${foto}`;
+  };
+  
+  const avatarUrl = getFotoUrl();
+
   return (
     <>
       <nav className="fixed top-0 left-0 right-0 z-50">
@@ -103,7 +161,7 @@ const Navigation: React.FC = () => {
               onClick={() => router.push(isAuthenticated ? '/dashboard' : '/')}
             >
               <div className="relative">
-                <div className="relative w-14 h-14 r flex items-center justify-center ">
+                <div className="relative w-14 h-14 flex items-center justify-center">
                   <Image
                     src="/images/quoviMain.png"
                     alt="Quovi Mascot"
@@ -128,13 +186,24 @@ const Navigation: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="flex items-center space-x-3 bg-white/60 backdrop-blur-md px-4 py-2 rounded-full border border-orange-200/50 shadow-lg"
+                className="flex items-center space-x-3 bg-white/60 backdrop-blur-md px-4 py-2 rounded-full border border-orange-200/50 shadow-lg cursor-pointer hover:shadow-xl transition-shadow"
+                onClick={() => router.push('/profile')}
               >
-                <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-semibold text-sm">
-                    {user.fullName.charAt(0).toUpperCase()}
-                  </span>
-                </div>
+                {avatarUrl ? (
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-orange-400 to-red-500">
+                    <img
+                      src={avatarUrl}
+                      alt={user.fullName}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-red-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-semibold text-sm">
+                      {user.fullName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
                 <span className="text-sm font-medium text-gray-700 hidden sm:inline">
                   {user.fullName}
                 </span>

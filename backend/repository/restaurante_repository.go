@@ -212,7 +212,7 @@ func (dm *DBManager) ObtenerPlatillosPorRestaurante(idRestaurante uint) ([]model
 	var platillos []models.Platillo
 
 	result := dm.db.
-		Where("id_restaurante = ? AND disponible = ?", idRestaurante, true).
+		Where("idRestaurante = ? AND disponible = ?", idRestaurante, true).
 		Order("destacado DESC, nombre ASC").
 		Find(&platillos)
 

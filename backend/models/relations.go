@@ -57,7 +57,7 @@ type Reseña struct {
 }
 
 func (Reseña) TableName() string {
-	return "reseñas"
+	return "resenas"
 }
 
 // Favorito representa la relación muchos-a-muchos entre usuarios y restaurantes
@@ -74,6 +74,3 @@ type Favorito struct {
 func (Favorito) TableName() string {
 	return "favoritos"
 }
-
-// ⚠️ NOTA: El modelo completo de Restaurante está en restaurante.go
-// Esta relación se resuelve automáticamente por GORM cuando ambos archivos están en el mismo paquete

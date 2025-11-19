@@ -7,7 +7,7 @@
 USE quovi_db;
 
 -- =============================================
--- TABLA: usuarios (actualizada para OAuth)
+-- TABLA: usuarios (actualizada para OAuth) EN CASOOOOO DEPROBLEMAS CON LA FOTO ALTER TABLE usuarios MODIFY COLUMN foto LONGTEXT;
 -- =============================================
 CREATE TABLE IF NOT EXISTS usuarios (
     idUsuario INT AUTO_INCREMENT PRIMARY KEY,
@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS restaurantes (
     descripcion TEXT,
     precioPromedio DECIMAL(8,2),
     calificacionPromedio DECIMAL(3,2) DEFAULT 0,
-    totalReseñas INT DEFAULT 0,
+    totalResenas INT DEFAULT 0,
     activo BOOLEAN DEFAULT TRUE,
     fechaRegistro TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (idCiudad) REFERENCES ciudades(idCiudad) ON DELETE CASCADE
@@ -168,10 +168,10 @@ CREATE TABLE IF NOT EXISTS busquedas (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- =============================================
--- TABLA: reseñas
+-- TABLA: resenas
 -- =============================================
-CREATE TABLE IF NOT EXISTS reseñas (
-    idReseña INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS resenas (
+    idResena INT AUTO_INCREMENT PRIMARY KEY,
     idUsuario INT NOT NULL,
     idRestaurante INT NOT NULL,
     calificacion TINYINT NOT NULL CHECK (calificacion >= 1 AND calificacion <= 5),
@@ -234,10 +234,10 @@ CREATE INDEX idx_platillos_disponible ON platillos(disponible);
 CREATE INDEX idx_busquedas_usuario ON busquedas(idUsuario);
 CREATE INDEX idx_busquedas_fecha ON busquedas(fecha);
 
--- Reseñas
-CREATE INDEX idx_reseñas_restaurante ON reseñas(idRestaurante);
-CREATE INDEX idx_reseñas_usuario ON reseñas(idUsuario);
-CREATE INDEX idx_reseñas_calificacion ON reseñas(calificacion);
+-- Resenas
+CREATE INDEX idx_resenas_restaurante ON resenas(idRestaurante);
+CREATE INDEX idx_resenas_usuario ON resenas(idUsuario);
+CREATE INDEX idx_resenas_calificacion ON resenas(calificacion);
 
 -- Favoritos
 CREATE INDEX idx_favoritos_fecha ON favoritos(fecha);
@@ -246,53 +246,53 @@ CREATE INDEX idx_favoritos_fecha ON favoritos(fecha);
 -- TRIGGERS para mantener integridad
 -- =============================================
 
--- Actualizar calificación promedio cuando se crea/actualiza una reseña
+-- Actualizar calificación promedio cuando se crea/actualiza una resena
 DELIMITER $$
 
-CREATE TRIGGER after_reseña_insert
-AFTER INSERT ON reseñas
+CREATE TRIGGER after_resena_insert
+AFTER INSERT ON resenas
 FOR EACH ROW
 BEGIN
     UPDATE restaurantes
     SET calificacionPromedio = (
         SELECT AVG(calificacion)
-        FROM reseñas
+        FROM resenas
         WHERE idRestaurante = NEW.idRestaurante
     ),
-    totalReseñas = (
+    totalResenas = (
         SELECT COUNT(*)
-        FROM reseñas
+        FROM resenas
         WHERE idRestaurante = NEW.idRestaurante
     )
     WHERE idRestaurante = NEW.idRestaurante;
 END$$
 
-CREATE TRIGGER after_reseña_update
-AFTER UPDATE ON reseñas
+CREATE TRIGGER after_resena_update
+AFTER UPDATE ON resenas
 FOR EACH ROW
 BEGIN
     UPDATE restaurantes
     SET calificacionPromedio = (
         SELECT AVG(calificacion)
-        FROM reseñas
+        FROM resenas
         WHERE idRestaurante = NEW.idRestaurante
     )
     WHERE idRestaurante = NEW.idRestaurante;
 END$$
 
-CREATE TRIGGER after_reseña_delete
-AFTER DELETE ON reseñas
+CREATE TRIGGER after_resena_delete
+AFTER DELETE ON resenas
 FOR EACH ROW
 BEGIN
     UPDATE restaurantes
     SET calificacionPromedio = (
         SELECT COALESCE(AVG(calificacion), 0)
-        FROM reseñas
+        FROM resenas
         WHERE idRestaurante = OLD.idRestaurante
     ),
-    totalReseñas = (
+    totalResenas = (
         SELECT COUNT(*)
-        FROM reseñas
+        FROM resenas
         WHERE idRestaurante = OLD.idRestaurante
     )
     WHERE idRestaurante = OLD.idRestaurante;

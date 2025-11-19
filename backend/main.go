@@ -114,8 +114,8 @@ func main() {
 		{
 			restaurantes.GET("", restauranteHandler.ObtenerTodosLosRestaurantes)
 			restaurantes.GET("/:id", restauranteHandler.ObtenerRestaurantePorID)
-			restaurantes.GET("/:id/platillos", platilloHandler.ObtenerPlatillosPorRestaurante)       // ✅ NUEVO
-			restaurantes.GET("/:id/platillos/destacados", platilloHandler.ObtenerPlatilloDestacados) // ✅ NUEVO
+			restaurantes.GET("/:id/platillos", platilloHandler.ObtenerPlatillosPorRestaurante)
+			restaurantes.GET("/:id/platillos/destacados", platilloHandler.ObtenerPlatilloDestacados)
 			restaurantes.POST("/cercanos", restauranteHandler.ObtenerRestaurantesCercanos)
 			restaurantes.POST("/buscar", restauranteHandler.BuscarRestaurantes)
 		}

@@ -17,7 +17,7 @@ type Restaurante struct {
 	Descripcion          string    `gorm:"column:descripcion;type:text" json:"descripcion,omitempty"`
 	PrecioPromedio       float64   `gorm:"column:precioPromedio;type:decimal(8,2)" json:"precioPromedio,omitempty"`
 	CalificacionPromedio float64   `gorm:"column:calificacionPromedio;type:decimal(3,2);default:0" json:"calificacionPromedio"`
-	TotalReseñas         int       `gorm:"column:totalReseñas;default:0" json:"totalReseñas"`
+	TotalResenas         int       `gorm:"column:totalResenas;default:0" json:"totalResenas"`
 	Activo               bool      `gorm:"column:activo;default:true" json:"activo"`
 	FechaRegistro        time.Time `gorm:"column:fechaRegistro;not null;default:CURRENT_TIMESTAMP" json:"fechaRegistro"`
 
