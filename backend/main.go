@@ -188,7 +188,7 @@ func main() {
 	port := getEnv("PORT", "8080")
 	log.Printf("Server starting on port %s", port)
 
-	if err := router.Run(":" + port); err != nil {
+	if err := router.Run("0.0.0.0:" + port); err != nil {
 		log.Fatalf("FATAL: Failed to start server: %v", err)
 	}
 }

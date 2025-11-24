@@ -1,0 +1,27 @@
+app = "quovi-db"
+primary_region = "iad"
+
+[build]
+  dockerfile = "./Dockerfile.mysql"
+
+[env]
+  MYSQL_ROOT_PASSWORD = "quovi_secret"
+  MYSQL_DATABASE = "quovi_db"
+  MYSQL_USER = "quovi_user"
+  MYSQL_PASSWORD = "quovi_secret"
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 3306
+
+  [[services.ports]]
+    port = 3306
+
+[mounts]
+  source = "mysql_data"
+  destination = "/var/lib/mysql"
+
+[[vm]]
+  memory = "1gb"
+  cpu_kind = "shared"
+  cpus = 1

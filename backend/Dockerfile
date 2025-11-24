@@ -1,23 +1,31 @@
-# Usa una imagen oficial de Go con la versión correcta
-FROM golang:1.23-alpine
+# Etapa 1: Build
+FROM golang:1.23-alpine AS builder
 
-# Establece el directorio de trabajo
 WORKDIR /app
 
-# Instala git (necesario para algunas dependencias de Go)
+# Instalar dependencias de sistema
 RUN apk add --no-cache git
 
-# Copia go.mod y go.sum primero (para aprovechar la caché de Docker)
-COPY go.mod go.sum ./
-
-# Descarga las dependencias
+# Copiar archivos de dependencias
+COPY backend/go.mod backend/go.sum ./
 RUN go mod download
 
-# Copia el resto del código
-COPY . .
+# Copiar el resto del código
+COPY backend/ .
 
-# Expone el puerto
+# Compilar la aplicación
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
+
+# Etapa 2: Production
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates
+
+WORKDIR /root/
+
+# Copiar el binario
+COPY --from=builder /app/main .
+
 EXPOSE 8080
 
-# Comando para iniciar la aplicación (igual que antes)
-CMD ["go", "run", "main.go"]
+CMD ["./main"]
