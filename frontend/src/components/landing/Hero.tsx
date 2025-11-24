@@ -11,28 +11,18 @@ interface HeroProps {
   onStartDiscovering?: () => void;
 }
 
+/**
+ * Componente Hero - Sección principal con logo QUOVI
+ */
 const Hero: React.FC<HeroProps> = ({ onShowAuth, onStartDiscovering }) => {
-  // Paleta de colores personalizada para Quovi
-  const quoviColors = [
-    '#ff6b35', 
-    '#f7931e', 
-    '#2ecc71', 
-    '#e74c3c', 
-    '#f1c40f', 
-    '#8e44ad'  
-  ];
-
+  
+  // Manejar inicio de búsqueda o mostrar auth
   const handleStartDiscovering = () => {
     if (onStartDiscovering) {
       onStartDiscovering();
     } else {
-      // Fallback: mostrar auth si no hay función específica
       onShowAuth?.();
     }
-  };
-
-  const handleLogin = () => {
-    onShowAuth?.();
   };
 
   return (
@@ -40,10 +30,11 @@ const Hero: React.FC<HeroProps> = ({ onShowAuth, onStartDiscovering }) => {
       {/* Partículas de fondo */}
       <ParticleBackground 
         particleCount={60}
-        colors={[quoviColors[0]]}
+        colors={['#ff6b35']}
         className="opacity-70"
       />
       
+      {/* Blobs decorativos de fondo */}
       <div className="absolute inset-0 -z-10">
         <div className="absolute top-20 left-10 w-72 h-72 bg-orange-500/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-green-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
@@ -53,30 +44,36 @@ const Hero: React.FC<HeroProps> = ({ onShowAuth, onStartDiscovering }) => {
 
       <div className="container mx-auto px-4 py-20 relative z-10">
         <div className="max-w-6xl mx-auto text-center">
-          {/* Main Title with Logo Space */}
+          
+          {/* Logo QUOVI con mascota */}
           <div className="mb-8">
-            <div className="flex items-center justify-center mb-6 min-h-[50vh]">
-              <h1 className="text-8xl md:text-9xl lg:text-[12rem] font-bold text-[#ff6b35] tracking-wider pr-4 animate-fade-in-left">
+            <div className="flex items-center justify-center mb-6 min-h-[40vh] sm:min-h-[50vh]">
+              
+              {/* QU - Texto izquierdo */}
+              <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[12rem] font-bold text-[#ff6b35] tracking-wider pr-2 sm:pr-4 animate-fade-in-left">
                 QU
               </h1>
+              
+              {/* Mascota central - IMPORTANTE: Tamaños más grandes en móvil */}
               <div className="flex justify-center animate-fade-in-up">
                 <Image
                   src="/images/quoviMain.png"
                   alt="Quovi mascot"
                   width={448}
                   height={448}
-                  className="w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 xl:w-[28rem] xl:h-[28rem] object-contain transform hover:scale-105 transition-transform duration-300"
+                  className="w-56 h-56 sm:w-64 sm:h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 xl:w-[28rem] xl:h-[28rem] object-contain transform hover:scale-105 transition-transform duration-300"
                   priority
                 />
               </div>
               
-              <h1 className="text-8xl md:text-9xl lg:text-[12rem] font-bold text-[#ff6b35] tracking-wider pl-4 animate-fade-in-right">
+              {/* VI - Texto derecho */}
+              <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-9xl xl:text-[12rem] font-bold text-[#ff6b35] tracking-wider pl-2 sm:pl-4 animate-fade-in-right">
                 VI
               </h1>
             </div>
 
-            {/* Tagline optimizado */}
-            <p className="text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed font-light animate-fade-in-up" style={{animationDelay: '0.8s'}}>
+            {/* Tagline con keywords destacados */}
+            <p className="text-base sm:text-xl md:text-2xl text-gray-600 max-w-4xl mx-auto leading-relaxed font-light animate-fade-in-up px-4" style={{animationDelay: '0.8s'}}>
               Descubre sabores únicos cerca de ti con{' '}
               <span className="text-orange-500 font-semibold">
                 búsqueda inteligente
@@ -91,8 +88,9 @@ const Hero: React.FC<HeroProps> = ({ onShowAuth, onStartDiscovering }) => {
               </span>
             </p>
 
+            {/* Botones de acción */}
             <div
-              className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in-up"
+              className="mt-8 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4 px-4 animate-fade-in-up"
               style={{ animationDelay: '1s' }}
             >
               <ConfettiButton
@@ -110,7 +108,7 @@ const Hero: React.FC<HeroProps> = ({ onShowAuth, onStartDiscovering }) => {
                 size="lg"
                 className="w-full sm:w-auto"
                 icon={LogIn}
-                onClick={handleLogin}
+                onClick={onShowAuth}
               >
                 Ya tengo una cuenta
               </ConfettiButton>
@@ -119,6 +117,7 @@ const Hero: React.FC<HeroProps> = ({ onShowAuth, onStartDiscovering }) => {
         </div>
       </div>
 
+      {/* Ola decorativa inferior */}
       <div className="absolute bottom-0 left-0 right-0">
         <svg className="w-full h-24" viewBox="0 0 1440 100" preserveAspectRatio="none">
           <defs>
@@ -132,7 +131,7 @@ const Hero: React.FC<HeroProps> = ({ onShowAuth, onStartDiscovering }) => {
         </svg>
       </div>
 
-      {/* CSS personalizado para las animaciones */}
+      {/* Animaciones personalizadas */}
       <style>{`
         @keyframes fade-in-left {
           from {

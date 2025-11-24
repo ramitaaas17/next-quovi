@@ -14,9 +14,9 @@ type Usuario struct {
 	Apellido      string `gorm:"column:apellido;size:100" json:"apellido,omitempty"`
 	Foto          string `gorm:"column:foto;type:longtext" json:"foto,omitempty"`
 
-	GoogleID        string `gorm:"column:googleId;size:255;unique" json:"googleId,omitempty"`
-	Provider        string `gorm:"column:provider;size:20;default:'local'" json:"provider"`
-	EmailVerificado bool   `gorm:"column:emailVerificado;default:false" json:"emailVerificado"`
+	GoogleID        *string `gorm:"column:googleId;size:255;unique" json:"googleId,omitempty"`
+	Provider        string  `gorm:"column:provider;size:20;default:'local'" json:"provider"`
+	EmailVerificado bool    `gorm:"column:emailVerificado;default:false" json:"emailVerificado"`
 
 	FechaRegistro time.Time  `gorm:"column:fechaRegistro;not null;default:CURRENT_TIMESTAMP" json:"fechaRegistro"`
 	UltimoAcceso  *time.Time `gorm:"column:ultimoAcceso" json:"ultimoAcceso,omitempty"`

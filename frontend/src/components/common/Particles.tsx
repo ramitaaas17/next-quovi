@@ -18,6 +18,10 @@ interface ParticleBackgroundProps {
   className?: string;
 }
 
+/**
+ * Canvas con partículas animadas y conexiones entre ellas
+ * Optimizado para rendimiento con requestAnimationFrame
+ */
 const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
   particleCount = 50,
   colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57'],
@@ -34,22 +38,22 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Set canvas size
+    // Ajustar tamaño del canvas al contenedor
     const resizeCanvas = () => {
       const rect = canvas.getBoundingClientRect();
       canvas.width = rect.width;
       canvas.height = rect.height;
     };
 
-    // Initialize particles
+    // Inicializar partículas con posiciones y velocidades aleatorias
     const initParticles = () => {
       particlesRef.current = [];
       for (let i = 0; i < particleCount; i++) {
         particlesRef.current.push({
           x: Math.random() * canvas.width,
           y: Math.random() * canvas.height,
-          vx: (Math.random() - 0.5) * 0.3, // Reducido de 1 a 0.3
-          vy: (Math.random() - 0.5) * 0.3, // Reducido de 1 a 0.3
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
           size: Math.random() * 4 + 2,
           opacity: Math.random() * 0.6 + 0.4,
           color: colors[Math.floor(Math.random() * colors.length)]
@@ -57,13 +61,13 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
       }
     };
 
-    // Update particles
+    // Actualizar posición y propiedades de partículas
     const updateParticles = () => {
       particlesRef.current.forEach(particle => {
         particle.x += particle.vx;
         particle.y += particle.vy;
 
-        // Bounce off edges
+        // Rebotar en los bordes
         if (particle.x < 0 || particle.x > canvas.width) {
           particle.vx = -particle.vx;
         }
@@ -71,20 +75,21 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
           particle.vy = -particle.vy;
         }
 
-        // Keep particles within bounds
+        // Mantener dentro de límites
         particle.x = Math.max(0, Math.min(canvas.width, particle.x));
         particle.y = Math.max(0, Math.min(canvas.height, particle.y));
 
-        // Slight opacity animation
+        // Animación sutil de opacidad
         particle.opacity += (Math.random() - 0.5) * 0.02;
         particle.opacity = Math.max(0.2, Math.min(0.8, particle.opacity));
       });
     };
 
-    // Draw particles
+    // Dibujar partículas y conexiones
     const drawParticles = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
+      // Dibujar cada partícula
       particlesRef.current.forEach(particle => {
         ctx.save();
         ctx.globalAlpha = particle.opacity;
@@ -95,13 +100,14 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
         ctx.restore();
       });
 
-      // Draw connections between nearby particles
+      // Dibujar líneas entre partículas cercanas
       particlesRef.current.forEach((particle, i) => {
         particlesRef.current.slice(i + 1).forEach(otherParticle => {
           const dx = particle.x - otherParticle.x;
           const dy = particle.y - otherParticle.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
+          // Solo conectar si están cerca
           if (distance < 120) {
             ctx.save();
             ctx.strokeStyle = particle.color;
@@ -117,19 +123,19 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
       });
     };
 
-    // Animation loop
+    // Loop de animación
     const animate = () => {
       updateParticles();
       drawParticles();
       animationFrameRef.current = requestAnimationFrame(animate);
     };
 
-    // Initialize
+    // Inicializar y comenzar animación
     resizeCanvas();
     initParticles();
     animate();
 
-    // Handle resize
+    // Reinicializar al cambiar tamaño de ventana
     const handleResize = () => {
       resizeCanvas();
       initParticles();
@@ -137,7 +143,7 @@ const ParticleBackground: React.FC<ParticleBackgroundProps> = ({
 
     window.addEventListener('resize', handleResize);
 
-    // Cleanup
+    // Limpieza al desmontar
     return () => {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);

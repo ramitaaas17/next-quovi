@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Hero, Benefits } from '@/components/landing';
 import EpicLoader from '@/components/common/EpicLoader';
 import { AuthContainer } from '@/components/auth';
@@ -8,6 +8,7 @@ import Footer from '@/components/landing/Footer';
 import { useRouter } from 'next/navigation';
 
 type PageState = 'loading' | 'landing' | 'auth';
+type AuthMode = 'login' | 'register';
 
 interface User {
   id: string;
@@ -19,41 +20,56 @@ interface User {
   createdAt: string;
 }
 
+/**
+ * Página principal - Maneja loader inicial, landing y autenticación
+ */
 export default function Home() {
   const router = useRouter();
-  // CLAVE: Verificar si debe saltar el loader
+  const [authMode, setAuthMode] = useState<AuthMode>('login');
+  
+  // Verificar si debe saltar el loader 
   const [pageState, setPageState] = useState<PageState>(() => {
     if (typeof window !== 'undefined') {
       const skipLoader = localStorage.getItem('skipLoader');
       if (skipLoader === 'true') {
-        localStorage.removeItem('skipLoader'); // Limpiar el flag
-        return 'landing'; // Ir directo al landing
+        localStorage.removeItem('skipLoader');
+        return 'landing';
       }
     }
-    return 'loading'; // Estado normal con loader
+    return 'loading';
   });
 
+  // Completar animación del loader
   const handleLoadingComplete = () => {
     setPageState('landing');
   };
 
-  const handleShowAuth = () => {
+  // Mostrar formulario de LOGIN
+  const handleShowLogin = () => {
+    setAuthMode('login');
     setPageState('auth');
   };
 
+  // Mostrar formulario de REGISTRO
+  const handleShowRegister = () => {
+    setAuthMode('register');
+    setPageState('auth');
+  };
+
+  // Usuario autenticado exitosamente
   const handleAuthComplete = (userData: User) => {
-    console.log('Usuario autenticado:', userData);
     if (typeof window !== 'undefined') {
       localStorage.setItem('user', JSON.stringify(userData));
     }
-    // Redirigir al dashboard
     router.push('/dashboard');
   };
 
+  // Volver al landing desde auth
   const handleBackToLanding = () => {
     setPageState('landing');
   };
 
+  // Renderizar según estado actual
   const renderContent = () => {
     switch (pageState) {
       case 'loading':
@@ -67,6 +83,7 @@ export default function Home() {
       case 'auth':
         return (
           <AuthContainer
+            initialMode={authMode}
             onAuthComplete={handleAuthComplete}
             onBack={handleBackToLanding}
           />
@@ -75,8 +92,11 @@ export default function Home() {
       case 'landing':
       default:
         return (
-          <div className="min-h-screen bg-background text-foreground">
-            <Hero onShowAuth={handleShowAuth} />
+          <div className="min-h-screen">
+            <Hero 
+              onShowAuth={handleShowLogin}
+              onStartDiscovering={handleShowRegister}
+            />
             <Benefits />
             <Footer />
           </div>

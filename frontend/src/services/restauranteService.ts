@@ -1,9 +1,6 @@
-// frontend/src/services/restauranteService.ts
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
-// ========== INTERFACES ==========
-
+// Interfaces de datos
 export interface Ciudad {
   idCiudad: number;
   nombreCiudad: string;
@@ -82,8 +79,7 @@ export interface RestauranteConDistancia extends Restaurante {
   esFavorito?: boolean;
 }
 
-// ========== REQUEST INTERFACES ==========
-
+// Interfaces de peticiones
 export interface ObtenerRestaurantesCercanosRequest {
   latitud: number;
   longitud: number;
@@ -106,9 +102,14 @@ export interface FiltrosAvanzados {
   caracteristicas?: string[];
 }
 
-// ========== SERVICIO ==========
-
+/**
+ * Servicio para gestionar restaurantes
+ * Incluye búsqueda, filtros, favoritos y utilidades
+ */
 class RestauranteService {
+  /**
+   * Genera headers con autenticación opcional
+   */
   private getHeaders(includeAuth: boolean = false): HeadersInit {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -124,12 +125,9 @@ class RestauranteService {
     return headers;
   }
 
-  // ===== RESTAURANTES =====
-
+  // Obtiene todos los restaurantes
   async obtenerTodosLosRestaurantes(): Promise<Restaurante[]> {
     try {
-      console.log('📍 Obteniendo todos los restaurantes...');
-      
       const response = await fetch(`${API_BASE_URL}/restaurantes`, {
         method: 'GET',
         headers: this.getHeaders(),
@@ -140,18 +138,15 @@ class RestauranteService {
       }
 
       const data = await response.json();
-      console.log('✅ Restaurantes obtenidos:', data.total);
       return data.data;
     } catch (error: any) {
-      console.error('  Error obteniendo restaurantes:', error);
       throw error;
     }
   }
 
+  // Obtiene restaurante por ID
   async obtenerRestaurantePorID(id: number): Promise<Restaurante> {
     try {
-      console.log('📍 Obteniendo restaurante ID:', id);
-      
       const response = await fetch(`${API_BASE_URL}/restaurantes/${id}`, {
         method: 'GET',
         headers: this.getHeaders(),
@@ -162,22 +157,19 @@ class RestauranteService {
       }
 
       const data = await response.json();
-      console.log('✅ Restaurante obtenido:', data.data.nombre);
       return data.data;
     } catch (error: any) {
-      console.error('  Error obteniendo restaurante:', error);
       throw error;
     }
   }
 
+  // Obtiene restaurantes cercanos a una ubicación
   async obtenerRestaurantesCercanos(
     latitud: number,
     longitud: number,
     radio: number = 5
   ): Promise<RestauranteConDistancia[]> {
     try {
-      console.log('📍 Buscando restaurantes cercanos...', { latitud, longitud, radio });
-      
       const response = await fetch(`${API_BASE_URL}/restaurantes/cercanos`, {
         method: 'POST',
         headers: this.getHeaders(),
@@ -189,24 +181,20 @@ class RestauranteService {
       }
 
       const data = await response.json();
-      console.log('✅ Restaurantes cercanos encontrados:', data.total);
       return data.data;
     } catch (error: any) {
-      console.error('  Error buscando restaurantes cercanos:', error);
       throw error;
     }
   }
 
   /**
-   * Buscar restaurantes con filtros avanzados
-   * Soporta búsqueda por término, categoría (nombre o ID), ubicación y radio
+   * Busca restaurantes con filtros avanzados
+   * Soporta término, categoría (nombre o ID), ubicación y radio
    */
   async buscarRestaurantes(
     filtros: BuscarRestaurantesRequest
   ): Promise<RestauranteConDistancia[]> {
     try {
-      console.log('🔍 Buscando restaurantes con filtros:', filtros);
-      
       const response = await fetch(`${API_BASE_URL}/restaurantes/buscar`, {
         method: 'POST',
         headers: this.getHeaders(),
@@ -219,17 +207,13 @@ class RestauranteService {
       }
 
       const data = await response.json();
-      console.log('✅ Búsqueda completada:', data.total, 'resultados');
       return data.data;
     } catch (error: any) {
-      console.error('  Error en búsqueda:', error);
       throw error;
     }
   }
 
-  /**
-   * Buscar por término simple (retrocompatibilidad)
-   */
+  // Busca por término simple (retrocompatibilidad)
   async buscarPorTermino(
     termino: string,
     latitud?: number,
@@ -244,9 +228,7 @@ class RestauranteService {
     });
   }
 
-  /**
-   * Buscar por categoría usando nombre
-   */
+  // Busca por nombre de categoría
   async buscarPorCategoria(
     nombreCategoria: string,
     latitud?: number,
@@ -261,9 +243,7 @@ class RestauranteService {
     });
   }
 
-  /**
-   * Buscar por ID de categoría
-   */
+  // Busca por ID de categoría
   async buscarPorIDCategoria(
     idCategoria: number,
     latitud?: number,
@@ -278,8 +258,7 @@ class RestauranteService {
     });
   }
 
-  // ===== CATEGORÍAS =====
-
+  // Obtiene lista de categorías disponibles
   async obtenerCategorias(): Promise<Categoria[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/categorias`, {
@@ -294,11 +273,11 @@ class RestauranteService {
       const data = await response.json();
       return data.data;
     } catch (error: any) {
-      console.error('  Error obteniendo categorías:', error);
       throw error;
     }
   }
 
+  // Obtiene restaurantes de una categoría específica
   async obtenerRestaurantesPorCategoria(
     idCategoria: number,
     lat?: number,
@@ -327,13 +306,11 @@ class RestauranteService {
       const data = await response.json();
       return data.data;
     } catch (error: any) {
-      console.error('  Error obteniendo restaurantes por categoría:', error);
       throw error;
     }
   }
 
-  // ===== CIUDADES =====
-
+  // Obtiene lista de ciudades disponibles
   async obtenerCiudades(): Promise<Ciudad[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/ciudades`, {
@@ -348,13 +325,11 @@ class RestauranteService {
       const data = await response.json();
       return data.data;
     } catch (error: any) {
-      console.error('  Error obteniendo ciudades:', error);
       throw error;
     }
   }
 
-  // ===== FAVORITOS =====
-
+  // Obtiene favoritos del usuario con ubicación opcional
   async obtenerFavoritos(lat?: number, lng?: number): Promise<RestauranteConDistancia[]> {
     try {
       let url = `${API_BASE_URL}/favoritos`;
@@ -379,15 +354,13 @@ class RestauranteService {
       const data = await response.json();
       return data.data;
     } catch (error: any) {
-      console.error('  Error obteniendo favoritos:', error);
       throw error;
     }
   }
 
+  // Agrega restaurante a favoritos
   async agregarFavorito(idRestaurante: number): Promise<void> {
     try {
-      console.log('⭐ Agregando a favoritos:', idRestaurante);
-      
       const response = await fetch(`${API_BASE_URL}/favoritos`, {
         method: 'POST',
         headers: this.getHeaders(true),
@@ -398,18 +371,14 @@ class RestauranteService {
         const data = await response.json();
         throw new Error(data.message || 'Error al agregar favorito');
       }
-
-      console.log('✅ Agregado a favoritos exitosamente');
     } catch (error: any) {
-      console.error('  Error agregando favorito:', error);
       throw error;
     }
   }
 
+  // Elimina restaurante de favoritos
   async eliminarFavorito(idRestaurante: number): Promise<void> {
     try {
-      console.log('🗑️ Eliminando de favoritos:', idRestaurante);
-      
       const response = await fetch(`${API_BASE_URL}/favoritos/${idRestaurante}`, {
         method: 'DELETE',
         headers: this.getHeaders(true),
@@ -418,16 +387,12 @@ class RestauranteService {
       if (!response.ok) {
         throw new Error('Error al eliminar favorito');
       }
-
-      console.log('✅ Eliminado de favoritos exitosamente');
     } catch (error: any) {
-      console.error('  Error eliminando favorito:', error);
       throw error;
     }
   }
 
-  // ===== PLATILLOS =====
-
+  // Obtiene platillos de un restaurante
   async obtenerPlatillosPorRestaurante(idRestaurante: number): Promise<Platillo[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/restaurantes/${idRestaurante}/platillos`, {
@@ -442,18 +407,17 @@ class RestauranteService {
       const data = await response.json();
       return data.data || [];
     } catch (error: any) {
-      console.error('  Error obteniendo platillos:', error);
       throw error;
     }
   }
 
-  // ===== UTILIDADES =====
-
+  // Formatea precio en pesos mexicanos
   formatearPrecio(precio: number): string {
     if (precio === 0) return 'Gratis';
     return `$${precio.toFixed(2)} MXN`;
   }
 
+  // Formatea distancia en metros o kilómetros
   formatearDistancia(km: number): string {
     if (km < 1) {
       return `${Math.round(km * 1000)} m`;
@@ -461,6 +425,7 @@ class RestauranteService {
     return `${km.toFixed(1)} km`;
   }
 
+  // Obtiene rango de precio en símbolos $
   obtenerRangoPrecio(precioPromedio?: number): string {
     if (!precioPromedio || precioPromedio === 0) return '$';
     if (precioPromedio < 100) return '$';
@@ -469,6 +434,7 @@ class RestauranteService {
     return '$$$$';
   }
 
+  // Obtiene emoji representativo de la categoría
   obtenerEmojiCategoria(nombreCategoria: string): string {
     const mapeo: Record<string, string> = {
       'Mexicana': '🌮',
@@ -492,6 +458,7 @@ class RestauranteService {
     return mapeo[nombreCategoria] || '🍽️';
   }
 
+  // Obtiene color de badge para la categoría
   obtenerColorCategoria(nombreCategoria: string): string {
     const mapeo: Record<string, string> = {
       'Mexicana': 'bg-red-500',
@@ -516,6 +483,5 @@ class RestauranteService {
   }
 }
 
-// Exportar instancia única del servicio
 export const restauranteService = new RestauranteService();
 export default restauranteService;

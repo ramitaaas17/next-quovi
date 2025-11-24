@@ -123,6 +123,17 @@ func (ah *AuthHandler) Registrar(c *gin.Context) {
 	// Crear usuario
 	usuario, err := ah.authService.RegistrarUsuario(nombre, apellido, req.Email, req.Password)
 	if err != nil {
+		// Manejar específicamente error de email duplicado
+		if strings.Contains(err.Error(), "email ya registrado") ||
+			strings.Contains(err.Error(), "Duplicate entry") {
+			c.JSON(http.StatusConflict, ErrorResponse{
+				Error:   "email_already_exists",
+				Message: "Este correo electrónico ya está registrado. Por favor, inicia sesión o usa otro email.",
+			})
+			return
+		}
+
+		// Otros errores
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "registration_failed",
 			Message: err.Error(),

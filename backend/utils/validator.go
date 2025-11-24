@@ -44,21 +44,6 @@ func ValidarEmail(email string) error {
 	return nil
 }
 
-// ValidarTelefono verifica el formato del número telefónico
-func ValidarTelefono(phone string) error {
-	if phone == "" {
-		return errors.New("el teléfono es requerido")
-	}
-
-	phone = LimpiarTelefono(phone)
-
-	if !phoneRegex.MatchString(phone) {
-		return errors.New("formato de teléfono inválido")
-	}
-
-	return nil
-}
-
 // ValidarNombre valida nombres y apellidos
 func ValidarNombre(nombre string, campo string) error {
 	if nombre == "" {
@@ -125,6 +110,7 @@ func LimpiarTelefono(phone string) string {
 }
 
 // ValidarPassword verifica que la contraseña cumpla los requisitos de seguridad
+// Requiere: minimo 8 caracteres, mayusculas, minusculas, numeros y caracteres especiales
 func ValidarPassword(password string) error {
 	if len(password) < 8 {
 		return errors.New("la contraseña debe tener al menos 8 caracteres")

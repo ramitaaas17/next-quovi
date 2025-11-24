@@ -9,11 +9,16 @@ interface HighlightProps {
   variant?: "orange" | "green" | "purple";
 }
 
+/**
+ * Texto resaltado con gradiente y efecto de brillo
+ * Variantes: orange, green, purple
+ */
 const Highlight: React.FC<HighlightProps> = ({ 
   children, 
   className = "",
   variant = "orange"
 }) => {
+  // Configuración de colores por variante
   const getVariantColors = () => {
     switch (variant) {
       case "orange":
@@ -46,13 +51,13 @@ const Highlight: React.FC<HighlightProps> = ({
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
-      className={`relative inline-block px-3 py-1 rounded-lg font-semibold ${textColor} ${className}`}
+      className={`relative inline-block px-2 sm:px-3 py-1 rounded-lg font-semibold ${textColor} ${className}`}
       style={{
         background: gradient,
         boxShadow: `0 4px 15px rgba(255, 107, 53, 0.3)`
       }}
     >
-      {/* Efecto de brillo */}
+      {/* Efecto shimmer animado */}
       <motion.div
         className="absolute inset-0 rounded-lg"
         initial={{ opacity: 0 }}
@@ -76,6 +81,9 @@ interface QuoviHeroHighlightProps {
   className?: string;
 }
 
+/**
+ * Contenedor con fondo decorativo y partículas animadas
+ */
 const QuoviHeroHighlight: React.FC<QuoviHeroHighlightProps> = ({ 
   children, 
   className = "" 
@@ -85,7 +93,7 @@ const QuoviHeroHighlight: React.FC<QuoviHeroHighlightProps> = ({
       {/* Fondo con gradiente sutil */}
       <div className="absolute inset-0 bg-gradient-to-br from-orange-50/30 via-transparent to-blue-50/20 rounded-2xl" />
       
-      {/* Partículas decorativas */}
+      {/* Partículas decorativas flotantes */}
       <div className="absolute inset-0 overflow-hidden rounded-2xl">
         <motion.div
           className="absolute top-4 right-8 w-2 h-2 bg-orange-400 rounded-full"
@@ -135,15 +143,18 @@ const QuoviHeroHighlight: React.FC<QuoviHeroHighlightProps> = ({
   );
 };
 
-// Componente principal para usar en Hero
+/**
+ * Componente completo de tagline para Hero
+ * Incluye highlights de colores en keywords principales
+ */
 const QuoviTaglineHighlight: React.FC = () => {
   return (
-    <QuoviHeroHighlight className="max-w-4xl mx-auto">
+    <QuoviHeroHighlight className="max-w-4xl mx-auto px-4">
       <motion.p
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut", delay: 0.3 }}
-        className="text-xl md:text-2xl text-gray-600 leading-relaxed font-light text-center"
+        className="text-base sm:text-xl md:text-2xl text-gray-600 leading-relaxed font-light text-center"
       >
         Descubre sabores únicos cerca de ti con{' '}
         <Highlight variant="orange">

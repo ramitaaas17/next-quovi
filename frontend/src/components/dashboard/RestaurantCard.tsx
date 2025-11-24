@@ -16,6 +16,7 @@ interface RestaurantCardProps {
   onClick: () => void;
 }
 
+// Tarjeta de restaurante para vistas de lista
 const RestaurantCard: React.FC<RestaurantCardProps> = ({
   name,
   category,
@@ -34,8 +35,8 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
       className="bg-white rounded-2xl shadow-lg overflow-hidden cursor-pointer border border-gray-100 hover:shadow-xl transition-all duration-300"
       onClick={onClick}
     >
-      {/* Imagen del restaurante */}
-      <div className="relative h-40 bg-gradient-to-br from-orange-100 to-red-100 overflow-hidden">
+      {/* Imagen */}
+      <div className="relative h-32 sm:h-40 bg-gradient-to-br from-orange-100 to-red-100 overflow-hidden">
         {imageUrl ? (
           <img 
             src={imageUrl} 
@@ -44,13 +45,13 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="text-6xl opacity-20">🍽️</div>
+            <div className="text-5xl sm:text-6xl opacity-20">🍽️</div>
           </div>
         )}
         
         {/* Badge de estado */}
-        <div className="absolute top-3 right-3">
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+        <div className="absolute top-2 sm:top-3 right-2 sm:right-3">
+          <span className={`px-2 sm:px-3 py-1 rounded-full text-xs font-semibold ${
             isOpen 
               ? 'bg-green-500 text-white' 
               : 'bg-gray-500 text-white'
@@ -59,36 +60,36 @@ const RestaurantCard: React.FC<RestaurantCardProps> = ({
           </span>
         </div>
 
-        {/* Rating Badge */}
-        <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center space-x-1">
-          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-          <span className="text-sm font-bold text-gray-800">{rating}</span>
+        {/* Rating */}
+        <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 bg-white/95 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full flex items-center space-x-1">
+          <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
+          <span className="text-xs sm:text-sm font-bold text-gray-800">{rating}</span>
         </div>
       </div>
 
-      {/* Información del restaurante */}
-      <div className="p-4">
-        <h3 className="font-bold text-lg text-gray-800 mb-1 truncate">{name}</h3>
-        <p className="text-sm text-gray-500 mb-3">{category}</p>
+      {/* Info del restaurante */}
+      <div className="p-3 sm:p-4">
+        <h3 className="font-bold text-base sm:text-lg text-gray-800 mb-1 truncate">{name}</h3>
+        <p className="text-xs sm:text-sm text-gray-500 mb-2 sm:mb-3">{category}</p>
 
         {/* Distancia y tiempo */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
           <div className="flex items-center space-x-1 text-gray-600">
-            <MapPin className="w-4 h-4 text-orange-500" />
-            <span className="text-sm font-medium">{distance}</span>
+            <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-orange-500" />
+            <span className="text-xs sm:text-sm font-medium">{distance}</span>
           </div>
           
           <div className="flex items-center space-x-1 text-gray-600">
-            <Clock className="w-4 h-4 text-orange-500" />
-            <span className="text-sm font-medium">{estimatedTime}</span>
+            <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-orange-500" />
+            <span className="text-xs sm:text-sm font-medium">{estimatedTime}</span>
           </div>
         </div>
 
-        {/* Botón de ruta */}
+        {/* Boton de ruta */}
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="w-full mt-4 bg-gradient-to-r from-orange-500 to-red-500 text-white py-2.5 rounded-xl font-semibold flex items-center justify-center space-x-2 shadow-md hover:shadow-lg transition-shadow"
+          className="w-full bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 sm:py-2.5 rounded-xl font-semibold text-sm sm:text-base flex items-center justify-center space-x-2 shadow-md hover:shadow-lg transition-shadow"
         >
           <NavigationIcon className="w-4 h-4" />
           <span>Ver ruta</span>

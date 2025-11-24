@@ -1,10 +1,14 @@
-// frontend/src/services/favoritosService.ts
-
 import { RestauranteConDistancia, Platillo } from './restauranteService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
 
+/**
+ * Servicio para gestionar restaurantes favoritos del usuario
+ */
 class FavoritosService {
+  /**
+   * Genera headers con token de autenticación si existe
+   */
   private getAuthHeaders(): HeadersInit {
     const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
     return {
@@ -13,7 +17,7 @@ class FavoritosService {
     };
   }
 
-  // Obtener favoritos del usuario
+  // Obtiene lista de favoritos con distancias opcionales
   async obtenerFavoritos(lat?: number, lng?: number): Promise<RestauranteConDistancia[]> {
     try {
       let url = `${API_BASE_URL}/favoritos`;
@@ -38,12 +42,11 @@ class FavoritosService {
       const data = await response.json();
       return data.data || [];
     } catch (error: any) {
-      console.error('❌ Error obteniendo favoritos:', error);
       throw error;
     }
   }
 
-  // Agregar restaurante a favoritos
+  // Agrega restaurante a favoritos
   async agregarFavorito(idRestaurante: number): Promise<void> {
     try {
       const response = await fetch(`${API_BASE_URL}/favoritos`, {
@@ -57,12 +60,11 @@ class FavoritosService {
         throw new Error(data.message || 'Error al agregar favorito');
       }
     } catch (error: any) {
-      console.error('❌ Error agregando favorito:', error);
       throw error;
     }
   }
 
-  // Eliminar restaurante de favoritos
+  // Elimina restaurante de favoritos
   async eliminarFavorito(idRestaurante: number): Promise<void> {
     try {
       const response = await fetch(`${API_BASE_URL}/favoritos/${idRestaurante}`, {
@@ -74,12 +76,11 @@ class FavoritosService {
         throw new Error('Error al eliminar favorito');
       }
     } catch (error: any) {
-      console.error('❌ Error eliminando favorito:', error);
       throw error;
     }
   }
 
-  // Obtener platillos de un restaurante
+  // Obtiene platillos de un restaurante específico
   async obtenerPlatillos(idRestaurante: number): Promise<Platillo[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/restaurantes/${idRestaurante}/platillos`, {
@@ -96,12 +97,11 @@ class FavoritosService {
       const data = await response.json();
       return data.data || [];
     } catch (error: any) {
-      console.error('❌ Error obteniendo platillos:', error);
       throw error;
     }
   }
 
-  // Verificar si el usuario está autenticado
+  // Verifica si usuario tiene sesión activa
   isAuthenticated(): boolean {
     if (typeof window === 'undefined') return false;
     const token = localStorage.getItem('token');

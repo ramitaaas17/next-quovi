@@ -23,6 +23,9 @@ interface User {
   createdAt: string;
 }
 
+/**
+ * Navegación principal con logo, usuario y dock flotante
+ */
 const Navigation: React.FC = () => {
   const router = useRouter();
   const pathname = usePathname();
@@ -30,13 +33,12 @@ const Navigation: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  // Función para cargar datos del usuario desde localStorage
+  // Cargar datos del usuario desde localStorage
   const loadUserData = () => {
     if (typeof window !== 'undefined') {
       const userData = localStorage.getItem('user');
       if (userData) {
         const parsedUser = JSON.parse(userData);
-        console.log('User data from localStorage:', parsedUser);
         setIsAuthenticated(true);
         setUser(parsedUser);
       }
@@ -46,14 +48,13 @@ const Navigation: React.FC = () => {
   useEffect(() => {
     loadUserData();
 
-    // Escuchar cambios en localStorage desde otras pestañas/ventanas
+    // Listeners para sincronizar cambios en localStorage
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'user') {
         loadUserData();
       }
     };
 
-    // Escuchar evento personalizado para cambios en la misma pestaña
     const handleUserUpdate = () => {
       loadUserData();
     };
@@ -67,6 +68,7 @@ const Navigation: React.FC = () => {
     };
   }, []);
 
+  // Cerrar sesión y redirigir
   const handleLogout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('user');
@@ -76,42 +78,20 @@ const Navigation: React.FC = () => {
     }
   };
 
+  // Items del dock según estado de autenticación
   const dockItems: DockItem[] = isAuthenticated
     ? [
-        {
-          title: 'Inicio',
-          icon: <Home className="w-5 h-5" />,
-          href: '/dashboard',
-        },
-        {
-          title: 'Búsqueda',
-          icon: <Search className="w-5 h-5" />,
-          href: '/dashboard',
-        },
-        {
-          title: 'Favoritos',
-          icon: <Heart className="w-5 h-5" />,
-          href: '/favoritos',
-        },
-        {
-          title: 'Perfil',
-          icon: <User className="w-5 h-5" />,
-          href: '/profile',
-        },
-        {
-          title: 'Cerrar Sesión',
-          icon: <LogOut className="w-5 h-5" />,
-          href: '#logout',
-        },
+        { title: 'Inicio', icon: <Home className="w-5 h-5" />, href: '/dashboard' },
+        { title: 'Búsqueda', icon: <Search className="w-5 h-5" />, href: '/dashboard' },
+        { title: 'Favoritos', icon: <Heart className="w-5 h-5" />, href: '/favoritos' },
+        { title: 'Perfil', icon: <User className="w-5 h-5" />, href: '/profile' },
+        { title: 'Cerrar Sesión', icon: <LogOut className="w-5 h-5" />, href: '#logout' },
       ]
     : [
-        {
-          title: 'Inicio',
-          icon: <Home className="w-5 h-5" />,
-          href: '/',
-        },
+        { title: 'Inicio', icon: <Home className="w-5 h-5" />, href: '/' },
       ];
 
+  // Manejar click en logout del dock
   const handleDockClick = (e: React.MouseEvent, href: string) => {
     if (href === '#logout') {
       e.preventDefault();
@@ -121,7 +101,7 @@ const Navigation: React.FC = () => {
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
   
-  // Obtener la foto del perfil
+  // Obtener URL de foto de perfil
   const getFotoUrl = () => {
     if (!user) return null;
     
@@ -129,21 +109,20 @@ const Navigation: React.FC = () => {
     
     if (!foto) return null;
     
-    // Si es base64, agregarle el prefijo si no lo tiene
+    // Base64 con prefijo
     if (foto.includes('base64')) {
       if (foto.startsWith('data:image')) {
         return foto;
       }
-      // Si es base64 pero sin el prefijo data:image
       return `data:image/jpeg;base64,${foto}`;
     }
     
-    // Si es URL completa
+    // URL completa
     if (foto.startsWith('http')) {
       return foto;
     }
     
-    // Si es ruta relativa del servidor
+    // Ruta relativa del servidor
     return `${apiUrl}${foto}`;
   };
   
@@ -151,25 +130,26 @@ const Navigation: React.FC = () => {
 
   return (
     <>
+      {/* Barra superior */}
       <nav className="fixed top-0 left-0 right-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
+            
+            {/* Logo Quovi */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               className="flex items-center space-x-3 cursor-pointer group"
               onClick={() => router.push(isAuthenticated ? '/dashboard' : '/')}
             >
-              <div className="relative">
-                <div className="relative w-14 h-14 flex items-center justify-center">
-                  <Image
-                    src="/images/quoviMain.png"
-                    alt="Quovi Mascot"
-                    width={48} 
-                    height={48}
-                    priority
-                  />
-                </div>
+              <div className="relative w-14 h-14 flex items-center justify-center">
+                <Image
+                  src="/images/quoviMain.png"
+                  alt="Quovi Mascot"
+                  width={48} 
+                  height={48}
+                  priority
+                />
               </div>
               
               <div className="flex flex-col">
@@ -182,6 +162,7 @@ const Navigation: React.FC = () => {
               </div>
             </motion.div>
 
+            {/* Avatar del usuario */}
             {isAuthenticated && user && (
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
@@ -213,6 +194,7 @@ const Navigation: React.FC = () => {
         </div>
       </nav>
 
+      {/* Dock flotante inferior */}
       {isAuthenticated && pathname !== '/' && (
         <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
           <div onClick={(e) => {
@@ -227,6 +209,7 @@ const Navigation: React.FC = () => {
         </div>
       )}
 
+      {/* Modal de confirmación de logout */}
       <AnimatePresence>
         {showLogoutConfirm && (
           <motion.div
@@ -259,7 +242,7 @@ const Navigation: React.FC = () => {
 
                 <div className="flex flex-col sm:flex-row gap-3">
                   <button
-                    onClick={(_: React.MouseEvent<HTMLButtonElement>) => setShowLogoutConfirm(false)}
+                    onClick={() => setShowLogoutConfirm(false)}
                     className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-2xl font-semibold transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 hover:scale-105"
                   >
                     Cancelar

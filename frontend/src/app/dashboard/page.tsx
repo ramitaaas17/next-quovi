@@ -1,4 +1,3 @@
-// frontend/src/app/dashboard/page.tsx (o donde esté MapDashboard)
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -17,6 +16,7 @@ declare global {
   }
 }
 
+// Controles de zoom y ubicacion para el mapa
 interface MapControlsProps {
   onZoomIn: () => void;
   onZoomOut: () => void;
@@ -29,13 +29,15 @@ const MapControls: React.FC<MapControlsProps> = ({ onZoomIn, onZoomOut, onLocate
       <div className="bg-white/95 backdrop-blur-md rounded-xl shadow-lg overflow-hidden border border-gray-200">
         <button 
           onClick={onZoomIn}
-          className="w-12 h-12 flex items-center justify-center text-gray-600 hover:bg-gray-50 border-b border-gray-200 transition-colors"
+          className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-gray-600 hover:bg-gray-50 border-b border-gray-200 transition-colors"
+          aria-label="Acercar mapa"
         >
           <span className="text-xl font-light">+</span>
         </button>
         <button 
           onClick={onZoomOut}
-          className="w-12 h-12 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+          className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-gray-600 hover:bg-gray-50 transition-colors"
+          aria-label="Alejar mapa"
         >
           <span className="text-xl font-light">−</span>
         </button>
@@ -43,14 +45,16 @@ const MapControls: React.FC<MapControlsProps> = ({ onZoomIn, onZoomOut, onLocate
       
       <button 
         onClick={onLocateMe}
-        className="w-12 h-12 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+        className="w-10 h-10 sm:w-12 sm:h-12 bg-white/95 backdrop-blur-md rounded-xl shadow-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+        aria-label="Mi ubicación"
       >
-        <NavigationIcon className="w-5 h-5" />
+        <NavigationIcon className="w-4 h-4 sm:w-5 sm:h-5" />
       </button>
     </div>
   );
 };
 
+// Componente principal del mapa con Leaflet
 interface RealMapComponentProps {
   onRestaurantClick: (restaurant: RestauranteConDistancia) => void;
   userLocation: [number, number] | null;
@@ -65,6 +69,7 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
 
+  // Inicializar Leaflet y crear el mapa
   useEffect(() => {
     const loadLeaflet = async (): Promise<void> => {
       if (!document.querySelector('link[href*="leaflet.min.css"]')) {
@@ -77,11 +82,7 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
       if (!window.L) {
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js';
-        
-        script.onload = () => {
-          initMap();
-        };
-        
+        script.onload = () => initMap();
         document.head.appendChild(script);
       } else {
         initMap();
@@ -115,16 +116,17 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
     };
   }, []);
 
+  // Actualizar marcadores cuando cambien los restaurantes o ubicacion
   useEffect(() => {
     if (mapInstanceRef.current && window.L) {
-      // Limpiar marcadores existentes
+      // Limpiar marcadores previos
       mapInstanceRef.current.eachLayer((layer: any) => {
         if (layer instanceof window.L.Marker) {
           mapInstanceRef.current.removeLayer(layer);
         }
       });
 
-      // Agregar marcador de ubicación del usuario
+      // Marcador de ubicacion del usuario
       if (userLocation) {
         const currentLocationIcon = window.L.divIcon({
           className: 'current-location-marker',
@@ -143,7 +145,7 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
           .bindPopup('Tu ubicación actual');
       }
 
-      // Agregar marcadores de restaurantes
+      // Marcadores de restaurantes
       restaurantes.forEach(rest => {
         const emoji = restauranteService.obtenerEmojiCategoria(
           rest.categorias?.[0]?.nombreCategoria || 'Internacional'
@@ -160,9 +162,7 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
           icon: customIcon
         }).addTo(mapInstanceRef.current);
 
-        marker.on('click', () => {
-          onRestaurantClick(rest);
-        });
+        marker.on('click', () => onRestaurantClick(rest));
 
         const precioRange = restauranteService.obtenerRangoPrecio(rest.precioPromedio);
         const statusBadge = rest.estaAbierto 
@@ -186,7 +186,7 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
         `);
       });
 
-      // Ajustar vista si hay restaurantes
+      // Ajustar vista para mostrar todos los marcadores
       if (restaurantes.length > 0) {
         const bounds = window.L.latLngBounds(
           restaurantes.map(r => [r.latitud, r.longitud])
@@ -214,7 +214,7 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
   };
 
   return (
-    <div className="w-full h-[60vh] bg-gray-100 rounded-2xl overflow-hidden shadow-2xl relative">
+    <div className="w-full h-[50vh] sm:h-[60vh] bg-gray-100 rounded-2xl overflow-hidden shadow-2xl relative">
       <div ref={mapRef} className="w-full h-full"></div>
       
       <MapControls 
@@ -223,23 +223,25 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
         onLocateMe={handleLocateMe}
       />
 
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm px-6 py-3 rounded-xl shadow-lg border border-gray-200">
+      {/* Info badge inferior */}
+      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-white/90 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-xl shadow-lg border border-gray-200">
         <div className="flex items-center space-x-2">
-          <MapPin className="w-4 h-4 text-blue-500" />
-          <span className="font-semibold text-gray-700">Ciudad de México</span>
+          <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
+          <span className="font-semibold text-gray-700 text-xs sm:text-base">Ciudad de México</span>
           {restaurantes.length > 0 && (
-            <span className="text-xs text-gray-500">• {restaurantes.length} restaurantes</span>
+            <span className="text-xs text-gray-500 hidden sm:inline">• {restaurantes.length} restaurantes</span>
           )}
         </div>
       </div>
 
       <div className="absolute bottom-2 right-2 bg-white/80 px-2 py-1 rounded text-xs text-gray-500">
-        © OpenStreetMap contributors
+        © OpenStreetMap
       </div>
     </div>
   );
 };
 
+// Dashboard principal con mapa y buscador
 export default function MapDashboard() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<RestauranteConDistancia | null>(null);
   const [showDetails, setShowDetails] = useState(false);
@@ -254,7 +256,7 @@ export default function MapDashboard() {
     ? [ubicacion.latitud, ubicacion.longitud] 
     : null;
 
-  // Cargar restaurantes cercanos inicialmente
+  // Cargar restaurantes cercanos al iniciar
   useEffect(() => {
     const cargarRestaurantesIniciales = async () => {
       if (!ubicacion) return;
@@ -269,7 +271,7 @@ export default function MapDashboard() {
           10
         );
 
-        // Cargar favoritos si el usuario está autenticado
+        // Cargar favoritos si esta autenticado
         const token = localStorage.getItem('token');
         if (token) {
           try {
@@ -286,7 +288,6 @@ export default function MapDashboard() {
             
             setRestaurantes(dataConFavoritos);
           } catch (err) {
-            console.error('Error loading favorites:', err);
             setRestaurantes(data);
           }
         } else {
@@ -295,7 +296,6 @@ export default function MapDashboard() {
 
         setMensajeBusqueda(`${data.length} restaurantes cercanos`);
       } catch (error) {
-        console.error('Error loading restaurants:', error);
         setMensajeBusqueda('Error al cargar restaurantes');
       } finally {
         setCargando(false);
@@ -305,17 +305,14 @@ export default function MapDashboard() {
     cargarRestaurantesIniciales();
   }, [ubicacion]);
 
-  // Escuchar eventos de búsqueda
+  // Escuchar eventos de busqueda del SearchBar
   useEffect(() => {
     const handleSearchResults = (event: CustomEvent) => {
-      console.log('🎯 Evento de búsqueda recibido:', event.detail);
-      
       const { data, total, filtros } = event.detail;
       
       setRestaurantes(data || []);
       setCargando(false);
       
-      // Generar mensaje descriptivo
       let mensaje = `${total} resultado${total !== 1 ? 's' : ''}`;
       if (filtros?.categoria) {
         mensaje += ` de ${filtros.categoria}`;
@@ -328,7 +325,6 @@ export default function MapDashboard() {
     };
 
     const handleSearchError = (event: CustomEvent) => {
-      console.error('❌ Error en búsqueda:', event.detail);
       setMensajeBusqueda('Error en la búsqueda');
       setCargando(false);
     };
@@ -352,6 +348,7 @@ export default function MapDashboard() {
     setShowRoute(true);
   };
 
+  // Datos de ruta para RouteDisplay
   const routeData = selectedRestaurant ? {
     distance: selectedRestaurant.distanciaKm,
     duration: selectedRestaurant.tiempoEstimado,
@@ -385,21 +382,20 @@ export default function MapDashboard() {
         <Navigation />
       </div>
 
-      <div className="relative z-10 h-screen flex flex-col">
+      <div className="relative z-10 min-h-screen flex flex-col">
         <div className="pt-20 pb-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
           <SearchBar 
-            onSearch={(resultados) => {
-              console.log('✅ Resultados recibidos en onSearch:', resultados.length);
-            }}
+            onSearch={() => {}}
             showLocationFilter={true}
             placeholder="¿Antojo de tacos al pastor o un café con leche?"
             userLocation={ubicacion ? { lat: ubicacion.latitud, lng: ubicacion.longitud } : undefined}
           />
 
+          {/* Alerta de error de ubicacion */}
           {errorUbicacion && (
             <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-xl p-4 flex items-start space-x-3">
               <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0 mt-0.5" />
-              <div>
+              <div className="flex-1">
                 <p className="text-sm font-medium text-yellow-800">No pudimos obtener tu ubicación</p>
                 <p className="text-xs text-yellow-700 mt-1">{errorUbicacion}</p>
                 <button
@@ -412,6 +408,7 @@ export default function MapDashboard() {
             </div>
           )}
 
+          {/* Indicador de carga */}
           {(cargando || cargandoUbicacion) && (
             <div className="mt-4 bg-white rounded-xl p-4 flex items-center justify-center space-x-3">
               <Loader2 className="w-5 h-5 text-orange-500 animate-spin" />
@@ -421,6 +418,7 @@ export default function MapDashboard() {
             </div>
           )}
 
+          {/* Mensaje de resultados */}
           {mensajeBusqueda && !cargando && (
             <div className="mt-4 bg-white rounded-xl p-3 text-center">
               <span className="text-sm font-medium text-gray-700">{mensajeBusqueda}</span>
@@ -428,7 +426,7 @@ export default function MapDashboard() {
           )}
         </div>
 
-        <div className="flex-1 px-4 sm:px-6 lg:px-8 pb-24 max-w-7xl mx-auto w-full">
+        <div className="flex-1 px-4 sm:px-6 lg:px-8 pb-8 sm:pb-24 max-w-7xl mx-auto w-full">
           <RealMapComponent 
             onRestaurantClick={handleRestaurantClick}
             userLocation={userLocation}
@@ -437,6 +435,7 @@ export default function MapDashboard() {
         </div>
       </div>
 
+      {/* Paneles laterales */}
       <RestaurantDetailsPanel
         isOpen={showDetails}
         onClose={() => setShowDetails(false)}

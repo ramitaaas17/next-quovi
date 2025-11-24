@@ -1,4 +1,3 @@
-// frontend/src/hooks/useGeolocation.ts
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,6 +13,10 @@ export interface GeolocationState {
   cargando: boolean;
 }
 
+/**
+ * Hook para obtener la ubicación GPS del usuario
+ * @param watchPosition - Si es true, actualiza la ubicación continuamente
+ */
 export const useGeolocation = (watchPosition: boolean = false) => {
   const [state, setState] = useState<GeolocationState>({
     ubicacion: null,
@@ -22,7 +25,7 @@ export const useGeolocation = (watchPosition: boolean = false) => {
   });
 
   useEffect(() => {
-    // Verificar si el navegador soporta geolocalización
+    // Verifica soporte de geolocalización
     if (!navigator.geolocation) {
       setState({
         ubicacion: null,
@@ -40,12 +43,6 @@ export const useGeolocation = (watchPosition: boolean = false) => {
         },
         error: null,
         cargando: false,
-      });
-      
-      console.log('📍 Ubicación obtenida:', {
-        lat: position.coords.latitude,
-        lng: position.coords.longitude,
-        accuracy: position.coords.accuracy + 'm',
       });
     };
 
@@ -69,38 +66,33 @@ export const useGeolocation = (watchPosition: boolean = false) => {
         error: errorMessage,
         cargando: false,
       });
-
-      console.error('❌ Error de geolocalización:', errorMessage);
     };
 
     const options: PositionOptions = {
-      enableHighAccuracy: true, // Alta precisión (puede consumir más batería)
-      timeout: 10000, // Timeout de 10 segundos
-      maximumAge: 0, // No usar caché
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0,
     };
 
     let watchId: number | undefined;
 
     if (watchPosition) {
-      // Modo continuo: actualizar posición cuando cambie
+      // Modo continuo: actualiza posición cuando cambia
       watchId = navigator.geolocation.watchPosition(onSuccess, onError, options);
-      console.log('🎯 Modo de seguimiento de ubicación activado');
     } else {
-      // Obtener ubicación una sola vez
+      // Obtiene ubicación una sola vez
       navigator.geolocation.getCurrentPosition(onSuccess, onError, options);
-      console.log('📍 Obteniendo ubicación actual...');
     }
 
-    // Cleanup: detener el seguimiento cuando el componente se desmonte
+    // Cleanup: detiene seguimiento al desmontar componente
     return () => {
       if (watchId !== undefined) {
         navigator.geolocation.clearWatch(watchId);
-        console.log('🛑 Seguimiento de ubicación detenido');
       }
     };
   }, [watchPosition]);
 
-  // Función para solicitar ubicación nuevamente
+  // Solicita ubicación nuevamente
   const refrescarUbicacion = () => {
     setState(prev => ({ ...prev, cargando: true }));
 
@@ -114,7 +106,6 @@ export const useGeolocation = (watchPosition: boolean = false) => {
           error: null,
           cargando: false,
         });
-        console.log('🔄 Ubicación actualizada');
       },
       (error) => {
         setState(prev => ({
@@ -122,7 +113,6 @@ export const useGeolocation = (watchPosition: boolean = false) => {
           error: 'Error al actualizar ubicación',
           cargando: false,
         }));
-        console.error('❌ Error al actualizar ubicación:', error);
       },
       {
         enableHighAccuracy: true,

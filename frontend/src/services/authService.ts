@@ -67,7 +67,7 @@ class AuthService {
 
     const data = await response.json();
     
-    // ✅ GUARDAR TOKEN Y USUARIO EN LOCALSTORAGE
+
     if (typeof window !== 'undefined') {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({
@@ -141,7 +141,7 @@ class AuthService {
 
     const data = await response.json();
     
-    // ✅ GUARDAR TOKEN Y USUARIO EN LOCALSTORAGE
+
     if (typeof window !== 'undefined') {
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify({

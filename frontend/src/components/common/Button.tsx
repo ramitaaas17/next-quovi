@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Utensils } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-// Props del componente (sin cambios)
 interface ConfettiButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
@@ -15,11 +14,15 @@ interface ConfettiButtonProps extends React.ButtonHTMLAttributes<HTMLButtonEleme
   size?: 'sm' | 'default' | 'lg';
 }
 
-// Utility function (sin cambios)
+// Combinar clases CSS
 const cn = (...classes: (string | boolean | undefined | null)[]) => {
   return classes.filter(Boolean).join(' ');
 };
 
+/**
+ * Botón con efecto de confetti animado al hacer click
+ * Carga script de confetti dinámicamente
+ */
 const ConfettiButton: React.FC<ConfettiButtonProps> = ({
   children,
   onClick,
@@ -31,8 +34,8 @@ const ConfettiButton: React.FC<ConfettiButtonProps> = ({
 }) => {
   const [scriptLoaded, setScriptLoaded] = useState<boolean>(false);
   
+  // Cargar script de confetti dinámicamente
   useEffect(() => {
-    // Lógica de carga del script (sin cambios)
     if (!(window as any).confetti) {
       const script = document.createElement("script");
       script.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js";
@@ -44,6 +47,7 @@ const ConfettiButton: React.FC<ConfettiButtonProps> = ({
     }
   }, []);
 
+  // Disparar confetti en posición del click
   const triggerConfetti = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (scriptLoaded && (window as any).confetti) {
       const rect = e.currentTarget.getBoundingClientRect();
@@ -63,6 +67,7 @@ const ConfettiButton: React.FC<ConfettiButtonProps> = ({
     onClick && onClick(e);
   };
 
+  // Variantes de color del botón
   const variants = {
     primary:   "bg-gradient-to-br from-[#FFF3E0] to-[#FBE9E7] text-[#FF8A65] shadow-[#FFCCBC]/80 focus:ring-[#FFCCBC]",
     secondary: "bg-[#FBE9E7]/60 backdrop-blur-lg text-[#FF7043] border border-white/80 shadow-[#FFAB91]/20 focus:ring-[#FFCCBC]",
@@ -70,10 +75,11 @@ const ConfettiButton: React.FC<ConfettiButtonProps> = ({
     danger:    "bg-gradient-to-br from-[#FBCFE8] to-[#FECDD3] text-[#9F1239] shadow-[#FBCFE8]/70 focus:ring-[#FCE7F3]"
   };
 
+  // Tamaños del botón
   const sizes = {
     sm: "py-2 px-4 text-sm rounded-lg",
-    default: "py-4 px-6 rounded-2xl",
-    lg: "py-5 px-8 text-lg rounded-3xl"
+    default: "py-3 sm:py-4 px-5 sm:px-6 rounded-2xl text-sm sm:text-base",
+    lg: "py-4 sm:py-5 px-6 sm:px-8 text-base sm:text-lg rounded-3xl"
   };
 
   return (
@@ -91,19 +97,22 @@ const ConfettiButton: React.FC<ConfettiButtonProps> = ({
         className
       )}
     >
+      {/* Contenido del botón */}
       <span className="relative z-10 flex items-center justify-center gap-2">
         {loading ? ( 
           <> 
-            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> 
+            <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-current border-t-transparent rounded-full animate-spin" /> 
             Procesando... 
           </> 
         ) : ( 
           <> 
-            <Icon className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" /> 
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-12 transition-transform duration-300" /> 
             {children} 
           </> 
         )}
       </span>
+      
+      {/* Efecto de brillo al hover */}
       <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
       </div>

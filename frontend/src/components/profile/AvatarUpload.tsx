@@ -27,19 +27,23 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
   const [dragActive, setDragActive] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
+  // Valida y prepara archivo para subir
   const handleFileSelect = (file: File) => {
     setUploadError(null);
 
+    // Validar tipo de archivo
     if (!file.type.startsWith('image/')) {
       setUploadError('Por favor selecciona una imagen válida');
       return;
     }
 
+    // Validar tamaño (máximo 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setUploadError('La imagen no debe superar los 5MB');
       return;
     }
 
+    // Crear preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreview(reader.result as string);
@@ -49,6 +53,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     handleUpload(file);
   };
 
+  // Maneja la subida del archivo
   const handleUpload = async (file: File) => {
     setUploadError(null);
     
@@ -61,7 +66,6 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
         fileInputRef.current.value = '';
       }
     } catch (error: any) {
-      console.error('Error al subir imagen:', error);
       setUploadError(error.message || 'Error al subir la imagen');
       setPreview(null);
     } finally {
@@ -69,6 +73,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
     }
   };
 
+  // Elimina la foto de perfil actual
   const handleDelete = async () => {
     if (!onDelete) return;
     
@@ -79,13 +84,13 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
       await onDelete();
       setShowDeleteConfirm(false);
     } catch (error: any) {
-      console.error('Error al eliminar foto:', error);
       setUploadError(error.message || 'Error al eliminar la foto');
     } finally {
       setIsUploading(false);
     }
   };
 
+  // Maneja eventos de drag and drop
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -117,30 +122,29 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
           whileHover={{ scale: 1.02 }}
           transition={{ type: "spring", stiffness: 300 }}
         >
+          {/* Avatar principal */}
           <div 
-            className="relative w-32 h-32 bg-white rounded-full flex items-center justify-center shadow-xl overflow-hidden cursor-pointer border-4 border-orange-500"
+            className="relative w-24 h-24 sm:w-32 sm:h-32 bg-white rounded-full flex items-center justify-center shadow-xl overflow-hidden cursor-pointer border-4 border-orange-500"
             onClick={() => !disabled && !isUploading && fileInputRef.current?.click()}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
             onDrop={handleDrop}
           >
+            {/* Indicador de carga */}
             {isUploading && (
               <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-20">
                 <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin" />
               </div>
             )}
 
+            {/* Imagen o inicial */}
             {displayImage ? (
               displayImage.startsWith('data:image') ? (
                 <img 
                   src={displayImage}
                   alt={userName}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
-                    console.error('Error loading image');
-                    e.currentTarget.style.display = 'none';
-                  }}
                 />
               ) : (
                 <Image 
@@ -149,18 +153,15 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                   fill
                   className="object-cover"
                   unoptimized
-                  onError={(e) => {
-                    console.error('Error loading image');
-                    e.currentTarget.style.display = 'none';
-                  }}
                 />
               )
             ) : (
-              <span className="text-5xl font-bold text-orange-500">
+              <span className="text-4xl sm:text-5xl font-bold text-orange-500">
                 {userName.charAt(0).toUpperCase()}
               </span>
             )}
 
+            {/* Overlay de hover con botones */}
             {!disabled && !isUploading && (
               <motion.div 
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -168,31 +169,32 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                 <div className="flex space-x-2">
                   <button
                     type="button"
-                    className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+                    className="w-9 h-9 sm:w-10 sm:h-10 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
                     onClick={(e) => {
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
                   >
-                    <Camera className="w-5 h-5 text-white" />
+                    <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </button>
 
                   {currentAvatar && onDelete && (
                     <button
                       type="button"
-                      className="w-10 h-10 bg-red-500/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                      className="w-9 h-9 sm:w-10 sm:h-10 bg-red-500/80 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
                       onClick={(e) => {
                         e.stopPropagation();
                         setShowDeleteConfirm(true);
                       }}
                     >
-                      <Trash2 className="w-5 h-5 text-white" />
+                      <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                     </button>
                   )}
                 </div>
               </motion.div>
             )}
 
+            {/* Indicador de drag active */}
             {dragActive && (
               <div className="absolute inset-0 bg-blue-500/60 backdrop-blur-sm flex items-center justify-center z-10">
                 <Upload className="w-8 h-8 text-white animate-bounce" />
@@ -200,20 +202,22 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
             )}
           </div>
           
+          {/* Botón flotante de cámara */}
           {!disabled && !isUploading && (
             <button 
               type="button"
-              className="absolute bottom-0 right-0 w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center shadow-xl hover:bg-orange-600 transition-all"
+              className="absolute bottom-0 right-0 w-9 h-9 sm:w-10 sm:h-10 bg-orange-500 rounded-full flex items-center justify-center shadow-xl hover:bg-orange-600 transition-all"
               onClick={(e) => {
                 e.stopPropagation();
                 fileInputRef.current?.click();
               }}
             >
-              <Camera className="w-5 h-5 text-white" />
+              <Camera className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </button>
           )}
         </motion.div>
 
+        {/* Input oculto de archivo */}
         <input
           ref={fileInputRef}
           type="file"
@@ -226,6 +230,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
           disabled={disabled || isUploading}
         />
 
+        {/* Mensaje de error */}
         {uploadError && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -237,14 +242,16 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
           </motion.div>
         )}
 
+        {/* Instrucciones */}
         {!disabled && !uploadError && (
-          <p className="text-sm text-gray-500 mt-4 text-center">
+          <p className="text-xs sm:text-sm text-gray-500 mt-3 sm:mt-4 text-center px-4">
             Haz clic o arrastra una imagen<br />
             <span className="text-xs">PNG, JPG, GIF hasta 5MB</span>
           </p>
         )}
       </div>
 
+      {/* Modal de confirmación de eliminación */}
       <AnimatePresence>
         {showDeleteConfirm && (
           <motion.div
@@ -258,20 +265,20 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden"
+              className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-md w-full overflow-hidden"
               onClick={(e) => e.stopPropagation()}
             >
-              <div className="bg-red-500 p-6 text-center">
-                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Trash2 className="w-8 h-8 text-white" />
+              <div className="bg-red-500 p-4 sm:p-6 text-center">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <Trash2 className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                 </div>
-                <h3 className="text-2xl font-bold text-white">
+                <h3 className="text-xl sm:text-2xl font-bold text-white">
                   Eliminar foto de perfil
                 </h3>
               </div>
 
-              <div className="p-6">
-                <p className="text-center text-gray-600 mb-6">
+              <div className="p-4 sm:p-6">
+                <p className="text-center text-gray-600 mb-4 sm:mb-6 text-sm sm:text-base">
                   Esta acción no se puede deshacer. Tu foto de perfil será eliminada permanentemente.
                 </p>
 
@@ -280,7 +287,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                     type="button"
                     onClick={() => setShowDeleteConfirm(false)}
                     disabled={isUploading}
-                    className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-2xl font-semibold transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50"
+                    className="flex-1 px-4 sm:px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-xl sm:rounded-2xl font-semibold transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 disabled:opacity-50"
                   >
                     Cancelar
                   </button>
@@ -288,7 +295,7 @@ const AvatarUpload: React.FC<AvatarUploadProps> = ({
                     type="button"
                     onClick={handleDelete}
                     disabled={isUploading}
-                    className="flex-1 px-6 py-3 bg-red-500 text-white rounded-2xl font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:bg-red-600 disabled:opacity-50 flex items-center justify-center"
+                    className="flex-1 px-4 sm:px-6 py-3 bg-red-500 text-white rounded-xl sm:rounded-2xl font-semibold shadow-lg transition-all duration-200 hover:shadow-xl hover:bg-red-600 disabled:opacity-50 flex items-center justify-center"
                   >
                     {isUploading ? (
                       <>

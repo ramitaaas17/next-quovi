@@ -15,6 +15,10 @@ interface FloatingDockProps {
   mobileClassName?: string;
 }
 
+/**
+ * Dock flotante estilo macOS con efectos magnéticos y tooltips
+ * Animaciones suaves con framer-motion
+ */
 export const FloatingDock: React.FC<FloatingDockProps> = ({
   items,
   desktopClassName = '',
@@ -24,11 +28,12 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  // Animación suave del mouse
+  // Spring para movimiento suave del mouse
   const springConfig = { damping: 25, stiffness: 300 };
   const x = useSpring(mouseX, springConfig);
   const y = useSpring(mouseY, springConfig);
 
+  // Tracking del mouse para efecto magnético
   const handleMouseMove = (e: React.MouseEvent) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const centerX = rect.left + rect.width / 2;
@@ -49,8 +54,9 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
         mouseY.set(0);
       }}
     >
+      {/* Contenedor principal del dock */}
       <motion.div 
-        className="relative flex items-center space-x-3 backdrop-blur-xl border rounded-full px-6 py-3 shadow-2xl"
+        className="relative flex items-center space-x-2 sm:space-x-3 backdrop-blur-xl border rounded-full px-4 sm:px-6 py-2 sm:py-3 shadow-2xl"
         style={{
           background: 'rgba(251, 146, 60, 0.15)',
           borderColor: 'rgba(251, 146, 60, 0.3)',
@@ -64,7 +70,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
         }}
         transition={{ type: "spring", stiffness: 200, damping: 25 }}
       >
-        {/* Efecto de brillo sutil con tonos naranjas */}
+        {/* Efecto shimmer animado */}
         <motion.div
           className="absolute inset-0 rounded-full"
           animate={{
@@ -80,6 +86,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
           }}
         />
 
+        {/* Items del dock */}
         {items.map((item, index) => (
           <motion.div
             key={item.title}
@@ -105,7 +112,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
           >
             <a
               href={item.href}
-              className="relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 group overflow-hidden"
+              className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full transition-all duration-500 group overflow-hidden"
               style={{
                 background: hoveredItem === item.title 
                   ? 'rgba(251, 146, 60, 0.8)' 
@@ -115,7 +122,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
                   : '0 3px 10px rgba(251, 146, 60, 0.1), inset 0 1px 0 rgba(255,255,255,0.4)'
               }}
             >
-              {/* Efecto de ondas al hacer hover */}
+              {/* Efecto de onda al hover */}
               {hoveredItem === item.title && (
                 <motion.div
                   className="absolute inset-0 rounded-full"
@@ -128,8 +135,9 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
                 />
               )}
               
+              {/* Icono con cambio de color */}
               <motion.div 
-                className="w-5 h-5 z-10 relative"
+                className="w-4 h-4 sm:w-5 sm:h-5 z-10 relative"
                 animate={{
                   color: hoveredItem === item.title ? '#ffffff' : '#ea580c',
                 }}
@@ -138,7 +146,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
                 {item.icon}
               </motion.div>
               
-              {/* Tooltip mejorado */}
+              {/* Tooltip */}
               <AnimatePresence>
                 {hoveredItem === item.title && (
                   <motion.div
@@ -153,7 +161,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
                     }}
                     className="absolute left-1/2 transform -translate-x-1/2 pointer-events-none z-20"
                   >
-                    <div className="bg-orange-900/90 text-orange-100 text-sm font-medium px-3 py-2 rounded-full whitespace-nowrap shadow-2xl border border-orange-600/50">
+                    <div className="bg-orange-900/90 text-orange-100 text-xs sm:text-sm font-medium px-2 sm:px-3 py-1.5 sm:py-2 rounded-full whitespace-nowrap shadow-2xl border border-orange-600/50">
                       {item.title}
                       {/* Flecha del tooltip */}
                       <motion.div 
@@ -172,7 +180,7 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
           </motion.div>
         ))}
 
-        {/* Indicador de mouse (efecto magnético sutil) */}
+        {/* Indicador magnético del mouse */}
         <motion.div
           className="absolute inset-0 rounded-full pointer-events-none"
           style={{
@@ -184,18 +192,6 @@ export const FloatingDock: React.FC<FloatingDockProps> = ({
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         />
       </motion.div>
-
-      {/* Estilos para la animación shimmer */}
-      <style>{`
-        @keyframes shimmer {
-          0% {
-            transform: translateX(-100%);
-          }
-          100% {
-            transform: translateX(200%);
-          }
-        }
-      `}</style>
     </div>
   );
 };

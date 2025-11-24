@@ -1,9 +1,8 @@
-// frontend/src/components/favoritos/FavoritoCard.tsx
 'use client';
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Star, Clock, Heart, Eye, Navigation as NavigationIcon, Trash2 } from 'lucide-react';
+import { MapPin, Star, Clock, Heart, Eye, Navigation as NavigationIcon } from 'lucide-react';
 import { RestauranteConDistancia } from '@/services/restauranteService';
 import restauranteService from '@/services/restauranteService';
 
@@ -14,6 +13,7 @@ interface FavoritoCardProps {
   index: number;
 }
 
+// Tarjeta individual de restaurante favorito
 const FavoritoCard: React.FC<FavoritoCardProps> = ({
   restaurante,
   onVerMenu,
@@ -22,6 +22,7 @@ const FavoritoCard: React.FC<FavoritoCardProps> = ({
 }) => {
   const [eliminando, setEliminando] = useState(false);
 
+  // Confirmar y eliminar favorito
   const handleEliminar = async () => {
     if (!window.confirm(`¿Eliminar ${restaurante.nombre} de favoritos?`)) {
       return;
@@ -31,13 +32,13 @@ const FavoritoCard: React.FC<FavoritoCardProps> = ({
       setEliminando(true);
       await onEliminar(restaurante.idRestaurante);
     } catch (error) {
-      console.error('Error al eliminar:', error);
       alert('Error al eliminar de favoritos');
     } finally {
       setEliminando(false);
     }
   };
 
+  // Formato de distancia en km o metros
   const formatearDistancia = (km: number): string => {
     if (km === 0) return '';
     if (km < 1) return `${Math.round(km * 1000)} m`;
@@ -57,7 +58,7 @@ const FavoritoCard: React.FC<FavoritoCardProps> = ({
       className="bg-white rounded-2xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition-all duration-300"
     >
       {/* Imagen del restaurante */}
-      <div className="relative h-48 bg-gradient-to-br from-orange-100 to-red-100 overflow-hidden">
+      <div className="relative h-40 sm:h-48 bg-gradient-to-br from-orange-100 to-red-100 overflow-hidden">
         {restaurante.imagenes && restaurante.imagenes.length > 0 ? (
           <img 
             src={restaurante.imagenes[0].url} 
@@ -66,7 +67,7 @@ const FavoritoCard: React.FC<FavoritoCardProps> = ({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <div className="text-6xl opacity-20">
+            <div className="text-5xl sm:text-6xl opacity-20">
               {restauranteService.obtenerEmojiCategoria(
                 restaurante.categorias?.[0]?.nombreCategoria || 'Internacional'
               )}
@@ -75,8 +76,8 @@ const FavoritoCard: React.FC<FavoritoCardProps> = ({
         )}
 
         {/* Badge de estado */}
-        <div className="absolute top-3 left-3">
-          <span className={`px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm ${
+        <div className="absolute top-2 sm:top-3 left-2 sm:left-3">
+          <span className={`px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm ${
             restaurante.estaAbierto 
               ? 'bg-green-500/90 text-white' 
               : 'bg-gray-500/90 text-white'
@@ -85,25 +86,26 @@ const FavoritoCard: React.FC<FavoritoCardProps> = ({
           </span>
         </div>
 
-        {/* Botón de eliminar */}
+        {/* Boton de eliminar */}
         <motion.button
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={handleEliminar}
           disabled={eliminando}
-          className="absolute top-3 right-3 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+          className="absolute top-2 sm:top-3 right-2 sm:right-3 w-9 h-9 sm:w-10 sm:h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg hover:bg-red-50 transition-colors disabled:opacity-50"
+          aria-label="Eliminar de favoritos"
         >
           {eliminando ? (
             <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin" />
           ) : (
-            <Heart className="w-5 h-5 text-red-500 fill-red-500" />
+            <Heart className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 fill-red-500" />
           )}
         </motion.button>
 
-        {/* Rating Badge */}
-        <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full flex items-center space-x-1 shadow-lg">
-          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-          <span className="text-sm font-bold text-gray-800">
+        {/* Rating */}
+        <div className="absolute bottom-2 sm:bottom-3 left-2 sm:left-3 bg-white/95 backdrop-blur-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-full flex items-center space-x-1 shadow-lg">
+          <Star className="w-3 h-3 sm:w-4 sm:h-4 fill-yellow-400 text-yellow-400" />
+          <span className="text-xs sm:text-sm font-bold text-gray-800">
             {restaurante.calificacionPromedio.toFixed(1)}
           </span>
           <span className="text-xs text-gray-500">
@@ -112,13 +114,13 @@ const FavoritoCard: React.FC<FavoritoCardProps> = ({
         </div>
       </div>
 
-      {/* Información del restaurante */}
-      <div className="p-5">
-        <h3 className="font-bold text-lg text-gray-800 mb-2 line-clamp-1">
+      {/* Informacion del restaurante */}
+      <div className="p-4 sm:p-5">
+        <h3 className="font-bold text-base sm:text-lg text-gray-800 mb-2 line-clamp-1">
           {restaurante.nombre}
         </h3>
 
-        <div className="flex items-center space-x-3 text-sm text-gray-600 mb-3">
+        <div className="flex items-center space-x-3 text-xs sm:text-sm text-gray-600 mb-3">
           <span className="font-medium">
             {restaurante.categorias?.[0]?.nombreCategoria || 'Restaurante'}
           </span>
@@ -128,57 +130,49 @@ const FavoritoCard: React.FC<FavoritoCardProps> = ({
           </span>
         </div>
 
-        {/* Dirección */}
-        <div className="flex items-start space-x-2 text-sm text-gray-600 mb-4">
-          <MapPin className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
+        {/* Direccion */}
+        <div className="flex items-start space-x-2 text-xs sm:text-sm text-gray-600 mb-3 sm:mb-4">
+          <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-orange-500 flex-shrink-0 mt-0.5" />
           <span className="line-clamp-1">{restaurante.direccion}</span>
         </div>
 
         {/* Distancia y horario */}
-        <div className="flex items-center justify-between mb-4 text-sm">
+        <div className="flex items-center justify-between mb-3 sm:mb-4 text-xs sm:text-sm">
           {restaurante.distanciaKm > 0 && (
-            <div className="flex items-center space-x-1 text-gray-600">
-              <NavigationIcon className="w-4 h-4 text-orange-500" />
-              <span className="font-medium">
+            <div className="flex items-center space-x-1 text-gray-600 flex-1 min-w-0">
+              <NavigationIcon className="w-3 h-3 sm:w-4 sm:h-4 text-orange-500 flex-shrink-0" />
+              <span className="font-medium truncate">
                 {formatearDistancia(restaurante.distanciaKm)}
               </span>
               {restaurante.tiempoEstimado && (
                 <>
                   <span className="text-gray-400">•</span>
-                  <span>{restaurante.tiempoEstimado}</span>
+                  <span className="truncate">{restaurante.tiempoEstimado}</span>
                 </>
               )}
             </div>
           )}
           
           {restaurante.horarioHoy && (
-            <div className="flex items-center space-x-1 text-gray-600">
-              <Clock className="w-4 h-4 text-orange-500" />
-              <span className="text-xs">{restaurante.horarioHoy}</span>
+            <div className="flex items-center space-x-1 text-gray-600 flex-shrink-0 ml-2">
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-orange-500" />
+              <span className="text-xs hidden sm:inline">{restaurante.horarioHoy}</span>
             </div>
           )}
         </div>
 
-        {/* Botones de acción */}
+        {/* Botones de accion */}
         <div className="grid grid-cols-2 gap-2">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={() => onVerMenu(restaurante.idRestaurante, restaurante.nombre)}
-            className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-2.5 rounded-xl font-semibold flex items-center justify-center space-x-2 shadow-md hover:shadow-lg transition-shadow"
+            className="bg-gradient-to-r from-orange-500 to-red-500 text-white py-2 sm:py-2.5 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center space-x-1 sm:space-x-2 shadow-md hover:shadow-lg transition-shadow"
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>Ver menú</span>
           </motion.button>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="bg-white border-2 border-orange-500 text-orange-500 py-2.5 rounded-xl font-semibold flex items-center justify-center space-x-2 hover:bg-orange-50 transition-colors"
-          >
-            <NavigationIcon className="w-4 h-4" />
-            <span>Ruta</span>
-          </motion.button>
         </div>
       </div>
     </motion.div>

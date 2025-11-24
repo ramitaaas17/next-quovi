@@ -10,6 +10,7 @@ interface FavoriteButtonProps {
   className?: string;
 }
 
+// Boton para marcar/desmarcar restaurantes como favoritos
 const FavoriteButton: React.FC<FavoriteButtonProps> = ({
   restaurantId,
   initialIsFavorite = false,
@@ -32,6 +33,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
     lg: 'w-6 h-6'
   };
 
+  // Agregar o quitar de favoritos
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.stopPropagation();
     
@@ -47,6 +49,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
       
       if (isFavorite) {
+        // Quitar de favoritos
         await fetch(`${API_URL}/favoritos/${restaurantId}`, {
           method: 'DELETE',
           headers: {
@@ -58,6 +61,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         setIsFavorite(false);
         onToggle?.(false);
       } else {
+        // Agregar a favoritos
         await fetch(`${API_URL}/favoritos`, {
           method: 'POST',
           headers: {
@@ -71,7 +75,6 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
         onToggle?.(true);
       }
     } catch (error) {
-      console.error('Error toggling favorite:', error);
       alert('Error al actualizar favoritos');
     } finally {
       setIsLoading(false);
@@ -87,6 +90,7 @@ const FavoriteButton: React.FC<FavoriteButtonProps> = ({
       className={`${sizeClasses[size]} bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg transition-colors ${
         isLoading ? 'opacity-50 cursor-not-allowed' : ''
       } ${className}`}
+      aria-label={isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}
     >
       <Heart 
         className={`${iconSizes[size]} transition-colors ${

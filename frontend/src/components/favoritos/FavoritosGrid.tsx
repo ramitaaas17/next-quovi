@@ -1,7 +1,6 @@
-// frontend/src/components/favoritos/FavoritosGrid.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Filter } from 'lucide-react';
 import { RestauranteConDistancia } from '@/services/restauranteService';
@@ -13,6 +12,7 @@ interface FavoritosGridProps {
   onEliminarFavorito: (id: number) => Promise<void>;
 }
 
+// Grid con filtros para mostrar lista de favoritos
 const FavoritosGrid: React.FC<FavoritosGridProps> = ({
   favoritos,
   onEliminarFavorito,
@@ -24,8 +24,8 @@ const FavoritosGrid: React.FC<FavoritosGridProps> = ({
     nombre: string;
   } | null>(null);
 
-  // Obtener categorías únicas
-  const categorias = React.useMemo(() => {
+  // Extraer categorias unicas de los favoritos
+  const categorias = useMemo(() => {
     const cats = new Set<string>();
     favoritos.forEach(rest => {
       rest.categorias?.forEach(cat => cats.add(cat.nombreCategoria));
@@ -33,8 +33,8 @@ const FavoritosGrid: React.FC<FavoritosGridProps> = ({
     return ['todos', ...Array.from(cats)];
   }, [favoritos]);
 
-  // Filtrar restaurantes
-  const favoritosFiltrados = React.useMemo(() => {
+  // Aplicar filtro de categoria
+  const favoritosFiltrados = useMemo(() => {
     if (filtroCategoria === 'todos') return favoritos;
     
     return favoritos.filter(rest => 
@@ -53,17 +53,17 @@ const FavoritosGrid: React.FC<FavoritosGridProps> = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Filtros */}
+    <div className="space-y-4 sm:space-y-6">
+      {/* Panel de filtros por categoria */}
       {categorias.length > 1 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="bg-white rounded-2xl shadow-md p-4 border border-gray-100"
         >
-          <div className="flex items-center space-x-3 mb-3">
-            <Filter className="w-5 h-5 text-orange-500" />
-            <span className="font-semibold text-gray-800">Filtrar por categoría</span>
+          <div className="flex items-center space-x-2 sm:space-x-3 mb-3">
+            <Filter className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500" />
+            <span className="font-semibold text-gray-800 text-sm sm:text-base">Filtrar por categoría</span>
           </div>
           
           <div className="flex flex-wrap gap-2">
@@ -73,7 +73,7 @@ const FavoritosGrid: React.FC<FavoritosGridProps> = ({
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setFiltroCategoria(categoria)}
-                className={`px-4 py-2 rounded-xl font-medium text-sm transition-all ${
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl font-medium text-xs sm:text-sm transition-all ${
                   filtroCategoria === categoria
                     ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-md'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
@@ -87,16 +87,16 @@ const FavoritosGrid: React.FC<FavoritosGridProps> = ({
       )}
 
       {/* Contador de resultados */}
-      <div className="flex items-center justify-between">
-        <p className="text-gray-600">
+      <div className="flex items-center justify-between px-1">
+        <p className="text-sm sm:text-base text-gray-600">
           <span className="font-semibold text-gray-800">{favoritosFiltrados.length}</span>
           {' '}restaurante{favoritosFiltrados.length !== 1 ? 's' : ''} 
           {filtroCategoria !== 'todos' && ` en ${filtroCategoria}`}
         </p>
       </div>
 
-      {/* Grid de restaurantes */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      {/* Grid de restaurantes favoritos */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
         {favoritosFiltrados.map((restaurante, index) => (
           <FavoritoCard
             key={restaurante.idRestaurante}
@@ -108,7 +108,7 @@ const FavoritosGrid: React.FC<FavoritosGridProps> = ({
         ))}
       </div>
 
-      {/* Modal de menú */}
+      {/* Modal para ver menu del restaurante */}
       {restauranteSeleccionado && (
         <MenuModal
           isOpen={menuModalOpen}

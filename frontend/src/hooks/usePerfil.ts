@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import perfilService, { Perfil, ActualizarPerfilData } from '@/services/perfilService';
 
-// Función helper para actualizar localStorage y notificar al Navigation
+/**
+ * Actualiza datos del usuario en localStorage y dispara evento
+ * para que otros componentes se actualicen
+ */
 const updateUserInLocalStorage = (perfil: Perfil) => {
   if (typeof window !== 'undefined') {
     const currentUser = localStorage.getItem('user');
@@ -17,17 +20,22 @@ const updateUserInLocalStorage = (perfil: Perfil) => {
       
       localStorage.setItem('user', JSON.stringify(updatedUser));
       
-      // Disparar evento para que Navigation se actualice
+      // Notifica cambios al Navigation
       window.dispatchEvent(new Event('userUpdated'));
     }
   }
 };
 
+/**
+ * Hook para gestionar perfil de usuario
+ * Incluye funciones para obtener, actualizar, subir y eliminar foto
+ */
 export const usePerfil = () => {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Obtiene perfil del usuario actual
   const obtenerPerfil = async () => {
     try {
       setCargando(true);
@@ -37,12 +45,12 @@ export const usePerfil = () => {
       updateUserInLocalStorage(data);
     } catch (err: any) {
       setError(err.message || 'Error al obtener perfil');
-      console.error('Error obteniendo perfil:', err);
     } finally {
       setCargando(false);
     }
   };
 
+  // Actualiza datos del perfil (nombre, apellido, email)
   const actualizarPerfil = async (datos: ActualizarPerfilData) => {
     try {
       setCargando(true);
@@ -58,6 +66,7 @@ export const usePerfil = () => {
     }
   };
 
+  // Sube nueva foto de perfil
   const subirFoto = async (file: File) => {
     try {
       setCargando(true);
@@ -73,6 +82,7 @@ export const usePerfil = () => {
     }
   };
 
+  // Elimina foto de perfil actual
   const eliminarFoto = async () => {
     try {
       setCargando(true);

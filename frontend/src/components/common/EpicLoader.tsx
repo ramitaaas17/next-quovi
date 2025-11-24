@@ -15,13 +15,17 @@ interface Particle {
   duration: string;
 }
 
+/**
+ * Loader animado con logo QUOVI y efectos de partículas
+ * 3 etapas: appearing -> dancing -> flourishing
+ */
 const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) => {
   const [progress, setProgress] = useState(0);
   const [stage, setStage] = useState<'appearing' | 'dancing' | 'flourishing'>('appearing');
   const [particles, setParticles] = useState<Particle[]>([]);
   const [mounted, setMounted] = useState(false);
 
-  // Generar partículas solo en el cliente
+  // Generar partículas solo en el cliente para evitar hydration mismatch
   useEffect(() => {
     setMounted(true);
     const generatedParticles = [...Array(8)].map((_, i) => ({
@@ -33,17 +37,20 @@ const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) 
     setParticles(generatedParticles);
   }, []);
 
+  // Actualizar progreso y cambiar etapas
   const updateProgress = useCallback(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
         const newProgress = prev + (100 / (duration / 30));
         
+        // Cambiar etapas según progreso
         if (newProgress >= 30 && stage === 'appearing') {
           setStage('dancing');
         } else if (newProgress >= 80 && stage === 'dancing') {
           setStage('flourishing');
         }
 
+        // Completar y llamar callback
         if (newProgress >= 100) {
           clearInterval(interval);
           setTimeout(() => onComplete(), 600);
@@ -65,7 +72,7 @@ const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-orange-50 via-amber-50 to-red-50 overflow-hidden">
       
-      {/* Floating hearts and sparkles - solo renderizar después de montar */}
+      {/* Partículas flotantes - solo después de montar */}
       {mounted && (
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((particle, i) => (
@@ -81,6 +88,7 @@ const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) 
             />
           ))}
           
+          {/* Destellos adicionales en etapa dancing */}
           {stage !== 'appearing' && [...Array(6)].map((_, i) => (
             <div
               key={`sparkle-${i}`}
@@ -95,40 +103,40 @@ const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) 
         </div>
       )}
 
-      {/* Main content */}
-      <div className="text-center">
+      {/* Contenido principal */}
+      <div className="text-center px-4">
         
-        {/* Logo container with gentle pulse */}
-        <div className="mb-8 relative">
+        {/* Logo con animaciones por etapa */}
+        <div className="mb-6 sm:mb-8 relative">
           <div className={`relative inline-block transition-all duration-1500 ease-out ${
             stage === 'appearing' ? 'scale-90 opacity-60' : 'scale-100 opacity-100'
           }`}>
             
-            {/* Soft glow behind logo */}
+            {/* Resplandor de fondo */}
             <div className={`absolute inset-0 rounded-full blur-xl transition-all duration-2000 ${
               stage === 'flourishing' ? 'bg-orange-200/60 scale-150' :
               stage === 'dancing' ? 'bg-orange-200/40 scale-125' : 'bg-orange-200/20 scale-100'
             }`} />
             
-            {/* Gentle rotating ring */}
+            {/* Anillo rotatorio */}
             <div className={`absolute inset-0 rounded-full border border-orange-300/30 transition-all duration-1000 ${
               stage === 'dancing' ? 'animate-spin-gentle scale-110' : ''
             }`} style={{ margin: '-12px' }} />
             
-            {/* Logo */}
+            {/* Logo responsive */}
             <Image
               src="/images/quoviLogo.png"
               alt="Quovi"
               width={112}
               height={112}
-              className={`relative object-contain transition-all duration-1000 ${
+              className={`relative object-contain transition-all duration-1000 w-20 h-20 sm:w-28 sm:h-28 ${
                 stage === 'flourishing' ? 'scale-110 drop-shadow-lg' : 
                 stage === 'dancing' ? 'animate-bounce-soft' : ''
               }`}
               priority
             />
 
-            {/* Cute little dots around logo */}
+            {/* Puntos orbitando el logo */}
             {stage !== 'appearing' && [...Array(6)].map((_, i) => (
               <div
                 key={i}
@@ -140,7 +148,7 @@ const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) 
                   left: '50%',
                   top: '50%',
                   transformOrigin: '0 0',
-                  transform: `rotate(${i * 60}deg) translate(60px, -1px)`,
+                  transform: `rotate(${i * 60}deg) translate(${window.innerWidth < 640 ? '45px' : '60px'}, -1px)`,
                   animationDelay: `${i * 0.2}s`
                 }}
               />
@@ -148,9 +156,9 @@ const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) 
           </div>
         </div>
 
-        {/* Brand name with gentle reveal */}
-        <div className="mb-10">
-          <h1 className={`text-5xl font-light transition-all duration-1000 ${
+        {/* Nombre de marca QUOVI */}
+        <div className="mb-8 sm:mb-10">
+          <h1 className={`text-4xl sm:text-5xl font-light transition-all duration-1000 ${
             stage === 'appearing' ? 'opacity-40 translate-y-4' : 'opacity-100 translate-y-0'
           }`}>
             {['Q', 'U', 'O', 'V', 'I'].map((letter, index) => (
@@ -173,23 +181,23 @@ const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) 
           </h1>
         </div>
 
-        {/* Cute loading message */}
-        <div className={`mb-8 transition-all duration-1000 ${
+        {/* Mensaje de carga dinámico */}
+        <div className={`mb-6 sm:mb-8 transition-all duration-1000 ${
           stage === 'appearing' ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
         }`}>
-          <p className="text-orange-600/80 font-light text-lg">
+          <p className="text-orange-600/80 font-light text-base sm:text-lg">
             {stage === 'appearing' && 'Preparando algo delicioso...'}
             {stage === 'dancing' && 'Conectando sabores únicos...'}
             {stage === 'flourishing' && 'Todo listo para ti'}
           </p>
         </div>
 
-        {/* Elegant progress indicator */}
-        <div className="flex justify-center space-x-3">
+        {/* Indicador de progreso con puntos */}
+        <div className="flex justify-center space-x-2 sm:space-x-3">
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className={`w-2 h-2 rounded-full transition-all duration-500 ${
+              className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full transition-all duration-500 ${
                 progress > i * 20 ? 
                   i % 2 === 0 ? 'bg-orange-400 scale-125 shadow-sm' : 'bg-pink-400 scale-125 shadow-sm'
                 : 'bg-orange-200/50 scale-100'
@@ -200,7 +208,7 @@ const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) 
           ))}
         </div>
 
-        {/* Final elegant glow */}
+        {/* Resplandor final en etapa flourishing */}
         {stage === 'flourishing' && (
           <div className="absolute inset-0 pointer-events-none">
             <div className="absolute inset-0 bg-gradient-radial from-orange-200/20 via-transparent to-transparent animate-gentle-expand" />
@@ -209,32 +217,20 @@ const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) 
         )}
       </div>
 
-      {/* Delicate animations */}
+      {/* Animaciones CSS personalizadas */}
       <style>{`
         .bg-gradient-radial {
           background: radial-gradient(circle, var(--tw-gradient-stops));
         }
 
         @keyframes float-cute {
-          0%, 100% { 
-            transform: translateY(0px) rotate(0deg); 
-            opacity: 0.3; 
-          }
-          50% { 
-            transform: translateY(-20px) rotate(5deg); 
-            opacity: 0.7; 
-          }
+          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.3; }
+          50% { transform: translateY(-20px) rotate(5deg); opacity: 0.7; }
         }
 
         @keyframes twinkle-soft {
-          0%, 100% { 
-            opacity: 0.2; 
-            transform: scale(0.8); 
-          }
-          50% { 
-            opacity: 0.8; 
-            transform: scale(1.2); 
-          }
+          0%, 100% { opacity: 0.2; transform: scale(0.8); }
+          50% { opacity: 0.8; transform: scale(1.2); }
         }
 
         @keyframes spin-gentle {
@@ -258,12 +254,8 @@ const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) 
         }
 
         @keyframes letter-glow {
-          0%, 100% { 
-            text-shadow: 0 0 5px rgba(251, 146, 60, 0.3); 
-          }
-          50% { 
-            text-shadow: 0 0 15px rgba(251, 146, 60, 0.6); 
-          }
+          0%, 100% { text-shadow: 0 0 5px rgba(251, 146, 60, 0.3); }
+          50% { text-shadow: 0 0 15px rgba(251, 146, 60, 0.6); }
         }
 
         @keyframes pulse-cute {
@@ -272,18 +264,9 @@ const EpicLoader: React.FC<EpicLoaderProps> = ({ onComplete, duration = 2800 }) 
         }
 
         @keyframes gentle-expand {
-          0% { 
-            opacity: 0; 
-            transform: scale(0.8); 
-          }
-          50% { 
-            opacity: 1; 
-            transform: scale(1.2); 
-          }
-          100% { 
-            opacity: 0; 
-            transform: scale(1.5); 
-          }
+          0% { opacity: 0; transform: scale(0.8); }
+          50% { opacity: 1; transform: scale(1.2); }
+          100% { opacity: 0; transform: scale(1.5); }
         }
 
         .animate-float-cute { animation: float-cute ease-in-out infinite; }

@@ -168,7 +168,7 @@ func (as *AuthService) RegistrarUsuarioGoogle(googleID, email, nombre, apellido,
 	usuarioEmail, _ := as.dbManager.ObtenerUsuarioPorEmail(email)
 	if usuarioEmail != nil {
 		// Vincular Google ID a cuenta existente
-		usuarioEmail.GoogleID = googleID
+		usuarioEmail.GoogleID = &googleID
 		usuarioEmail.Provider = "google"
 		usuarioEmail.EmailVerificado = true
 		if foto != "" {
@@ -184,7 +184,7 @@ func (as *AuthService) RegistrarUsuarioGoogle(googleID, email, nombre, apellido,
 	// Crear nueva cuenta
 	nuevoUsuario := &models.Usuario{
 		NombreUsuario:   generarNombreUsuarioUnico(email, googleID),
-		GoogleID:        googleID,
+		GoogleID:        &googleID,
 		Email:           email,
 		Nombre:          nombre,
 		Apellido:        apellido,
