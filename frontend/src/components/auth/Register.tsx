@@ -152,7 +152,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
                 ? 'border-red-300 focus:ring-red-200' 
                 : 'border-orange-200 focus:ring-orange-200 focus:border-orange-300'
             }`}
-            placeholder="Juan Perez"
+            placeholder="Quovi Quovero"
           />
         </div>
         <AnimatePresence>
@@ -186,7 +186,7 @@ const Register: React.FC<RegisterProps> = ({ onSwitchToLogin, onBack, onRegister
                 ? 'border-red-300 focus:ring-red-200' 
                 : 'border-orange-200 focus:ring-orange-200 focus:border-orange-300'
             }`}
-            placeholder="juan@email.com"
+            placeholder="quovi@email.com"
           />
         </div>
         <AnimatePresence>
