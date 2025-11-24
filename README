@@ -1,391 +1,77 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quovi - Plataforma de Descubrimiento de Restaurantes</title>
-    <style>
-        :root {
-            --primary-color: #FF6B35;
-            --secondary-color: #2D3748;
-            --bg-color: #F7FAFC;
-            --text-color: #2D3748;
-            --code-bg: #1A202C;
-            --border-color: #E2E8F0;
-        }
+<div align="center">
 
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            line-height: 1.6;
-            color: var(--text-color);
-            background-color: var(--bg-color);
-            margin: 0;
-            padding: 0;
-        }
+# 🦁 Quovi
+## Plataforma de Descubrimiento de Restaurantes
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            background-color: white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            border-radius: 8px;
-            margin-top: 20px;
-            margin-bottom: 20px;
-        }
+![Quovi Banner](https://via.placeholder.com/1200x300/FF6B35/FFFFFF?text=Quovi+-+Descubre+Sabores+Únicos)
 
-        /* Encabezados */
-        h1, h2, h3 {
-            color: var(--secondary-color);
-            margin-top: 1.5em;
-        }
+> **Una aplicación web moderna para descubrir restaurantes locales con búsqueda inteligente, sistema de favoritos y navegación interactiva.**
 
-        h1 {
-            text-align: center;
-            font-size: 2.5em;
-            margin-bottom: 0.5em;
-            color: var(--primary-color);
-        }
+[![Next.js](https://img.shields.io/badge/Next.js-14.2.22-black?logo=next.js)](https://nextjs.org/)
+[![Go](https://img.shields.io/badge/Go-1.23-00ADD8?logo=go)](https://golang.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-Academic-green.svg)](LICENSE)
 
-        h2 {
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 10px;
-        }
+</div>
 
-        /* Imágenes y Badges */
-        .banner {
-            width: 100%;
-            height: auto;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+---
 
-        .badges {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
+## 📋 Tabla de Contenidos
 
-        .badges img {
-            height: 25px;
-        }
+1. [Descripción General](#-descripción-general)
+2. [Arquitectura del Sistema](#-arquitectura-del-sistema)
+3. [Tecnologías Utilizadas](#-tecnologías-utilizadas)
+4. [Instalación y Configuración](#-instalación-y-configuración)
+5. [Estructura del Proyecto](#-estructura-del-proyecto)
+6. [Funcionalidades Principales](#-funcionalidades-principales)
+7. [API Endpoints](#-api-endpoints)
+8. [Solución de Problemas](#-solución-de-problemas)
 
-        /* Bloques de código */
-        pre {
-            background-color: var(--code-bg);
-            color: #E2E8F0;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
-            font-family: 'Consolas', 'Monaco', monospace;
-            font-size: 0.9em;
-        }
+---
 
-        code {
-            background-color: #EDF2F7;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-family: monospace;
-            color: #C53030;
-        }
+## 🎯 Descripción General
 
-        pre code {
-            background-color: transparent;
-            color: inherit;
-            padding: 0;
-        }
+**Quovi** es una aplicación web moderna que permite a los usuarios:
+* ✅ Descubrir restaurantes locales con búsqueda inteligente.
+* ✅ Ver menús y detalles completos de establecimientos.
+* ✅ Guardar restaurantes favoritos.
+* ✅ Obtener direcciones y tiempos estimados en tiempo real.
+* ✅ Visualizar restaurantes en un mapa interactivo.
 
-        /* Tablas */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
+---
 
-        th, td {
-            border: 1px solid var(--border-color);
-            padding: 12px;
-            text-align: left;
-        }
+## 📸 Galería (Screenshots)
 
-        th {
-            background-color: #EDF2F7;
-            font-weight: 600;
-        }
+| Dashboard | Mapa Interactivo |
+|:---:|:---:|
+| ![Dashboard](https://via.placeholder.com/600x300/e5e7eb/1f2937?text=Vista+del+Dashboard) | ![Mapas](https://via.placeholder.com/600x300/e5e7eb/1f2937?text=Mapa+con+Leaflet) |
 
-        tr:nth-child(even) {
-            background-color: #F7FAFC;
-        }
+---
 
-        /* Elementos destacados */
-        blockquote {
-            border-left: 4px solid var(--primary-color);
-            margin: 20px 0;
-            padding: 10px 20px;
-            background-color: #FFF5F0;
-            font-style: italic;
-        }
+## 🏗️ Arquitectura del Sistema
 
-        .placeholder-box {
-            background-color: #EDF2F7;
-            border: 2px dashed #CBD5E0;
-            color: #718096;
-            text-align: center;
-            padding: 40px;
-            margin: 20px 0;
-            border-radius: 8px;
-        }
+El proyecto está construido con una **arquitectura de microservicios** completamente containerizada:
 
-        ul li {
-            margin-bottom: 8px;
-        }
-
-        /* Footer */
-        .footer {
-            text-align: center;
-            margin-top: 50px;
-            padding-top: 20px;
-            border-top: 1px solid var(--border-color);
-            font-size: 0.9em;
-            color: #718096;
-        }
-    </style>
-</head>
-<body>
-
-    <div class="container">
-        
-        <header>
-            <h1>Quovi</h1>
-            <p style="text-align: center; font-size: 1.2em; color: #4A5568;">Plataforma de Descubrimiento de Restaurantes</p>
-            
-            <img src="https://via.placeholder.com/1200x300/FF6B35/FFFFFF?text=Quovi+-+Descubre+Sabores+Unicos" alt="Banner Quovi" class="banner">
-
-            <blockquote>
-                Una aplicación web moderna para descubrir restaurantes locales con búsqueda inteligente, sistema de favoritos y navegación interactiva.
-            </blockquote>
-
-            <div class="badges">
-                <img src="https://img.shields.io/badge/Next.js-14.2.22-black?logo=next.js" alt="NextJS">
-                <img src="https://img.shields.io/badge/Go-1.23-00ADD8?logo=go" alt="Go">
-                <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white" alt="MySQL">
-                <img src="https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white" alt="Docker">
-            </div>
-        </header>
-
-        <hr>
-
-        <section>
-            <h2>📋 Tabla de Contenidos</h2>
-            <ul>
-                <li><a href="#descripcion">Descripción General</a></li>
-                <li><a href="#arquitectura">Arquitectura del Sistema</a></li>
-                <li><a href="#tecnologias">Tecnologías Utilizadas</a></li>
-                <li><a href="#instalacion">Instalación y Configuración</a></li>
-                <li><a href="#funcionalidades">Funcionalidades Principales</a></li>
-                <li><a href="#api">API Endpoints</a></li>
-            </ul>
-        </section>
-
-        <section id="descripcion">
-            <h2>🎯 Descripción General</h2>
-            <p><strong>Quovi</strong> es una solución integral diseñada para conectar a los comensales con experiencias culinarias locales. No solo permite encontrar lugares para comer, sino que ofrece una experiencia completa de planificación.</p>
-            
-            <h3>¿Qué permite hacer Quovi?</h3>
-            <ul>
-                <li>✅ <strong>Descubrimiento Inteligente:</strong> Encuentra restaurantes basados en antojos específicos (Tacos, Pizza, Saludable).</li>
-                <li>✅ <strong>Detalles Completos:</strong> Visualiza menús, precios y horarios en tiempo real.</li>
-                <li>✅ <strong>Navegación:</strong> Obtén direcciones y tiempos de llegada estimados.</li>
-                <li>✅ <strong>Personalización:</strong> Guarda tus favoritos y gestiona tu perfil.</li>
-            </ul>
-
-            <h3>📸 Galería de la Aplicación</h3>
-            <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <div style="flex: 1; min-width: 300px;">
-                    <img src="https://via.placeholder.com/600x350/e0e0e0/333333?text=Dashboard+Principal" alt="Dashboard" style="width: 100%; border-radius: 8px;">
-                </div>
-                <div style="flex: 1; min-width: 300px;">
-                    <img src="https://via.placeholder.com/600x350/e0e0e0/333333?text=Mapa+Interactivo" alt="Mapa" style="width: 100%; border-radius: 8px;">
-                </div>
-            </div>
-        </section>
-
-        <section id="arquitectura">
-            <h2>🏗️ Arquitectura del Sistema</h2>
-            <p>El proyecto utiliza una <strong>arquitectura de microservicios</strong> completamente containerizada:</p>
-            
-            <pre>
-┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
-│   Frontend      │      │    Backend      │      │   Database      │
-│   Next.js 14    │ ───> │   Go + Gin      │ ───> │   MySQL 8.0     │
-│   Port 3000     │      │   Port 8080     │      │   Port 3306     │
-└─────────────────┘      └─────────────────┘      └─────────────────┘
-            </pre>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Componente</th>
-                        <th>Tecnología</th>
-                        <th>Puerto</th>
-                        <th>Docker Service</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Frontend</td>
-                        <td>Next.js 14 + TypeScript</td>
-                        <td>3000</td>
-                        <td><code>quovi_frontend</code></td>
-                    </tr>
-                    <tr>
-                        <td>Backend</td>
-                        <td>Go 1.23 + Gin Framework</td>
-                        <td>8080</td>
-                        <td><code>quovi_backend</code></td>
-                    </tr>
-                    <tr>
-                        <td>Database</td>
-                        <td>MySQL 8.0</td>
-                        <td>3306</td>
-                        <td><code>quovi_db</code></td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section id="tecnologias">
-            <h2>🛠️ Tecnologías Utilizadas</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-                
-                <div style="background: #F8F9FA; padding: 15px; border-radius: 8px;">
-                    <h3>🎨 Frontend Stack</h3>
-                    <ul>
-                        <li><strong>Framework:</strong> Next.js 14.2.22</li>
-                        <li><strong>Lenguaje:</strong> TypeScript</li>
-                        <li><strong>Estilos:</strong> Tailwind CSS</li>
-                        <li><strong>Mapas:</strong> Leaflet + OpenStreetMap</li>
-                    </ul>
-                </div>
-
-                <div style="background: #F8F9FA; padding: 15px; border-radius: 8px;">
-                    <h3>⚙️ Backend Stack</h3>
-                    <ul>
-                        <li><strong>Lenguaje:</strong> Go 1.23</li>
-                        <li><strong>Framework:</strong> Gin Web Framework</li>
-                        <li><strong>ORM:</strong> GORM</li>
-                        <li><strong>Seguridad:</strong> JWT + Bcrypt</li>
-                    </ul>
-                </div>
-
-            </div>
-        </section>
-
-        <section id="instalacion">
-            <h2>🚀 Instalación y Configuración</h2>
-            <p>Sigue estos pasos para levantar el proyecto en tu entorno local:</p>
-
-            <h3>1. Clonar el repositorio</h3>
-            <pre><code>git clone https://github.com/ramitaaas17/next-quovi.git
-cd quovi</code></pre>
-
-            <h3>2. Configurar Variables de Entorno</h3>
-            <p>Crea un archivo <code>.env</code> dentro de la carpeta <code>frontend/</code>:</p>
-            <pre><code>NEXT_PUBLIC_API_URL=http://localhost:8080/api
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=tu_google_client_id_aqui</code></pre>
-
-            <h3>3. Levantar con Docker</h3>
-            <p>Este comando construye las imágenes, levanta los contenedores y carga los datos de prueba.</p>
-            <pre><code>docker-compose up --build</code></pre>
-
-            <h3>4. Verificar</h3>
-            <ul>
-                <li>🌐 <strong>Frontend:</strong> <a href="http://localhost:3000" target="_blank">http://localhost:3000</a></li>
-                <li>⚙️ <strong>API:</strong> <a href="http://localhost:8080/health" target="_blank">http://localhost:8080/health</a></li>
-            </ul>
-        </section>
-
-        <section id="api">
-            <h2>📡 API Endpoints Principales</h2>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Método</th>
-                        <th>Endpoint</th>
-                        <th>Descripción</th>
-                        <th>Acceso</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><span style="color: green; font-weight: bold;">POST</span></td>
-                        <td><code>/api/auth/login</code></td>
-                        <td>Iniciar sesión</td>
-                        <td>Público</td>
-                    </tr>
-                    <tr>
-                        <td><span style="color: blue; font-weight: bold;">GET</span></td>
-                        <td><code>/api/restaurantes</code></td>
-                        <td>Listar restaurantes</td>
-                        <td>Público</td>
-                    </tr>
-                    <tr>
-                        <td><span style="color: orange; font-weight: bold;">GET</span></td>
-                        <td><code>/api/perfil</code></td>
-                        <td>Ver perfil de usuario</td>
-                        <td>🔒 Token</td>
-                    </tr>
-                    <tr>
-                        <td><span style="color: green; font-weight: bold;">POST</span></td>
-                        <td><code>/api/favoritos</code></td>
-                        <td>Agregar a favoritos</td>
-                        <td>🔒 Token</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section>
-            <h2>👥 Usuarios de Prueba</h2>
-            <p>Utiliza estas credenciales para probar el sistema:</p>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Email</th>
-                        <th>Contraseña</th>
-                        <th>Rol</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>juan.perez@email.com</td>
-                        <td>Password123!</td>
-                        <td>Usuario</td>
-                    </tr>
-                    <tr>
-                        <td>maria.garcia@email.com</td>
-                        <td>Password123!</td>
-                        <td>Usuario</td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-
-        <footer class="footer">
-            <p>Este proyecto fue desarrollado como proyecto final para la materia de <strong>Desarrollo Web</strong>.</p>
-            <p>
-                <strong>Desarrollado por:</strong> ramitaaas17 | 
-                <strong>Tecnologías:</strong> Next.js, Go, Docker
-            </p>
-            <div style="margin-top: 10px;">
-                <small>Hecho con ❤️ en Ciudad de México</small>
-            </div>
-        </footer>
-
-    </div>
-
-</body>
-</html>
+```mermaid
+graph LR
+    A[Frontend / Next.js 14] -- Puerto 3000 --> B[Backend / Go + Gin]
+    B -- Puerto 8080 --> C[(Database / MySQL 8)]
+    C -- Puerto 3306 --> B
+ComponenteTecnologíaPuertoContenedorFrontendNext.js 14 + TypeScript3000quovi_frontendBackendGo 1.23 + Gin Framework8080quovi_backendDatabaseMySQL 8.03306quovi_db🛠️ Tecnologías Utilizadas🎨 Frontend StackFramework: Next.js 14.2.22Language: TypeScriptStyling: Tailwind CSS + Framer MotionMaps: Leaflet + OpenStreetMapAuth: Google OAuth 2.0 + JWT⚙️ Backend StackLanguage: Go 1.23Framework: Gin Web FrameworkORM: GORMSecurity: Bcrypt (12 rounds), CORS, Rate Limiting🚀 Instalación y Configuración1️⃣ Requisitos PreviosDocker Desktop (v20.10+)GitPuertos disponibles: 3000, 8080, 33062️⃣ Clonar el RepositorioBashgit clone [https://github.com/ramitaaas17/next-quovi.git](https://github.com/ramitaaas17/next-quovi.git)
+cd quovi
+3️⃣ Configurar Variables de EntornoCrear archivo .env en la carpeta frontend/:Code snippetNEXT_PUBLIC_API_URL=http://localhost:8080/api
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=tu_cliente_id_google
+4️⃣ Levantar los ServiciosBashdocker-compose up --build
+Esto levantará la BD, el Backend y el Frontend, e inicializará los datos de prueba automáticamente.5️⃣ Verificar AccesoServicioURLFrontendhttp://localhost:3000Backend Healthhttp://localhost:8080/health📁 Estructura del ProyectoBashquovi/
+├── frontend/             # Next.js 14 App Router
+│   ├── src/app/          # Páginas y Rutas
+│   ├── src/components/   # Componentes React
+│   └── Dockerfile
+├── backend/              # Go API
+│   ├── handlers/         # Controladores
+│   ├── models/           # Structs de BD
+│   ├── BD/               # Scripts SQL (Init & Dummy Data)
+│   └── Dockerfile
+└── docker-compose.yml    # Orquestación
+⚡ Funcionalidades Principales🔐 AutenticaciónRegistro: Validación estricta (Min 8 caracteres, mayúsculas, símbolos).Login: Email/Password o Google OAuth.Seguridad: JWT con expiración de 24h.🔍 Buscador y FiltrosBúsqueda por texto (ej: "Pizza").Filtro por categorías (Tacos, Mariscos, Saludable).Cálculo de distancia real usando fórmula Haversine.🗺️ MapaMarcadores dinámicos.Popups con información rápida.Botón "Cómo llegar".📡 API Endpoints PrincipalesMétodoEndpointDescripciónAuthPOST/api/auth/loginIniciar sesión❌POST/api/auth/registerRegistro de usuario❌GET/api/restaurantesListar todos❌POST/api/restaurantes/cercanosBuscar por GPS❌GET/api/perfilVer datos usuario🔒POST/api/favoritosAgregar favorito🔒🔧 Solución de Problemas (Troubleshooting)<details><summary>🔻 <strong>Error: Frontend no conecta con Backend</strong> (Click para expandir)</summary>Verifica que exista el archivo .env en la carpeta frontend.Asegúrate que NEXT_PUBLIC_API_URL sea http://localhost:8080/api.Reinicia el contenedor: docker-compose restart frontend.</details><details><summary>🔻 <strong>Error: Base de Datos vacía o Connection Refused</strong> (Click para expandir)</summary>MySQL tarda unos 30-60 segundos en arrancar la primera vez.Si falla, espera un minuto y ejecuta: docker-compose restart backend.Para resetear todo: docker-compose down -v y vuelve a construir.</details>👥 Usuarios de PruebaPuedes usar estas credenciales para probar el sistema sin registrarte:EmailContraseñajuan.perez@email.comPassword123!maria.garcia@email.comPassword123!📄 LicenciaEste proyecto fue desarrollado como proyecto final para la materia de Desarrollo Web.Universidad: [Tu Universidad]Estudiante: [Tu Nombre] - ramitaaas17<div align="center"><sub>Hecho con ❤️ para la clase de Desarrollo Web</sub><a href="#-quovi">⬆ Volver arriba</a></div>
