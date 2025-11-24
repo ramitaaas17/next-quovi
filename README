@@ -1,263 +1,69 @@
-Quovi - Plataforma de Descubrimiento de Restaurantes
-Descripción General
-Quovi es una aplicación web moderna para descubrir restaurantes locales con búsqueda inteligente, sistema de favoritos y navegación interactiva. La plataforma permite a los usuarios explorar establecimientos cercanos, ver menús, guardar favoritos y obtener direcciones en tiempo real.
-Arquitectura del Sistema
-El proyecto está construido con una arquitectura de microservicios completamente containerizada:
+Markdown# Quovi - Plataforma de Descubrimiento de Restaurantes
 
-Frontend: Next.js 14 con TypeScript y Tailwind CSS
-Backend: Go (Golang) con Gin Framework
-Base de Datos: MySQL 8.0
-Containerización: Docker y Docker Compose
+![Quovi Banner](https://via.placeholder.com/1200x300/FF6B35/FFFFFF?text=Quovi+-+Descubre+Sabores+Únicos)
 
-Cumplimiento de Especificaciones
-Frontend
+> **Una aplicación web moderna para descubrir restaurantes locales con búsqueda inteligente, sistema de favoritos y navegación interactiva.**
 
-Proyecto Next.js 14 (App Router)
-Conexión a Backend mediante API REST
-Servicio en contenedor independiente (puerto 3000)
-Diseño completamente responsivo (mobile-first)
+<div align="center">
 
-Backend
+[![Next.js](https://img.shields.io/badge/Next.js-14.2.22-black?logo=next.js)](https://nextjs.org/)
+[![Go](https://img.shields.io/badge/Go-1.23-00ADD8?logo=go)](https://golang.org/)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![License](https://img.shields.io/badge/License-Academic-green.svg)](LICENSE)
 
-Desarrollado en Go (Golang)
-Comunicación con Base de Datos vía GORM (ORM)
-Hasheo de contraseñas con bcrypt (12 rounds)
-Servicio en contenedor independiente (puerto 8080)
+</div>
 
-Base de Datos
+---
 
-Schema MySQL completo con tablas inicializadas
-Datos de prueba precargados (restaurantes, usuarios, categorías)
-Servicio en contenedor independiente (puerto 3306)
+## 📋 Tabla de Contenidos
 
-Tecnologías Utilizadas
-Frontend
+1. [Descripción General](#-descripción-general)
+2. [Arquitectura del Sistema](#-arquitectura-del-sistema)
+3. [Tecnologías Utilizadas](#-tecnologías-utilizadas)
+4. [Instalación y Configuración](#-instalación-y-configuración)
+5. [Funcionalidades Principales](#-funcionalidades-principales)
+6. [Estructura del Proyecto](#-estructura-del-proyecto)
+7. [API Endpoints](#-api-endpoints)
+8. [Solución de Problemas](#-solución-de-problemas)
 
-Next.js 14.2.22
-React 18
-TypeScript
-Tailwind CSS
-Framer Motion (animaciones)
-Google OAuth 2.0
-Leaflet (mapas interactivos)
+---
 
-Backend
+## 🎯 Descripción General
 
-Go 1.23
-Gin Web Framework
-GORM (ORM)
-JWT para autenticación
-bcrypt para hasheo de contraseñas
-CORS configurado
+**Quovi** es una solución integral diseñada para conectar a los comensales con experiencias culinarias locales. No solo permite encontrar lugares para comer, sino que ofrece una experiencia completa de planificación.
 
-Base de Datos
+### ¿Qué permite hacer Quovi?
+* ✅ **Descubrimiento Inteligente:** Encuentra restaurantes basados en antojos específicos (Tacos, Pizza, Saludable).
+* ✅ **Detalles Completos:** Visualiza menús, precios y horarios en tiempo real.
+* ✅ **Navegación:** Obtén direcciones y tiempos de llegada estimados.
+* ✅ **Personalización:** Guarda tus favoritos y gestiona tu perfil.
 
-MySQL 8.0
-Tablas con relaciones many-to-many
-Triggers para actualización automática
-Índices optimizados
+---
 
-Requisitos Previos
+## 📸 Galería de la Aplicación
 
-Docker Desktop instalado
-Docker Compose instalado
-Git
-8GB RAM mínimo recomendado
-Puertos disponibles: 3000, 8080, 3306
+*(Espacio reservado para tus capturas de pantalla. Reemplaza los enlaces con tus propias imágenes)*
 
-Instalación y Configuración
-1. Clonar el Repositorio
-bashgit clone <URL_DEL_REPOSITORIO>
+| Dashboard Principal | Búsqueda y Mapas |
+|:-------------------:|:----------------:|
+| ![Dashboard](https://via.placeholder.com/600x300/e0e0e0/333333?text=Vista+del+Dashboard) | ![Mapas](https://via.placeholder.com/600x300/e0e0e0/333333?text=Mapa+Interactivo) |
+
+---
+
+## 🏗️ Arquitectura del Sistema
+
+El proyecto utiliza una **arquitectura de microservicios** completamente containerizada, garantizando escalabilidad y aislamiento de entornos.
+
+```ascii
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│   Frontend      │      │    Backend      │      │   Database      │
+│   Next.js 14    │ ───> │   Go + Gin      │ ───> │   MySQL 8.0     │
+│   Port 3000     │      │   Port 8080     │      │   Port 3306     │
+└─────────────────┘      └─────────────────┘      └─────────────────┘
+ComponenteTecnologíaPuerto InternoServicio DockerFrontendNext.js 14 + TypeScript3000quovi_frontendBackendGo 1.23 + Gin Framework8080quovi_backendDatabaseMySQL 8.03306quovi_db🛠️ Tecnologías Utilizadas🎨 Frontend StackFramework: Next.js 14.2.22 (App Router)Lenguaje: TypeScriptEstilos: Tailwind CSSMapas: Leaflet + OpenStreetMapAuth: Google OAuth 2.0 + JWT⚙️ Backend StackLenguaje: Go 1.23Framework: Gin Web FrameworkORM: GORMSeguridad: Bcrypt (12 rounds), CORS, Rate Limiting🗄️ Base de DatosMotor: MySQL 8.0Estructura: 11 tablas relacionales, Triggers automáticos, Índices optimizados.🚀 Instalación y ConfiguraciónSigue estos pasos para levantar el proyecto en tu entorno local.1️⃣ Requisitos PreviosDocker Desktop (v20.10+)GitPuertos libres: 3000, 8080, 33062️⃣ Clonar el RepositorioBashgit clone [https://github.com/ramitaaas17/next-quovi.git](https://github.com/ramitaaas17/next-quovi.git)
 cd quovi
-2. Configurar Variables de Entorno
-Crear archivo .env en la carpeta frontend:
-envNEXT_PUBLIC_API_URL=http://localhost:8080/api
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=268691260379-gq3u019erlkn68103l7fttpsp3jm7hoo.apps.googleusercontent.com
-3. Levantar los Servicios
-bashdocker-compose up --build
-Este comando:
-
-Construye las imágenes de los tres servicios
-Levanta los contenedores en orden (DB → Backend → Frontend)
-Inicializa la base de datos con el schema y datos de prueba
-
-4. Verificar que los Servicios Estén Activos
-bashdocker-compose ps
-```
-
-Deberías ver tres contenedores en estado "Up":
-- quovi_db (MySQL)
-- quovi_backend (Go API)
-- quovi_frontend (Next.js)
-
-## Acceso a la Aplicación
-
-### Frontend
-```
-http://localhost:3000
-```
-
-### Backend API
-```
-http://localhost:8080/api
-```
-
-### Health Check
-```
-http://localhost:8080/health
-```
-
-## Estructura del Proyecto
-```
-quovi/
-├── frontend/
-│   ├── src/
-│   │   ├── app/              # Páginas Next.js (App Router)
-│   │   ├── components/       # Componentes React
-│   │   ├── services/         # Servicios de API
-│   │   ├── hooks/            # Custom Hooks
-│   │   └── utils/            # Utilidades
-│   ├── Dockerfile
-│   └── package.json
-├── backend/
-│   ├── handlers/             # Controladores HTTP
-│   ├── services/             # Lógica de negocio
-│   ├── models/               # Modelos de datos
-│   ├── repository/           # Capa de acceso a datos
-│   ├── middleware/           # Middlewares (CORS, Auth, Rate Limiting)
-│   ├── utils/                # Utilidades (validación, logging)
-│   ├── BD/                   # Scripts SQL
-│   ├── Dockerfile
-│   ├── go.mod
-│   └── main.go
-├── docker-compose.yml
-└── README.md
-```
-
-## Funcionalidades Principales
-
-### Autenticación
-- Registro de usuarios con validación de contraseñas (mínimo 8 caracteres, mayúsculas, minúsculas, números, caracteres especiales)
-- Login con email y contraseña
-- OAuth 2.0 con Google
-- JWT tokens con expiración de 24 horas
-- Hasheo de contraseñas con bcrypt (12 rounds)
-
-### Gestión de Perfil
-- Ver y editar información personal
-- Subir foto de perfil (base64, máximo 5MB)
-- Cambiar contraseña
-- Eliminar cuenta
-
-### Búsqueda de Restaurantes
-- Búsqueda por término libre
-- Filtrado por categorías (Tacos, Pizza, Mariscos, etc.)
-- Búsqueda por ubicación geográfica (Haversine)
-- Cálculo de distancia y tiempo estimado
-- Verificación de horarios en tiempo real
-
-### Favoritos
-- Agregar/eliminar restaurantes de favoritos
-- Lista personalizada con distancias calculadas
-- Ver menú completo de favoritos
-
-### Mapa Interactivo
-- Visualización con Leaflet y OpenStreetMap
-- Marcadores personalizados por categoría
-- Indicador de ubicación del usuario
-- Controles de zoom y navegación
-
-## API Endpoints
-
-### Autenticación
-```
-POST /api/auth/register       - Registro de usuario
-POST /api/auth/login          - Inicio de sesión
-POST /api/auth/login/google   - Login con Google
-POST /api/auth/logout         - Cerrar sesión
-```
-
-### Perfil (Requieren autenticación)
-```
-GET    /api/perfil            - Obtener perfil
-PUT    /api/perfil            - Actualizar perfil
-POST   /api/perfil/foto/base64 - Subir foto (base64)
-DELETE /api/perfil/foto       - Eliminar foto
-POST   /api/perfil/cambiar-password - Cambiar contraseña
-```
-
-### Restaurantes
-```
-GET  /api/restaurantes           - Lista de restaurantes
-GET  /api/restaurantes/:id       - Detalle de restaurante
-POST /api/restaurantes/cercanos  - Búsqueda por ubicación
-POST /api/restaurantes/buscar    - Búsqueda con filtros
-GET  /api/restaurantes/:id/platillos - Menú del restaurante
-```
-
-### Favoritos (Requieren autenticación)
-```
-GET    /api/favoritos         - Lista de favoritos
-POST   /api/favoritos         - Agregar favorito
-DELETE /api/favoritos/:id     - Eliminar favorito
-```
-
-### Categorías
-```
-GET /api/categorias                    - Lista de categorías
-GET /api/categorias/:id/restaurantes   - Restaurantes por categoría
-Seguridad Implementada
-Backend
-
-Rate limiting (5 peticiones/minuto en endpoints de autenticación)
-Headers de seguridad (X-Frame-Options, CSP, etc.)
-Validación de entrada contra SQL injection y XSS
-Sanitización de datos
-Límite de tamaño de body (5MB)
-Logs de seguridad para eventos sospechosos
-
-Frontend
-
-Validación de formularios en cliente
-Sanitización de inputs
-Tokens JWT almacenados en localStorage
-Manejo seguro de sesiones
-
-Base de Datos
-Tablas Principales
-
-usuarios (con soporte OAuth)
-restaurantes
-categorias_cocina
-caracteristicas
-platillos
-horarios
-imagenes_restaurante
-favoritos
-resenas
-sesiones
-busquedas
-
-Relaciones
-
-Usuarios ↔ Favoritos ↔ Restaurantes (many-to-many)
-Restaurantes ↔ Categorías (many-to-many)
-Restaurantes ↔ Características (many-to-many)
-Restaurantes → Platillos (one-to-many)
-Restaurantes → Horarios (one-to-many)
-
-Comandos Útiles
-Ver logs de un servicio
-bashdocker-compose logs -f frontend
-docker-compose logs -f backend
-docker-compose logs -f db
-Reiniciar un servicio específico
-bashdocker-compose restart frontend
-docker-compose restart backend
-docker-compose restart db
-Detener todos los servicios
-bashdocker-compose down
-Detener y eliminar volúmenes (resetear base de datos)
-bashdocker-compose down -v
-Reconstruir contenedores
-bashdocker-compose up --build --force-recreate
+3️⃣ Configurar Variables de EntornoCrea un archivo .env dentro de la carpeta frontend/:Code snippetNEXT_PUBLIC_API_URL=http://localhost:8080/api
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=tu_google_client_id_aqui
+4️⃣ Desplegar con DockerEste comando construirá las imágenes, levantará los contenedores y sembrará la base de datos con datos de prueba.Bashdocker-compose up --build
+5️⃣ Verificar EstadoUna vez finalizado, puedes acceder a:🌐 Frontend: http://localhost:3000⚙️ API Health Check: http://localhost:8080/health⚡ Funcionalidades Principales🔐 Autenticación RobustaRegistro con validación de contraseña fuerte (Min 8 caracteres, Mayús/Minús, #, !).Login social con Google OAuth.Tokens JWT con expiración de 24h.🔍 Buscador AvanzadoFiltros por categoría: Tacos, Pizza, Mariscos, Cafetería, etc.Geolocalización: Cálculo de distancia usando fórmula Haversine.Estado: Verificación de "Abierto/Cerrado" en tiempo real.🗺️ Mapa InteractivoIntegración con Leaflet.Marcadores personalizados.Popups con información rápida del restaurante.📡 API EndpointsDocumentación resumida de los endpoints más importantes.MétodoEndpointDescripciónAccesoPOST/api/auth/loginIniciar sesiónPúblicoPOST/api/auth/registerRegistrar usuarioPúblicoGET/api/restaurantesListar restaurantesPúblicoPOST/api/restaurantes/cercanosBuscar por ubicaciónPúblicoGET/api/perfilVer datos de usuario🔒 TokenPOST/api/favoritosAgregar a favoritos🔒 Token🔧 Solución de Problemas (Troubleshooting)🔴 El Frontend no conecta con el BackendVerifica que el archivo .env exista en la carpeta frontend y que la NEXT_PUBLIC_API_URL apunte a http://localhost:8080/api.🔴 Error de conexión a Base de Datos (Connection Refused)MySQL tarda unos segundos en iniciar la primera vez. Espera 30 segundos y ejecuta: docker-compose restart backend.🔴 Puertos ocupadosAsegúrate de no tener otro proceso de MySQL o Node corriendo. Usa docker-compose down para limpiar contenedores viejos.👥 Usuarios de PruebaPuedes usar estas credenciales para probar el sistema sin registrarte:EmailContraseñaRoljuan.perez@email.comPassword123!Usuariomaria.garcia@email.comPassword123!Usuario📄 Licencia y CréditosEste proyecto fue desarrollado como proyecto final para la materia de Desarrollo Web.Desarrollado por: [Tu Nombre] - ramitaaas17Tecnologías: Next.js, Go, Docker.Créditos: Agradecimientos a OpenStreetMap y la comunidad de Golang.<div align="center"><sub>Hecho con ❤️ en Ciudad de México</sub></div>
