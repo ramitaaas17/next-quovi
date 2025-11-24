@@ -1,77 +1,774 @@
-<div align="center">
+# Quovi - Plataforma de Descubrimiento de Restaurantes
 
-# 🦁 Quovi
-## Plataforma de Descubrimiento de Restaurantes
+![Quovi Banner](./frontend/public/images/quoviMain.png)
 
-![Quovi Banner](https://via.placeholder.com/1200x300/FF6B35/FFFFFF?text=Quovi+-+Descubre+Sabores+Únicos)
-
-> **Una aplicación web moderna para descubrir restaurantes locales con búsqueda inteligente, sistema de favoritos y navegación interactiva.**
+> Una aplicación web moderna para descubrir restaurantes locales con búsqueda inteligente, sistema de favoritos y navegación interactiva.
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2.22-black?logo=next.js)](https://nextjs.org/)
 [![Go](https://img.shields.io/badge/Go-1.23-00ADD8?logo=go)](https://golang.org/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql&logoColor=white)](https://www.mysql.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![License](https://img.shields.io/badge/License-Academic-green.svg)](LICENSE)
-
-</div>
 
 ---
 
-## 📋 Tabla de Contenidos
+## Tabla de Contenidos
 
-1. [Descripción General](#-descripción-general)
-2. [Arquitectura del Sistema](#-arquitectura-del-sistema)
-3. [Tecnologías Utilizadas](#-tecnologías-utilizadas)
-4. [Instalación y Configuración](#-instalación-y-configuración)
-5. [Estructura del Proyecto](#-estructura-del-proyecto)
-6. [Funcionalidades Principales](#-funcionalidades-principales)
-7. [API Endpoints](#-api-endpoints)
-8. [Solución de Problemas](#-solución-de-problemas)
+- [Descripción General](#descripción-general)
+- [Arquitectura del Sistema](#arquitectura-del-sistema)
+- [Cumplimiento de Especificaciones](#cumplimiento-de-especificaciones)
+- [Tecnologías Utilizadas](#tecnologías-utilizadas)
+- [Requisitos Previos](#requisitos-previos)
+- [Instalación y Configuración](#instalación-y-configuración)
+- [Estructura del Proyecto](#estructura-del-proyecto)
+- [Funcionalidades Principales](#funcionalidades-principales)
+- [API Endpoints](#api-endpoints)
+- [Seguridad Implementada](#seguridad-implementada)
+- [Base de Datos](#base-de-datos)
+- [Comandos Útiles](#comandos-útiles)
+- [Usuarios de Prueba](#usuarios-de-prueba)
+- [Solución de Problemas](#solución-de-problemas)
 
 ---
 
-## 🎯 Descripción General
+## Descripción General
 
 **Quovi** es una aplicación web moderna que permite a los usuarios:
-* ✅ Descubrir restaurantes locales con búsqueda inteligente.
-* ✅ Ver menús y detalles completos de establecimientos.
-* ✅ Guardar restaurantes favoritos.
-* ✅ Obtener direcciones y tiempos estimados en tiempo real.
-* ✅ Visualizar restaurantes en un mapa interactivo.
+
+- Descubrir restaurantes locales con búsqueda inteligente
+- Ver menús y detalles completos de establecimientos
+- Guardar restaurantes favoritos
+- Obtener direcciones y tiempos estimados en tiempo real
+- Visualizar restaurantes en un mapa interactivo
+
+![Screenshot Principal](https://via.placeholder.com/800x500/FFFFFF/333333?text=Página+Principal)
 
 ---
 
-## 📸 Galería (Screenshots)
-
-| Dashboard | Mapa Interactivo |
-|:---:|:---:|
-| ![Dashboard](https://via.placeholder.com/600x300/e5e7eb/1f2937?text=Vista+del+Dashboard) | ![Mapas](https://via.placeholder.com/600x300/e5e7eb/1f2937?text=Mapa+con+Leaflet) |
-
----
-
-## 🏗️ Arquitectura del Sistema
+## Arquitectura del Sistema
 
 El proyecto está construido con una **arquitectura de microservicios** completamente containerizada:
 
-```mermaid
-graph LR
-    A[Frontend / Next.js 14] -- Puerto 3000 --> B[Backend / Go + Gin]
-    B -- Puerto 8080 --> C[(Database / MySQL 8)]
-    C -- Puerto 3306 --> B
-ComponenteTecnologíaPuertoContenedorFrontendNext.js 14 + TypeScript3000quovi_frontendBackendGo 1.23 + Gin Framework8080quovi_backendDatabaseMySQL 8.03306quovi_db🛠️ Tecnologías Utilizadas🎨 Frontend StackFramework: Next.js 14.2.22Language: TypeScriptStyling: Tailwind CSS + Framer MotionMaps: Leaflet + OpenStreetMapAuth: Google OAuth 2.0 + JWT⚙️ Backend StackLanguage: Go 1.23Framework: Gin Web FrameworkORM: GORMSecurity: Bcrypt (12 rounds), CORS, Rate Limiting🚀 Instalación y Configuración1️⃣ Requisitos PreviosDocker Desktop (v20.10+)GitPuertos disponibles: 3000, 8080, 33062️⃣ Clonar el RepositorioBashgit clone [https://github.com/ramitaaas17/next-quovi.git](https://github.com/ramitaaas17/next-quovi.git)
+```
+┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
+│   Frontend      │      │    Backend      │      │   Database      │
+│   Next.js 14    │ ───> │   Go + Gin      │ ───> │   MySQL 8.0     │
+│   Port 3000     │      │   Port 8080     │      │   Port 3306     │
+└─────────────────┘      └─────────────────┘      └─────────────────┘
+```
+
+| Componente | Tecnología | Puerto | Contenedor |
+|------------|------------|--------|------------|
+| Frontend | Next.js 14 + TypeScript | 3000 | `quovi_frontend` |
+| Backend | Go 1.23 + Gin Framework | 8080 | `quovi_backend` |
+| Database | MySQL 8.0 | 3306 | `quovi_db` |
+
+---
+
+## Cumplimiento de Especificaciones
+
+### Frontend
+- Proyecto NextJS: Implementado con Next.js 14 (App Router)
+- Conexión a Backend: API REST completamente funcional
+- Contenedor independiente: Servicio dockerizado en puerto 3000
+- Responsividad: Diseño mobile-first completamente responsivo
+
+### Backend
+- Lenguaje Go: Desarrollado en Golang 1.23
+- ORM: Comunicación con BD vía GORM
+- Hasheo de contraseñas: bcrypt con 12 rounds de seguridad
+- Contenedor independiente: Servicio dockerizado en puerto 8080
+
+### Base de Datos
+- Schema completo: Todas las tablas inicializadas correctamente
+- Datos de prueba: Restaurantes, usuarios y categorías precargados
+- Contenedor independiente: Servicio MySQL dockerizado en puerto 3306
+
+---
+
+## Tecnologías Utilizadas
+
+### Frontend Stack
+
+```javascript
+{
+  "framework": "Next.js 14.2.22",
+  "language": "TypeScript",
+  "styling": "Tailwind CSS",
+  "animations": "Framer Motion",
+  "maps": "Leaflet + OpenStreetMap",
+  "auth": "Google OAuth 2.0 + JWT"
+}
+```
+
+### Backend Stack
+
+```go
+{
+  "language": "Go 1.23",
+  "framework": "Gin Web Framework",
+  "orm": "GORM",
+  "auth": "JWT + bcrypt",
+  "security": "CORS + Rate Limiting + Input Validation"
+}
+```
+
+### Database
+
+```sql
+-- MySQL 8.0
+-- 11 tablas principales
+-- Relaciones many-to-many
+-- Triggers automáticos
+-- Índices optimizados
+```
+
+---
+
+## Requisitos Previos
+
+Antes de comenzar, asegúrate de tener instalado:
+
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) (versión 20.10+)
+- [Docker Compose](https://docs.docker.com/compose/install/) (versión 2.0+)
+- [Git](https://git-scm.com/)
+- 8GB RAM mínimo
+- Puertos disponibles: **3000**, **8080**, **3306**
+
+### Verificar instalación:
+
+```bash
+docker --version
+docker-compose --version
+git --version
+```
+
+---
+
+## Instalación y Configuración
+
+### Paso 1: Clonar el Repositorio
+
+```bash
+# Clone el proyecto
+git clone https://github.com/ramitaaas17/next-quovi.git
+
+# Navegue al directorio
 cd quovi
-3️⃣ Configurar Variables de EntornoCrear archivo .env en la carpeta frontend/:Code snippetNEXT_PUBLIC_API_URL=http://localhost:8080/api
-NEXT_PUBLIC_GOOGLE_CLIENT_ID=tu_cliente_id_google
-4️⃣ Levantar los ServiciosBashdocker-compose up --build
-Esto levantará la BD, el Backend y el Frontend, e inicializará los datos de prueba automáticamente.5️⃣ Verificar AccesoServicioURLFrontendhttp://localhost:3000Backend Healthhttp://localhost:8080/health📁 Estructura del ProyectoBashquovi/
-├── frontend/             # Next.js 14 App Router
-│   ├── src/app/          # Páginas y Rutas
-│   ├── src/components/   # Componentes React
-│   └── Dockerfile
-├── backend/              # Go API
-│   ├── handlers/         # Controladores
-│   ├── models/           # Structs de BD
-│   ├── BD/               # Scripts SQL (Init & Dummy Data)
-│   └── Dockerfile
-└── docker-compose.yml    # Orquestación
-⚡ Funcionalidades Principales🔐 AutenticaciónRegistro: Validación estricta (Min 8 caracteres, mayúsculas, símbolos).Login: Email/Password o Google OAuth.Seguridad: JWT con expiración de 24h.🔍 Buscador y FiltrosBúsqueda por texto (ej: "Pizza").Filtro por categorías (Tacos, Mariscos, Saludable).Cálculo de distancia real usando fórmula Haversine.🗺️ MapaMarcadores dinámicos.Popups con información rápida.Botón "Cómo llegar".📡 API Endpoints PrincipalesMétodoEndpointDescripciónAuthPOST/api/auth/loginIniciar sesión❌POST/api/auth/registerRegistro de usuario❌GET/api/restaurantesListar todos❌POST/api/restaurantes/cercanosBuscar por GPS❌GET/api/perfilVer datos usuario🔒POST/api/favoritosAgregar favorito🔒🔧 Solución de Problemas (Troubleshooting)<details><summary>🔻 <strong>Error: Frontend no conecta con Backend</strong> (Click para expandir)</summary>Verifica que exista el archivo .env en la carpeta frontend.Asegúrate que NEXT_PUBLIC_API_URL sea http://localhost:8080/api.Reinicia el contenedor: docker-compose restart frontend.</details><details><summary>🔻 <strong>Error: Base de Datos vacía o Connection Refused</strong> (Click para expandir)</summary>MySQL tarda unos 30-60 segundos en arrancar la primera vez.Si falla, espera un minuto y ejecuta: docker-compose restart backend.Para resetear todo: docker-compose down -v y vuelve a construir.</details>👥 Usuarios de PruebaPuedes usar estas credenciales para probar el sistema sin registrarte:EmailContraseñajuan.perez@email.comPassword123!maria.garcia@email.comPassword123!📄 LicenciaEste proyecto fue desarrollado como proyecto final para la materia de Desarrollo Web.Universidad: [Tu Universidad]Estudiante: [Tu Nombre] - ramitaaas17<div align="center"><sub>Hecho con ❤️ para la clase de Desarrollo Web</sub><a href="#-quovi">⬆ Volver arriba</a></div>
+```
+
+### Paso 2: Configurar Variables de Entorno
+
+Crear archivo `.env` en la carpeta `frontend/`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8080/api
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=268691260379-gq3u019erlkn68103l7fttpsp3jm7hoo.apps.googleusercontent.com
+```
+
+### Paso 3: Levantar los Servicios
+
+```bash
+# Construir y levantar todos los contenedores
+docker-compose up --build
+```
+
+Este comando realizará:
+
+1. Construye las imágenes de los tres servicios
+2. Levanta los contenedores en orden (DB → Backend → Frontend)
+3. Inicializa la base de datos con schema y datos de prueba
+4. Configura la red interna para comunicación entre servicios
+
+### Paso 4: Verificar que los Servicios Estén Activos
+
+```bash
+docker-compose ps
+```
+
+**Salida esperada:**
+
+```
+NAME               STATUS       PORTS
+quovi_db           Up           0.0.0.0:3306->3306/tcp
+quovi_backend      Up           0.0.0.0:8080->8080/tcp
+quovi_frontend     Up           0.0.0.0:3000->3000/tcp
+```
+
+---
+
+## Acceso a la Aplicación
+
+| Servicio | URL | Descripción |
+|----------|-----|-------------|
+| **Frontend** | http://localhost:3000 | Interfaz de usuario principal |
+| **Backend API** | http://localhost:8080/api | API REST |
+| **Health Check** | http://localhost:8080/health | Estado del backend |
+
+### Probar el Health Check
+
+```bash
+curl http://localhost:8080/health
+```
+
+**Respuesta esperada:**
+
+```json
+{
+  "status": "ok",
+  "service": "Quovi API",
+  "version": "1.0.0"
+}
+```
+
+---
+
+## Estructura del Proyecto
+
+```
+quovi/
+│
+├── frontend/                    # Aplicación Next.js
+│   ├── src/
+│   │   ├── app/                # Páginas (App Router)
+│   │   │   ├── page.tsx        # Página principal
+│   │   │   ├── dashboard/      # Dashboard con mapa
+│   │   │   ├── favoritos/      # Lista de favoritos
+│   │   │   └── profile/        # Perfil de usuario
+│   │   ├── components/         # Componentes React
+│   │   │   ├── auth/           # Login y registro
+│   │   │   ├── common/         # Componentes comunes
+│   │   │   ├── dashboard/      # Mapa y búsqueda
+│   │   │   └── profile/        # Gestión de perfil
+│   │   ├── services/           # Servicios de API
+│   │   ├── hooks/              # Custom Hooks
+│   │   └── utils/              # Utilidades
+│   ├── Dockerfile
+│   └── package.json
+│
+├── backend/                     # API en Go
+│   ├── handlers/               # Controladores HTTP
+│   │   ├── auth_handler.go
+│   │   ├── perfil_handler.go
+│   │   └── restaurante_handler.go
+│   ├── services/               # Lógica de negocio
+│   ├── models/                 # Modelos de datos
+│   ├── repository/             # Acceso a datos (GORM)
+│   ├── middleware/             # Seguridad y validación
+│   ├── utils/                  # Utilidades
+│   ├── BD/                     # Scripts SQL
+│   │   ├── quovi.sql          # Schema de BD
+│   │   └── InsertDummyData.sql # Datos de prueba
+│   ├── Dockerfile
+│   ├── go.mod
+│   └── main.go
+│
+├── docker-compose.yml          # Orquestación de servicios
+└── README.md                   # Este archivo
+```
+
+![Diagrama de Estructura](https://via.placeholder.com/800x400/FFFFFF/333333?text=Diagrama+de+Componentes)
+
+---
+
+## Funcionalidades Principales
+
+### Autenticación
+
+- **Registro de usuarios** con validación completa
+  - Mínimo 8 caracteres
+  - Mayúsculas y minúsculas
+  - Números y caracteres especiales
+- **Login tradicional** con email y contraseña
+- **OAuth 2.0** con Google
+- **JWT tokens** con expiración de 24 horas
+- **Hasheo bcrypt** con 12 rounds
+
+```javascript
+// Ejemplo de registro
+POST /api/auth/register
+{
+  "fullName": "Juan Pérez",
+  "email": "juan@email.com",
+  "password": "SecurePass123!",
+  "confirmPassword": "SecurePass123!"
+}
+```
+
+### Gestión de Perfil
+
+- Ver y editar información personal
+- Subir foto de perfil (base64, máx 5MB)
+- Cambiar contraseña con validación
+- Eliminar cuenta de forma segura
+
+![Perfil de Usuario](https://via.placeholder.com/600x400/FFFFFF/333333?text=Pantalla+de+Perfil)
+
+### Búsqueda de Restaurantes
+
+- **Búsqueda por texto libre**
+- **Filtrado por categorías**
+  - Tacos
+  - Pizza
+  - Mariscos
+  - Cafetería
+  - Comida Saludable
+- **Búsqueda geográfica** usando fórmula Haversine
+- **Cálculo automático** de distancia y tiempo estimado
+- **Verificación de horarios** en tiempo real
+
+### Sistema de Favoritos
+
+- Agregar/eliminar restaurantes
+- Lista personalizada con distancias
+- Ver menú completo de favoritos
+- Sincronización en tiempo real
+
+### Mapa Interactivo
+
+- Visualización con **Leaflet** y OpenStreetMap
+- Marcadores personalizados por categoría
+- Indicador GPS de ubicación del usuario
+- Controles de zoom y navegación
+- Información emergente (popups) con detalles
+
+![Mapa Interactivo](https://via.placeholder.com/800x500/FFFFFF/333333?text=Mapa+con+Restaurantes)
+
+---
+
+## API Endpoints
+
+### Autenticación (Públicos)
+
+```http
+POST   /api/auth/register         # Registro de usuario
+POST   /api/auth/login            # Inicio de sesión
+POST   /api/auth/login/google     # Login con Google
+POST   /api/auth/logout           # Cerrar sesión
+```
+
+### Perfil (Requiere autenticación)
+
+```http
+GET    /api/perfil                 # Obtener perfil
+PUT    /api/perfil                 # Actualizar perfil
+POST   /api/perfil/foto/base64     # Subir foto (base64)
+DELETE /api/perfil/foto            # Eliminar foto
+POST   /api/perfil/cambiar-password # Cambiar contraseña
+PUT    /api/perfil/nombre-usuario  # Cambiar username
+DELETE /api/perfil/cuenta          # Eliminar cuenta
+```
+
+### Restaurantes (Públicos)
+
+```http
+GET  /api/restaurantes                      # Lista completa
+GET  /api/restaurantes/:id                  # Detalle específico
+POST /api/restaurantes/cercanos             # Búsqueda por ubicación
+POST /api/restaurantes/buscar               # Búsqueda con filtros
+GET  /api/restaurantes/:id/platillos        # Menú del restaurante
+GET  /api/restaurantes/:id/platillos/destacados # Platillos destacados
+```
+
+### Favoritos (Requiere autenticación)
+
+```http
+GET    /api/favoritos         # Lista de favoritos
+POST   /api/favoritos         # Agregar favorito
+DELETE /api/favoritos/:id     # Eliminar favorito
+```
+
+### Categorías (Públicas)
+
+```http
+GET /api/categorias                    # Lista de categorías
+GET /api/categorias/:id/restaurantes   # Restaurantes por categoría
+```
+
+### Ciudades (Públicas)
+
+```http
+GET /api/ciudades             # Lista de ciudades disponibles
+```
+
+---
+
+## Seguridad Implementada
+
+### Backend Security
+
+```go
+Rate Limiting: 5 peticiones/minuto en auth
+Security Headers: X-Frame-Options, CSP, X-XSS-Protection
+Input Validation: Protección contra SQL injection y XSS
+Data Sanitization: Limpieza de todos los inputs
+Body Size Limit: Máximo 5MB por petición
+Security Logging: Registro de eventos sospechosos
+CORS: Configurado para orígenes permitidos
+JWT Tokens: Expiración y validación estricta
+```
+
+### Frontend Security
+
+```javascript
+Form Validation: Validación en cliente antes de enviar
+Input Sanitization: Limpieza de datos del usuario
+Secure Storage: Tokens JWT en localStorage
+Session Management: Manejo seguro de sesiones
+XSS Prevention: Sanitización de contenido dinámico
+```
+
+### Password Security
+
+```bash
+# Requisitos de contraseña
+- Mínimo 8 caracteres
+- Al menos 1 mayúscula
+- Al menos 1 minúscula
+- Al menos 1 número
+- Al menos 1 carácter especial (!@#$%...)
+- Bcrypt con 12 rounds
+```
+
+---
+
+## Base de Datos
+
+### Diagrama de Relaciones
+
+```
+usuarios ──────┐
+               │
+               ├───── favoritos ───── restaurantes
+               │                           │
+               └───── resenas ─────────────┤
+                                           │
+                      ┌────────────────────┼────────────────────┐
+                      │                    │                    │
+                 platillos            horarios            categorias
+                                                               │
+                                                          imagenes
+```
+
+### Tablas Principales
+
+| Tabla | Descripción | Registros |
+|-------|-------------|-----------|
+| `usuarios` | Usuarios del sistema (con OAuth) | 3 usuarios de prueba |
+| `restaurantes` | Establecimientos | 40 restaurantes |
+| `categorias_cocina` | Tipos de cocina | 10 categorías |
+| `caracteristicas` | Atributos especiales | 8 características |
+| `platillos` | Items del menú | 100+ platillos |
+| `horarios` | Días y horas de operación | 140 horarios |
+| `imagenes_restaurante` | Fotos de establecimientos | 30 imágenes |
+| `favoritos` | Relación usuario-restaurante | 0 (vacía) |
+| `resenas` | Calificaciones y comentarios | 0 (vacía) |
+| `sesiones` | Tokens JWT activos | Dinámica |
+| `busquedas` | Historial de búsquedas | Dinámica |
+
+### Relaciones Clave
+
+```sql
+-- Many-to-Many
+usuarios ↔ favoritos ↔ restaurantes
+restaurantes ↔ restaurante_categorias ↔ categorias_cocina
+restaurantes ↔ restaurante_caracteristicas ↔ caracteristicas
+
+-- One-to-Many
+restaurantes → platillos
+restaurantes → horarios
+restaurantes → imagenes_restaurante
+usuarios → resenas
+```
+
+
+
+![Diagrama Base de Datos](https://via.placeholder.com/800x600/FFFFFF/333333?text=Diagrama+Entidad-Relación)
+
+---
+
+## Comandos Útiles
+
+### Ver logs en tiempo real
+
+```bash
+# Frontend
+docker-compose logs -f frontend
+
+# Backend
+docker-compose logs -f backend
+
+# Base de datos
+docker-compose logs -f db
+
+# Todos los servicios
+docker-compose logs -f
+```
+
+### Reiniciar servicios
+
+```bash
+# Reiniciar frontend
+docker-compose restart frontend
+
+# Reiniciar backend
+docker-compose restart backend
+
+# Reiniciar base de datos
+docker-compose restart db
+
+# Reiniciar todos
+docker-compose restart
+```
+
+### Detener servicios
+
+```bash
+# Detener sin eliminar contenedores
+docker-compose stop
+
+# Detener y eliminar contenedores
+docker-compose down
+
+# Detener y eliminar volúmenes (resetea la BD)
+docker-compose down -v
+```
+
+### Reconstruir contenedores
+
+```bash
+# Reconstruir todos los servicios
+docker-compose up --build
+
+# Forzar recreación completa
+docker-compose up --build --force-recreate
+
+# Reconstruir solo el frontend
+docker-compose up --build frontend
+```
+
+### Acceder a contenedores
+
+```bash
+# Shell de MySQL
+docker exec -it quovi_db mysql -u quovi_user -p
+# Password: quovi_secret
+
+# Shell del backend (Go)
+docker exec -it quovi_backend /bin/sh
+
+# Shell del frontend (Node)
+docker exec -it quovi_frontend /bin/sh
+```
+
+### Limpiar Docker
+
+```bash
+# Eliminar contenedores detenidos
+docker container prune
+
+# Eliminar imágenes no usadas
+docker image prune
+
+# Limpieza completa (cuidado)
+docker system prune -a --volumes
+```
+
+---
+
+## Usuarios de Prueba
+
+La base de datos incluye usuarios precargados para testing:
+
+| Email | Password | Nombre |
+|-------|----------|--------|
+| `juan.perez@email.com` | `Password123!` | Juan Pérez |
+| `maria.garcia@email.com` | `Password123!` | María García |
+| `carlos.lopez@email.com` | `Password123!` | Carlos López |
+
+### Datos de Restaurantes
+
+```
+40 restaurantes en Ciudad de México
+10 categorías de cocina
+100+ platillos con precios
+Horarios de lunes a domingo
+Imágenes de ejemplo
+```
+
+---
+
+## Solución de Problemas
+
+### Problema: Frontend no conecta con Backend
+
+**Síntomas:** Error de conexión en el navegador
+
+**Solución:**
+
+```bash
+# 1. Verificar que .env existe en frontend/
+cat frontend/.env
+
+# 2. Verificar que la URL es correcta
+NEXT_PUBLIC_API_URL=http://localhost:8080/api
+
+# 3. Reiniciar el contenedor
+docker-compose restart frontend
+```
+
+### Problema: Error de conexión a la base de datos
+
+**Síntomas:** Backend no inicia, error "connection refused"
+
+**Solución:**
+
+```bash
+# 1. Verificar que MySQL está activo
+docker-compose ps db
+
+# 2. Ver logs de MySQL
+docker-compose logs db
+
+# 3. Esperar a que MySQL termine de inicializar (30-60 seg)
+
+# 4. Reiniciar backend
+docker-compose restart backend
+```
+
+### Problema: Puerto ya en uso
+
+**Síntomas:** Error "port is already allocated"
+
+**Solución:**
+
+```bash
+# Ver qué proceso usa el puerto
+lsof -i :3000  # Frontend
+lsof -i :8080  # Backend
+lsof -i :3306  # MySQL
+
+# Detener el proceso o cambiar puerto en docker-compose.yml
+# Ejemplo para cambiar puerto del frontend:
+ports:
+  - "3001:3000"  # Usar 3001 en lugar de 3000
+```
+
+### Problema: Contenedores no inician
+
+**Síntomas:** `docker-compose up` falla
+
+**Solución:**
+
+```bash
+# 1. Limpiar y reiniciar
+docker-compose down -v
+docker system prune
+
+# 2. Reconstruir desde cero
+docker-compose up --build --force-recreate
+
+# 3. Ver logs detallados
+docker-compose logs
+```
+
+### Problema: Base de datos vacía
+
+**Síntomas:** No hay restaurantes en el mapa
+
+**Solución:**
+
+```bash
+# 1. Verificar que los scripts SQL se ejecutaron
+docker exec -it quovi_db mysql -u quovi_user -p -e "USE quovi_db; SELECT COUNT(*) FROM restaurantes;"
+
+# 2. Si está vacía, recrear el volumen
+docker-compose down -v
+docker-compose up --build
+```
+
+### Problema: Permisos en archivos
+
+**Síntomas:** Error "permission denied"
+
+**Solución:**
+
+```bash
+# Linux/Mac: Dar permisos a los directorios
+chmod -R 755 frontend backend
+
+# Windows: Ejecutar Docker Desktop como administrador
+```
+
+---
+
+## Métricas de Rendimiento
+
+| Métrica | Valor |
+|---------|-------|
+| Tiempo de carga inicial | menos de 2 segundos |
+| Respuesta de API | menos de 200ms promedio |
+| Búsqueda de restaurantes | menos de 500ms |
+| Cálculo de distancias | menos de 100ms |
+| Tamaño del build (frontend) | aproximadamente 1.5MB gzip |
+| Tamaño del build (backend) | aproximadamente 15MB |
+
+---
+
+## Mejores Prácticas Implementadas
+
+### Código
+
+```
+Separación de responsabilidades (MVC)
+Manejo de errores consistente
+Validación exhaustiva de datos
+Comentarios y documentación
+Tipado estático (TypeScript + Go)
+```
+
+### DevOps
+
+```
+Dockerfiles multi-stage
+Health checks para servicios
+Volúmenes persistentes
+Red aislada entre servicios
+Variables de entorno
+```
+
+### UI/UX
+
+```
+Diseño mobile-first
+Animaciones suaves (Framer Motion)
+Feedback visual inmediato
+Estados de carga y error
+Accesibilidad básica
+```
+
+---
+
+## Licencia
+
+Este proyecto fue desarrollado como proyecto final para la materia de **Desarrollo Web**.
+
+**Universidad:** [Universidad Panamericana]  
+**Materia:** Desarrollo Web  
+**Estudiante:** [Edwin David Ramos Valdivieso]
+
+---
+
+## Agradecimientos
+
+- A mis amiguitos por todo su apoyo n el proceso <3 
+
+
+---
+
+<div align="center">
+
+**Hecho con amor para la CDMX**
+
+[Volver arriba](#quovi---plataforma-de-descubrimiento-de-restaurantes)
+
+</div>
