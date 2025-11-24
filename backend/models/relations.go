@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Sesion representa una sesión de usuario con JWT
+// Sesion representa una sesion activa de usuario con token JWT
 type Sesion struct {
 	IDSesion      uint      `gorm:"column:idSesion;primaryKey;autoIncrement" json:"idSesion"`
 	IDUsuario     uint      `gorm:"column:idUsuario;not null" json:"idUsuario"`
@@ -16,7 +16,6 @@ type Sesion struct {
 	UserAgent     string    `gorm:"column:userAgent;size:500" json:"userAgent,omitempty"`
 	FechaCreacion time.Time `gorm:"column:fechaCreacion;not null;default:CURRENT_TIMESTAMP" json:"fechaCreacion"`
 
-	// Relación
 	Usuario Usuario `gorm:"foreignKey:IDUsuario;constraint:OnDelete:CASCADE" json:"usuario,omitempty"`
 }
 
@@ -24,7 +23,7 @@ func (Sesion) TableName() string {
 	return "sesiones"
 }
 
-// Busqueda representa el historial de búsquedas de usuarios
+// Busqueda almacena el historial de busquedas realizadas
 type Busqueda struct {
 	IDBusqueda            uint      `gorm:"column:idBusqueda;primaryKey;autoIncrement" json:"idBusqueda"`
 	IDUsuario             *uint     `gorm:"column:idUsuario" json:"idUsuario,omitempty"`
@@ -33,7 +32,6 @@ type Busqueda struct {
 	ResultadosEncontrados int       `gorm:"column:resultadosEncontrados" json:"resultadosEncontrados"`
 	Fecha                 time.Time `gorm:"column:fecha;not null;default:CURRENT_TIMESTAMP" json:"fecha"`
 
-	// Relación
 	Usuario *Usuario `gorm:"foreignKey:IDUsuario;constraint:OnDelete:SET NULL" json:"usuario,omitempty"`
 }
 
@@ -41,7 +39,7 @@ func (Busqueda) TableName() string {
 	return "busquedas"
 }
 
-// Reseña representa una reseña de restaurante
+// Reseña representa una calificacion y comentario sobre un restaurante
 type Reseña struct {
 	IDReseña      uint      `gorm:"column:idReseña;primaryKey;autoIncrement" json:"idReseña"`
 	IDUsuario     uint      `gorm:"column:idUsuario;not null" json:"idUsuario"`
@@ -51,7 +49,6 @@ type Reseña struct {
 	Fecha         time.Time `gorm:"column:fecha;not null;default:CURRENT_TIMESTAMP" json:"fecha"`
 	Verificada    bool      `gorm:"column:verificada;default:false" json:"verificada"`
 
-	// Relaciones
 	Usuario     Usuario     `gorm:"foreignKey:IDUsuario;constraint:OnDelete:CASCADE" json:"usuario,omitempty"`
 	Restaurante Restaurante `gorm:"foreignKey:IDRestaurante;constraint:OnDelete:CASCADE" json:"restaurante,omitempty"`
 }
@@ -60,13 +57,12 @@ func (Reseña) TableName() string {
 	return "resenas"
 }
 
-// Favorito representa la relación muchos-a-muchos entre usuarios y restaurantes
+// Favorito representa la relacion entre usuarios y sus restaurantes favoritos
 type Favorito struct {
 	IDUsuario     uint      `gorm:"column:idUsuario;primaryKey;not null" json:"idUsuario"`
 	IDRestaurante uint      `gorm:"column:idRestaurante;primaryKey;not null" json:"idRestaurante"`
 	Fecha         time.Time `gorm:"column:fecha;not null;default:CURRENT_TIMESTAMP" json:"fecha"`
 
-	// Relaciones
 	Usuario     Usuario     `gorm:"foreignKey:IDUsuario;constraint:OnDelete:CASCADE" json:"usuario,omitempty"`
 	Restaurante Restaurante `gorm:"foreignKey:IDRestaurante;constraint:OnDelete:CASCADE" json:"restaurante,omitempty"`
 }

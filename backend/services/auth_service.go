@@ -18,7 +18,7 @@ type AuthService struct {
 	jwtSecret []byte
 }
 
-// NewAuthService crea una nueva instancia del servicio de autenticación
+// NewAuthService crea una instancia del servicio de autenticacion
 func NewAuthService(dbManager *repository.DBManager, jwtSecret string) *AuthService {
 	return &AuthService{
 		dbManager: dbManager,
@@ -26,31 +26,27 @@ func NewAuthService(dbManager *repository.DBManager, jwtSecret string) *AuthServ
 	}
 }
 
-// RegistrarUsuario registra un nuevo usuario en el sistema
+// RegistrarUsuario crea una nueva cuenta local
 func (as *AuthService) RegistrarUsuario(nombre, apellido, email, password string) (*models.Usuario, error) {
-	// Verificar si el usuario ya existe
+	// Verificar disponibilidad del email
 	existente, _ := as.dbManager.ObtenerUsuarioPorEmail(email)
 	if existente != nil {
-		return nil, errors.New("el email ya está registrado")
+		return nil, errors.New("el email ya esta registrado")
 	}
 
-	// Validar contraseña (mínimo 8 caracteres, mayúsculas, minúsculas, números)
+	// Validar requisitos de seguridad de la contrasena
 	if err := validarPassword(password); err != nil {
 		return nil, err
 	}
 
-	// Hashear la contraseña con costo 12 (más seguro)
+	// Hash de la contrasena
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12)
 	if err != nil {
-		return nil, errors.New("error al procesar la contraseña")
+		return nil, errors.New("error al procesar la contrasena")
 	}
 
-	// Generar nombreUsuario único a partir del email
-	nombreUsuario := generarNombreUsuarioDesdeEmail(email)
-
-	// Crear el usuario
 	usuario := &models.Usuario{
-		NombreUsuario:   nombreUsuario,
+		NombreUsuario:   generarNombreUsuarioDesdeEmail(email),
 		Nombre:          nombre,
 		Apellido:        apellido,
 		Email:           email,
@@ -69,21 +65,20 @@ func (as *AuthService) RegistrarUsuario(nombre, apellido, email, password string
 	return usuario, nil
 }
 
-// IniciarSesion autentica a un usuario y genera un token JWT
+// IniciarSesion valida credenciales y genera un token JWT
 func (as *AuthService) IniciarSesion(email, password, ipAddress, userAgent string) (string, *models.Usuario, error) {
-	// Buscar el usuario
 	usuario, err := as.dbManager.ObtenerUsuarioPorEmail(email)
 	if err != nil {
-		return "", nil, errors.New("credenciales inválidas")
+		return "", nil, errors.New("credenciales invalidas")
 	}
 
-	// Verificar la contraseña
+	// Verificar contrasena
 	err = bcrypt.CompareHashAndPassword([]byte(usuario.Password), []byte(password))
 	if err != nil {
-		return "", nil, errors.New("credenciales inválidas")
+		return "", nil, errors.New("credenciales invalidas")
 	}
 
-	// Verificar que el usuario esté activo
+	// Validar cuenta activa
 	if !usuario.Activo {
 		return "", nil, errors.New("cuenta desactivada")
 	}
@@ -94,12 +89,12 @@ func (as *AuthService) IniciarSesion(email, password, ipAddress, userAgent strin
 		return "", nil, errors.New("error al generar token")
 	}
 
-	// Actualizar último acceso
+	// Actualizar ultimo acceso
 	ahora := time.Now()
 	usuario.UltimoAcceso = &ahora
 	as.dbManager.ActualizarUsuario(usuario)
 
-	// Crear sesión en la BD
+	// Registrar sesion
 	sesion := &models.Sesion{
 		IDUsuario: usuario.IDUsuario,
 		Token:     token,
@@ -113,7 +108,7 @@ func (as *AuthService) IniciarSesion(email, password, ipAddress, userAgent strin
 	return token, usuario, nil
 }
 
-// GenerarToken genera un token JWT para un usuario
+// GenerarToken crea un JWT con expiracion de 24 horas
 func (as *AuthService) GenerarToken(userID uint) (string, error) {
 	claims := jwt.MapClaims{
 		"user_id": userID,
@@ -130,11 +125,11 @@ func (as *AuthService) GenerarToken(userID uint) (string, error) {
 	return tokenString, nil
 }
 
-// ValidarToken valida un token JWT y retorna el ID del usuario
+// ValidarToken verifica un JWT y retorna el ID de usuario
 func (as *AuthService) ValidarToken(tokenString string) (uint, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, errors.New("método de firma inválido")
+			return nil, errors.New("metodo de firma invalido")
 		}
 		return as.jwtSecret, nil
 	})
@@ -148,38 +143,37 @@ func (as *AuthService) ValidarToken(tokenString string) (uint, error) {
 		return userID, nil
 	}
 
-	return 0, errors.New("token inválido")
+	return 0, errors.New("token invalido")
 }
 
-// CerrarSesion cierra la sesión de un usuario
+// CerrarSesion invalida un token de sesion
 func (as *AuthService) CerrarSesion(token string) error {
 	return as.dbManager.EliminarSesion(token)
 }
 
-// RegistrarUsuarioGoogle registra o autentica un usuario con Google OAuth
+// RegistrarUsuarioGoogle autentica o crea cuenta con Google OAuth
 func (as *AuthService) RegistrarUsuarioGoogle(googleID, email, nombre, apellido, foto string) (*models.Usuario, error) {
-	// Buscar si ya existe un usuario con ese Google ID
+	// Buscar usuario con Google ID
 	usuario, err := as.dbManager.ObtenerUsuarioPorGoogleID(googleID)
 
 	if err == nil {
-		// Usuario ya existe, actualizar último acceso
+		// Usuario existe, actualizar ultimo acceso
 		ahora := time.Now()
 		usuario.UltimoAcceso = &ahora
 		as.dbManager.ActualizarUsuario(usuario)
 		return usuario, nil
 	}
 
-	// Verificar si existe un usuario con ese email
+	// Verificar si existe cuenta con ese email
 	usuarioEmail, _ := as.dbManager.ObtenerUsuarioPorEmail(email)
 	if usuarioEmail != nil {
-		// Vincular Google ID al usuario existente
+		// Vincular Google ID a cuenta existente
 		usuarioEmail.GoogleID = googleID
 		usuarioEmail.Provider = "google"
 		usuarioEmail.EmailVerificado = true
 		if foto != "" {
 			usuarioEmail.Foto = foto
 		}
-		// Generar nombreUsuario si no tiene
 		if usuarioEmail.NombreUsuario == "" {
 			usuarioEmail.NombreUsuario = generarNombreUsuarioUnico(email, googleID)
 		}
@@ -187,12 +181,9 @@ func (as *AuthService) RegistrarUsuarioGoogle(googleID, email, nombre, apellido,
 		return usuarioEmail, nil
 	}
 
-	// Generar un nombreUsuario único a partir del email
-	nombreUsuario := generarNombreUsuarioUnico(email, googleID)
-
-	// Crear nuevo usuario
+	// Crear nueva cuenta
 	nuevoUsuario := &models.Usuario{
-		NombreUsuario:   nombreUsuario,
+		NombreUsuario:   generarNombreUsuarioUnico(email, googleID),
 		GoogleID:        googleID,
 		Email:           email,
 		Nombre:          nombre,
@@ -212,10 +203,10 @@ func (as *AuthService) RegistrarUsuarioGoogle(googleID, email, nombre, apellido,
 	return nuevoUsuario, nil
 }
 
-// validarPassword valida que la contraseña cumpla con requisitos de seguridad
+// validarPassword verifica requisitos de seguridad: minimo 8 caracteres, mayusculas, minusculas y numeros
 func validarPassword(password string) error {
 	if len(password) < 8 {
-		return errors.New("la contraseña debe tener al menos 8 caracteres")
+		return errors.New("la contrasena debe tener al menos 8 caracteres")
 	}
 
 	var (
@@ -236,29 +227,25 @@ func validarPassword(password string) error {
 	}
 
 	if !tieneMayuscula || !tieneMinuscula || !tieneNumero {
-		return errors.New("la contraseña debe contener mayúsculas, minúsculas y números")
+		return errors.New("la contrasena debe contener mayusculas, minusculas y numeros")
 	}
 
 	return nil
 }
 
-// generarNombreUsuarioUnico genera un nombre de usuario único
+// generarNombreUsuarioUnico crea un username a partir del email y Google ID
 func generarNombreUsuarioUnico(email, googleID string) string {
-	// Extraer la parte antes del @ del email
 	partes := strings.Split(email, "@")
 	base := partes[0]
 
-	// Limpiar caracteres especiales
 	base = strings.ReplaceAll(base, ".", "")
 	base = strings.ReplaceAll(base, "+", "")
 	base = strings.ReplaceAll(base, "-", "")
 
-	// Limitar longitud
 	if len(base) > 20 {
 		base = base[:20]
 	}
 
-	// Agregar sufijo único basado en los últimos 8 caracteres del googleID
 	if len(googleID) >= 8 {
 		sufijo := googleID[len(googleID)-8:]
 		return strings.ToLower(base + "_" + sufijo)
@@ -267,17 +254,15 @@ func generarNombreUsuarioUnico(email, googleID string) string {
 	return strings.ToLower(base + "_" + googleID)
 }
 
-// generarNombreUsuarioDesdeEmail genera un nombre de usuario desde el email (para registro local)
+// generarNombreUsuarioDesdeEmail crea un username basico del email
 func generarNombreUsuarioDesdeEmail(email string) string {
 	partes := strings.Split(email, "@")
 	base := partes[0]
 
-	// Limpiar caracteres especiales
 	base = strings.ReplaceAll(base, ".", "")
 	base = strings.ReplaceAll(base, "+", "")
 	base = strings.ReplaceAll(base, "-", "")
 
-	// Limitar longitud a 30 caracteres
 	if len(base) > 30 {
 		base = base[:30]
 	}
@@ -285,7 +270,7 @@ func generarNombreUsuarioDesdeEmail(email string) string {
 	return strings.ToLower(base)
 }
 
-// generarTokenSeguro genera un token aleatorio seguro
+// generarTokenSeguro crea un token aleatorio usando crypto/rand
 func generarTokenSeguro() (string, error) {
 	b := make([]byte, 32)
 	_, err := rand.Read(b)

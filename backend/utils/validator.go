@@ -2,6 +2,7 @@ package utils
 
 import (
 	"errors"
+	"fmt"
 	"html"
 	"regexp"
 	"strings"
@@ -13,7 +14,7 @@ var (
 	sqlRegex   = regexp.MustCompile(`(?i)(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT|JAVASCRIPT)`)
 )
 
-// ValidarEmail valida el formato de un email
+// ValidarEmail verifica el formato del email
 func ValidarEmail(email string) error {
 	if email == "" {
 		return errors.New("el email es requerido")
@@ -29,7 +30,7 @@ func ValidarEmail(email string) error {
 		return errors.New("formato de email inválido")
 	}
 
-	// Verificar dominios sospechosos
+	// Bloquea dominios temporales comunes
 	suspiciousDomains := []string{
 		"tempmail", "throwaway", "guerrillamail", "10minutemail",
 	}
@@ -43,17 +44,13 @@ func ValidarEmail(email string) error {
 	return nil
 }
 
-// ValidarTelefono valida el formato de un teléfono
+// ValidarTelefono verifica el formato del número telefónico
 func ValidarTelefono(phone string) error {
 	if phone == "" {
 		return errors.New("el teléfono es requerido")
 	}
 
-	// Limpiar espacios y guiones
-	phone = strings.ReplaceAll(phone, " ", "")
-	phone = strings.ReplaceAll(phone, "-", "")
-	phone = strings.ReplaceAll(phone, "(", "")
-	phone = strings.ReplaceAll(phone, ")", "")
+	phone = LimpiarTelefono(phone)
 
 	if !phoneRegex.MatchString(phone) {
 		return errors.New("formato de teléfono inválido")
@@ -65,43 +62,37 @@ func ValidarTelefono(phone string) error {
 // ValidarNombre valida nombres y apellidos
 func ValidarNombre(nombre string, campo string) error {
 	if nombre == "" {
-		return errors.New(campo + " es requerido")
+		return fmt.Errorf("%s es requerido", campo)
 	}
 
 	nombre = strings.TrimSpace(nombre)
 
 	if len(nombre) < 2 {
-		return errors.New(campo + " debe tener al menos 2 caracteres")
+		return fmt.Errorf("%s debe tener al menos 2 caracteres", campo)
 	}
 
 	if len(nombre) > 100 {
-		return errors.New(campo + " es demasiado largo")
+		return fmt.Errorf("%s es demasiado largo", campo)
 	}
 
-	// Solo permitir letras, espacios y algunos caracteres especiales
+	// Permite letras, espacios, guiones y apóstrofes
 	validNameRegex := regexp.MustCompile(`^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$`)
 	if !validNameRegex.MatchString(nombre) {
-		return errors.New(campo + " contiene caracteres no válidos")
+		return fmt.Errorf("%s contiene caracteres no válidos", campo)
 	}
 
 	return nil
 }
 
-// SanitizarInput limpia y sanitiza inputs de usuario
+// SanitizarInput limpia el input del usuario
 func SanitizarInput(input string) string {
-	// Eliminar espacios al inicio y final
 	input = strings.TrimSpace(input)
-
-	// Escapar HTML para prevenir XSS
 	input = html.EscapeString(input)
-
-	// Eliminar caracteres nulos
 	input = strings.ReplaceAll(input, "\x00", "")
-
 	return input
 }
 
-// ValidarContraSQL verifica que no haya intentos de SQL Injection
+// ValidarContraSQL detecta patrones de SQL injection
 func ValidarContraSQL(input string) error {
 	if sqlRegex.MatchString(input) {
 		return errors.New("input contiene patrones sospechosos")
@@ -109,22 +100,22 @@ func ValidarContraSQL(input string) error {
 	return nil
 }
 
-// ValidarLongitudTexto valida la longitud de un texto
+// ValidarLongitudTexto verifica la longitud de un texto
 func ValidarLongitudTexto(texto string, min, max int, campo string) error {
 	length := len(strings.TrimSpace(texto))
 
 	if length < min {
-		return errors.New(campo + " debe tener al menos " + string(rune(min)) + " caracteres")
+		return fmt.Errorf("%s debe tener al menos %d caracteres", campo, min)
 	}
 
 	if length > max {
-		return errors.New(campo + " excede el límite de caracteres permitidos")
+		return fmt.Errorf("%s excede el límite de caracteres permitidos", campo)
 	}
 
 	return nil
 }
 
-// LimpiarTelefono limpia un número de teléfono
+// LimpiarTelefono remueve caracteres especiales del teléfono
 func LimpiarTelefono(phone string) string {
 	phone = strings.ReplaceAll(phone, " ", "")
 	phone = strings.ReplaceAll(phone, "-", "")
@@ -133,7 +124,7 @@ func LimpiarTelefono(phone string) string {
 	return phone
 }
 
-// ValidarPassword valida requisitos de seguridad de contraseña
+// ValidarPassword verifica que la contraseña cumpla los requisitos de seguridad
 func ValidarPassword(password string) error {
 	if len(password) < 8 {
 		return errors.New("la contraseña debe tener al menos 8 caracteres")
@@ -178,10 +169,10 @@ func ValidarPassword(password string) error {
 	}
 
 	if !tieneEspecial {
-		return errors.New("la contraseña debe contener al menos un carácter especial (!@#$%^&*...)")
+		return errors.New("la contraseña debe contener al menos un carácter especial")
 	}
 
-	// Verificar contraseñas comunes
+	// Bloquea contraseñas comunes
 	commonPasswords := []string{
 		"password", "12345678", "qwerty123", "abc12345",
 		"password123", "admin123", "welcome123",
@@ -197,7 +188,7 @@ func ValidarPassword(password string) error {
 	return nil
 }
 
-// EsEmailCorporativo verifica si un email es corporativo
+// EsEmailCorporativo verifica si el email no es de un proveedor público
 func EsEmailCorporativo(email string) bool {
 	dominiosPublicos := []string{
 		"gmail.com", "yahoo.com", "hotmail.com", "outlook.com",

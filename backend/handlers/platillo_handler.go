@@ -12,22 +12,18 @@ type PlatilloHandler struct {
 	platilloService *services.PlatilloService
 }
 
-// NewPlatilloHandler crea una nueva instancia del handler de platillos
 func NewPlatilloHandler(platilloService *services.PlatilloService) *PlatilloHandler {
-	return &PlatilloHandler{
-		platilloService: platilloService,
-	}
+	return &PlatilloHandler{platilloService: platilloService}
 }
 
-// ObtenerPlatillosPorRestaurante obtiene los platillos de un restaurante
-// GET /api/restaurantes/:id/platillos
+// ObtenerPlatillosPorRestaurante devuelve todos los platillos de un restaurante
 func (ph *PlatilloHandler) ObtenerPlatillosPorRestaurante(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_id",
-			Message: "ID de restaurante inválido",
+			Message: "ID de restaurante invalido",
 		})
 		return
 	}
@@ -48,15 +44,14 @@ func (ph *PlatilloHandler) ObtenerPlatillosPorRestaurante(c *gin.Context) {
 	})
 }
 
-// ObtenerPlatilloDestacados obtiene los platillos destacados de un restaurante
-// GET /api/restaurantes/:id/platillos/destacados
+// ObtenerPlatilloDestacados devuelve los platillos destacados de un restaurante
 func (ph *PlatilloHandler) ObtenerPlatilloDestacados(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_id",
-			Message: "ID de restaurante inválido",
+			Message: "ID de restaurante invalido",
 		})
 		return
 	}

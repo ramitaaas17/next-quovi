@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -38,63 +39,55 @@ func (l *Logger) Error(message string) {
 	l.errorLog.Println(sanitizeLogMessage(message))
 }
 
-// Security registra eventos de seguridad importantes
+// Security registra eventos de seguridad
 func (l *Logger) Security(message string) {
 	l.securityLog.Println(sanitizeLogMessage(message))
 }
 
-// LogFailedLogin registra intentos de login fallidos
+// LogFailedLogin registra intentos fallidos de inicio de sesión
 func (l *Logger) LogFailedLogin(email, ip, reason string) {
-	message := "Failed login attempt - Email: " + maskEmail(email) +
-		" | IP: " + ip +
-		" | Reason: " + reason +
-		" | Time: " + time.Now().Format(time.RFC3339)
+	message := fmt.Sprintf("Failed login - Email: %s | IP: %s | Reason: %s | Time: %s",
+		maskEmail(email), ip, reason, time.Now().Format(time.RFC3339))
 	l.securityLog.Println(message)
 }
 
-// LogSuccessfulLogin registra logins exitosos
+// LogSuccessfulLogin registra inicios de sesión exitosos
 func (l *Logger) LogSuccessfulLogin(userID uint, email, ip string) {
-	message := "Successful login - UserID: " + string(rune(userID)) +
-		" | Email: " + maskEmail(email) +
-		" | IP: " + ip +
-		" | Time: " + time.Now().Format(time.RFC3339)
+	message := fmt.Sprintf("Successful login - UserID: %d | Email: %s | IP: %s | Time: %s",
+		userID, maskEmail(email), ip, time.Now().Format(time.RFC3339))
 	l.infoLog.Println(message)
 }
 
-// LogRegistration registra nuevos registros
+// LogRegistration registra nuevos usuarios
 func (l *Logger) LogRegistration(userID uint, email string) {
-	message := "New user registration - UserID: " + string(rune(userID)) +
-		" | Email: " + maskEmail(email) +
-		" | Time: " + time.Now().Format(time.RFC3339)
+	message := fmt.Sprintf("New registration - UserID: %d | Email: %s | Time: %s",
+		userID, maskEmail(email), time.Now().Format(time.RFC3339))
 	l.infoLog.Println(message)
 }
 
 // LogSuspiciousActivity registra actividad sospechosa
 func (l *Logger) LogSuspiciousActivity(ip, userAgent, reason string) {
-	message := "Suspicious activity detected - IP: " + ip +
-		" | UserAgent: " + userAgent +
-		" | Reason: " + reason +
-		" | Time: " + time.Now().Format(time.RFC3339)
-	l.securityLog.Println("🚨 " + message)
+	message := fmt.Sprintf("Suspicious activity - IP: %s | UserAgent: %s | Reason: %s | Time: %s",
+		ip, userAgent, reason, time.Now().Format(time.RFC3339))
+	l.securityLog.Println(message)
 }
 
-// LogRateLimitExceeded registra cuando se excede el rate limit
+// LogRateLimitExceeded registra cuando se excede el límite de peticiones
 func (l *Logger) LogRateLimitExceeded(ip string) {
-	message := "Rate limit exceeded - IP: " + ip +
-		" | Time: " + time.Now().Format(time.RFC3339)
-	l.securityLog.Println("⚠️  " + message)
+	message := fmt.Sprintf("Rate limit exceeded - IP: %s | Time: %s",
+		ip, time.Now().Format(time.RFC3339))
+	l.securityLog.Println(message)
 }
 
-// sanitizeLogMessage limpia mensajes de logs para evitar log injection
+// sanitizeLogMessage limpia el mensaje para prevenir log injection
 func sanitizeLogMessage(message string) string {
-	// Remover saltos de línea y caracteres especiales
 	message = strings.ReplaceAll(message, "\n", " ")
 	message = strings.ReplaceAll(message, "\r", " ")
 	message = strings.ReplaceAll(message, "\t", " ")
 	return message
 }
 
-// maskEmail enmascara parcialmente un email para privacidad
+// maskEmail oculta parte del email por privacidad
 func maskEmail(email string) string {
 	parts := strings.Split(email, "@")
 	if len(parts) != 2 {
@@ -109,12 +102,4 @@ func maskEmail(email string) string {
 	}
 
 	return username[:2] + "***@" + domain
-}
-
-// maskPhone enmascara un número de teléfono
-func maskPhone(phone string) string {
-	if len(phone) <= 4 {
-		return "***"
-	}
-	return "***-***-" + phone[len(phone)-4:]
 }

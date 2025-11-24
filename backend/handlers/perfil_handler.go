@@ -11,15 +11,11 @@ type PerfilHandler struct {
 	perfilService *services.PerfilService
 }
 
-// NewPerfilHandler crea una nueva instancia del handler de perfil
 func NewPerfilHandler(perfilService *services.PerfilService) *PerfilHandler {
-	return &PerfilHandler{
-		perfilService: perfilService,
-	}
+	return &PerfilHandler{perfilService: perfilService}
 }
 
-// Request structs
-
+// Estructuras de peticion
 type ActualizarPerfilRequest struct {
 	Nombre   string `json:"nombre" binding:"required"`
 	Apellido string `json:"apellido"`
@@ -44,8 +40,7 @@ type EliminarCuentaRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-// Response structs
-
+// Estructuras de respuesta
 type PerfilResponse struct {
 	IDUsuario       uint   `json:"idUsuario"`
 	NombreUsuario   string `json:"nombreUsuario"`
@@ -58,8 +53,7 @@ type PerfilResponse struct {
 	FechaRegistro   string `json:"fechaRegistro"`
 }
 
-// ObtenerPerfil obtiene el perfil del usuario autenticado
-// GET /api/perfil
+// ObtenerPerfil devuelve la informacion del usuario autenticado
 func (ph *PerfilHandler) ObtenerPerfil(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -95,8 +89,7 @@ func (ph *PerfilHandler) ObtenerPerfil(c *gin.Context) {
 	})
 }
 
-// ActualizarPerfil actualiza la información del perfil
-// PUT /api/perfil
+// ActualizarPerfil modifica los datos del perfil del usuario
 func (ph *PerfilHandler) ActualizarPerfil(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -111,7 +104,7 @@ func (ph *PerfilHandler) ActualizarPerfil(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Datos inválidos: " + err.Error(),
+			Message: "Datos invalidos: " + err.Error(),
 		})
 		return
 	}
@@ -122,7 +115,6 @@ func (ph *PerfilHandler) ActualizarPerfil(c *gin.Context) {
 		req.Apellido,
 		req.Email,
 	)
-
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "update_failed",
@@ -147,8 +139,7 @@ func (ph *PerfilHandler) ActualizarPerfil(c *gin.Context) {
 	})
 }
 
-// SubirFotoPerfil sube una foto de perfil (multipart/form-data)
-// POST /api/perfil/foto
+// SubirFotoPerfil actualiza la foto usando multipart/form-data
 func (ph *PerfilHandler) SubirFotoPerfil(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -159,12 +150,11 @@ func (ph *PerfilHandler) SubirFotoPerfil(c *gin.Context) {
 		return
 	}
 
-	// Obtener archivo
 	file, err := c.FormFile("foto")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "missing_file",
-			Message: "No se encontró el archivo 'foto' en la petición",
+			Message: "No se encontro el archivo 'foto' en la peticion",
 		})
 		return
 	}
@@ -194,8 +184,7 @@ func (ph *PerfilHandler) SubirFotoPerfil(c *gin.Context) {
 	})
 }
 
-// SubirFotoPerfilBase64 sube una foto usando base64
-// POST /api/perfil/foto/base64
+// SubirFotoPerfilBase64 actualiza la foto usando una cadena base64
 func (ph *PerfilHandler) SubirFotoPerfilBase64(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -210,7 +199,7 @@ func (ph *PerfilHandler) SubirFotoPerfilBase64(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Datos inválidos: " + err.Error(),
+			Message: "Datos invalidos: " + err.Error(),
 		})
 		return
 	}
@@ -220,7 +209,6 @@ func (ph *PerfilHandler) SubirFotoPerfilBase64(c *gin.Context) {
 		req.ImageData,
 		req.Extension,
 	)
-
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "upload_failed",
@@ -245,8 +233,7 @@ func (ph *PerfilHandler) SubirFotoPerfilBase64(c *gin.Context) {
 	})
 }
 
-// EliminarFotoPerfil elimina la foto de perfil
-// DELETE /api/perfil/foto
+// EliminarFotoPerfil remueve la foto de perfil del usuario
 func (ph *PerfilHandler) EliminarFotoPerfil(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -282,8 +269,7 @@ func (ph *PerfilHandler) EliminarFotoPerfil(c *gin.Context) {
 	})
 }
 
-// CambiarPassword cambia la contraseña del usuario
-// POST /api/perfil/cambiar-password
+// CambiarPassword actualiza la contraseña del usuario
 func (ph *PerfilHandler) CambiarPassword(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -298,7 +284,7 @@ func (ph *PerfilHandler) CambiarPassword(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Datos inválidos: " + err.Error(),
+			Message: "Datos invalidos: " + err.Error(),
 		})
 		return
 	}
@@ -308,7 +294,6 @@ func (ph *PerfilHandler) CambiarPassword(c *gin.Context) {
 		req.PasswordActual,
 		req.PasswordNueva,
 	)
-
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "password_change_failed",
@@ -322,8 +307,7 @@ func (ph *PerfilHandler) CambiarPassword(c *gin.Context) {
 	})
 }
 
-// ActualizarNombreUsuario actualiza el nombre de usuario
-// PUT /api/perfil/nombre-usuario
+// ActualizarNombreUsuario modifica el nombre de usuario
 func (ph *PerfilHandler) ActualizarNombreUsuario(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -338,7 +322,7 @@ func (ph *PerfilHandler) ActualizarNombreUsuario(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Datos inválidos: " + err.Error(),
+			Message: "Datos invalidos: " + err.Error(),
 		})
 		return
 	}
@@ -368,8 +352,7 @@ func (ph *PerfilHandler) ActualizarNombreUsuario(c *gin.Context) {
 	})
 }
 
-// EliminarCuenta desactiva la cuenta del usuario
-// DELETE /api/perfil/cuenta
+// EliminarCuenta desactiva permanentemente la cuenta del usuario
 func (ph *PerfilHandler) EliminarCuenta(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -384,7 +367,7 @@ func (ph *PerfilHandler) EliminarCuenta(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Datos inválidos: " + err.Error(),
+			Message: "Datos invalidos: " + err.Error(),
 		})
 		return
 	}

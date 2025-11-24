@@ -13,15 +13,11 @@ type AuthHandler struct {
 	authService *services.AuthService
 }
 
-// NewAuthHandler crea una nueva instancia del handler de autenticación
 func NewAuthHandler(authService *services.AuthService) *AuthHandler {
-	return &AuthHandler{
-		authService: authService,
-	}
+	return &AuthHandler{authService: authService}
 }
 
-// Estructuras para requests
-
+// Estructuras de peticion
 type RegistroRequest struct {
 	FullName        string `json:"fullName" binding:"required"`
 	Email           string `json:"email" binding:"required,email"`
@@ -42,8 +38,7 @@ type LoginGoogleRequest struct {
 	Foto     string `json:"foto"`
 }
 
-// Estructuras para responses
-
+// Estructuras de respuesta
 type UsuarioResponse struct {
 	ID              uint   `json:"id"`
 	Email           string `json:"email"`
@@ -65,23 +60,23 @@ type ErrorResponse struct {
 	Message string `json:"message"`
 }
 
-// Registrar maneja el registro de nuevos usuarios
+// Registrar crea una nueva cuenta de usuario
 func (ah *AuthHandler) Registrar(c *gin.Context) {
 	var req RegistroRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Datos de registro inválidos: " + err.Error(),
+			Message: "Datos de registro invalidos: " + err.Error(),
 		})
 		return
 	}
 
-	// Sanitizar inputs
+	// Sanitizar datos de entrada
 	req.FullName = utils.SanitizarInput(req.FullName)
 	req.Email = utils.SanitizarInput(req.Email)
 
-	// Validaciones de seguridad
+	// Validar email
 	if err := utils.ValidarEmail(req.Email); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_email",
@@ -90,6 +85,7 @@ func (ah *AuthHandler) Registrar(c *gin.Context) {
 		return
 	}
 
+	// Validar nombre
 	if err := utils.ValidarNombre(req.FullName, "Nombre completo"); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_name",
@@ -98,7 +94,7 @@ func (ah *AuthHandler) Registrar(c *gin.Context) {
 		return
 	}
 
-	// Validar que las contraseñas coincidan
+	// Verificar que las contraseñas coincidan
 	if req.Password != req.ConfirmPassword {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "password_mismatch",
@@ -116,7 +112,7 @@ func (ah *AuthHandler) Registrar(c *gin.Context) {
 		return
 	}
 
-	// Separar nombre completo en nombre y apellido
+	// Separar nombre completo
 	nombres := strings.Fields(req.FullName)
 	nombre := nombres[0]
 	apellido := ""
@@ -124,14 +120,8 @@ func (ah *AuthHandler) Registrar(c *gin.Context) {
 		apellido = strings.Join(nombres[1:], " ")
 	}
 
-	// Registrar usuario
-	usuario, err := ah.authService.RegistrarUsuario(
-		nombre,
-		apellido,
-		req.Email,
-		req.Password,
-	)
-
+	// Crear usuario
+	usuario, err := ah.authService.RegistrarUsuario(nombre, apellido, req.Email, req.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "registration_failed",
@@ -140,12 +130,12 @@ func (ah *AuthHandler) Registrar(c *gin.Context) {
 		return
 	}
 
-	// Generar token
-	token, err := ah.authService.GenerarToken(usuario.IDUsuario) // ✅ CORREGIDO: IDUsuario
+	// Generar token JWT
+	token, err := ah.authService.GenerarToken(usuario.IDUsuario)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "token_generation_failed",
-			Message: "Error al generar token de autenticación",
+			Message: "Error al generar token de autenticacion",
 		})
 		return
 	}
@@ -153,7 +143,7 @@ func (ah *AuthHandler) Registrar(c *gin.Context) {
 	c.JSON(http.StatusCreated, AuthResponse{
 		Token: token,
 		Usuario: UsuarioResponse{
-			ID:              usuario.IDUsuario, // ✅ CORREGIDO: IDUsuario
+			ID:              usuario.IDUsuario,
 			Email:           usuario.Email,
 			FullName:        usuario.Nombre + " " + usuario.Apellido,
 			Avatar:          usuario.Foto,
@@ -165,23 +155,23 @@ func (ah *AuthHandler) Registrar(c *gin.Context) {
 	})
 }
 
-// Login maneja el inicio de sesión de usuarios
+// Login autentica un usuario con email y contraseña
 func (ah *AuthHandler) Login(c *gin.Context) {
 	var req LoginRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Datos de inicio de sesión inválidos",
+			Message: "Datos de inicio de sesion invalidos",
 		})
 		return
 	}
 
-	// Obtener información de la petición
+	// Obtener datos de la peticion para auditoria
 	ipAddress := c.ClientIP()
 	userAgent := c.Request.UserAgent()
 
-	// Intentar inicio de sesión
+	// Autenticar usuario
 	token, usuario, err := ah.authService.IniciarSesion(req.Email, req.Password, ipAddress, userAgent)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -194,7 +184,7 @@ func (ah *AuthHandler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, AuthResponse{
 		Token: token,
 		Usuario: UsuarioResponse{
-			ID:              usuario.IDUsuario, // ✅ CORREGIDO: IDUsuario
+			ID:              usuario.IDUsuario,
 			Email:           usuario.Email,
 			FullName:        usuario.Nombre + " " + usuario.Apellido,
 			Avatar:          usuario.Foto,
@@ -202,23 +192,23 @@ func (ah *AuthHandler) Login(c *gin.Context) {
 			Provider:        usuario.Provider,
 			CreatedAt:       usuario.FechaRegistro.Format("2006-01-02T15:04:05Z07:00"),
 		},
-		Message: "Inicio de sesión exitoso",
+		Message: "Inicio de sesion exitoso",
 	})
 }
 
-// LoginGoogle maneja el inicio de sesión con Google
+// LoginGoogle autentica o registra un usuario usando Google OAuth
 func (ah *AuthHandler) LoginGoogle(c *gin.Context) {
 	var req LoginGoogleRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Datos de Google inválidos",
+			Message: "Datos de Google invalidos",
 		})
 		return
 	}
 
-	// Registrar o autenticar usuario con Google
+	// Registrar o autenticar con Google
 	usuario, err := ah.authService.RegistrarUsuarioGoogle(
 		req.GoogleID,
 		req.Email,
@@ -226,7 +216,6 @@ func (ah *AuthHandler) LoginGoogle(c *gin.Context) {
 		req.Apellido,
 		req.Foto,
 	)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "google_auth_failed",
@@ -235,8 +224,8 @@ func (ah *AuthHandler) LoginGoogle(c *gin.Context) {
 		return
 	}
 
-	// Generar token
-	token, err := ah.authService.GenerarToken(usuario.IDUsuario) // ✅ CORREGIDO: IDUsuario
+	// Generar token JWT
+	token, err := ah.authService.GenerarToken(usuario.IDUsuario)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "token_generation_failed",
@@ -248,7 +237,7 @@ func (ah *AuthHandler) LoginGoogle(c *gin.Context) {
 	c.JSON(http.StatusOK, AuthResponse{
 		Token: token,
 		Usuario: UsuarioResponse{
-			ID:              usuario.IDUsuario, // ✅ CORREGIDO: IDUsuario
+			ID:              usuario.IDUsuario,
 			Email:           usuario.Email,
 			FullName:        usuario.Nombre + " " + usuario.Apellido,
 			Avatar:          usuario.Foto,
@@ -256,13 +245,12 @@ func (ah *AuthHandler) LoginGoogle(c *gin.Context) {
 			Provider:        usuario.Provider,
 			CreatedAt:       usuario.FechaRegistro.Format("2006-01-02T15:04:05Z07:00"),
 		},
-		Message: "Autenticación con Google exitosa",
+		Message: "Autenticacion con Google exitosa",
 	})
 }
 
-// Logout maneja el cierre de sesión
+// Logout invalida el token del usuario actual
 func (ah *AuthHandler) Logout(c *gin.Context) {
-	// Obtener token del header Authorization
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
 		c.JSON(http.StatusUnauthorized, ErrorResponse{
@@ -277,29 +265,27 @@ func (ah *AuthHandler) Logout(c *gin.Context) {
 	if len(parts) != 2 || parts[0] != "Bearer" {
 		c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Error:   "invalid_token_format",
-			Message: "Formato de token inválido",
+			Message: "Formato de token invalido",
 		})
 		return
 	}
 
 	token := parts[1]
 
-	// Cerrar sesión
-	err := ah.authService.CerrarSesion(token)
-	if err != nil {
+	if err := ah.authService.CerrarSesion(token); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "logout_failed",
-			Message: "Error al cerrar sesión",
+			Message: "Error al cerrar sesion",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message": "Sesión cerrada exitosamente",
+		"message": "Sesion cerrada exitosamente",
 	})
 }
 
-// VerificarToken middleware para verificar tokens JWT
+// VerificarToken middleware para proteger rutas que requieren autenticacion
 func (ah *AuthHandler) VerificarToken(c *gin.Context) {
 	authHeader := c.GetHeader("Authorization")
 	if authHeader == "" {
@@ -315,7 +301,7 @@ func (ah *AuthHandler) VerificarToken(c *gin.Context) {
 	if len(parts) != 2 || parts[0] != "Bearer" {
 		c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Error:   "invalid_token_format",
-			Message: "Formato de token inválido",
+			Message: "Formato de token invalido",
 		})
 		c.Abort()
 		return
@@ -326,13 +312,13 @@ func (ah *AuthHandler) VerificarToken(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, ErrorResponse{
 			Error:   "invalid_token",
-			Message: "Token inválido o expirado",
+			Message: "Token invalido o expirado",
 		})
 		c.Abort()
 		return
 	}
 
-	// Guardar el ID del usuario en el contexto
+	// Guardar ID del usuario en el contexto para uso posterior
 	c.Set("userID", userID)
 	c.Next()
 }

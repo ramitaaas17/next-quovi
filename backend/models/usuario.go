@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// Usuario representa un usuario del sistema
 type Usuario struct {
 	IDUsuario     uint   `gorm:"column:idUsuario;primaryKey;autoIncrement" json:"idUsuario"`
 	NombreUsuario string `gorm:"column:nombreUsuario;size:50;unique" json:"nombreUsuario,omitempty"`
@@ -21,6 +22,7 @@ type Usuario struct {
 	UltimoAcceso  *time.Time `gorm:"column:ultimoAcceso" json:"ultimoAcceso,omitempty"`
 	Activo        bool       `gorm:"column:activo;default:true" json:"activo"`
 
+	// Relaciones
 	Reseñas   []Reseña   `gorm:"foreignKey:IDUsuario;constraint:OnDelete:CASCADE" json:"reseñas,omitempty"`
 	Favoritos []Favorito `gorm:"foreignKey:IDUsuario;constraint:OnDelete:CASCADE" json:"favoritos,omitempty"`
 	Busquedas []Busqueda `gorm:"foreignKey:IDUsuario;constraint:OnDelete:SET NULL" json:"busquedas,omitempty"`

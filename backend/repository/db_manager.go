@@ -11,54 +11,41 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+// DBManager maneja las operaciones de base de datos
 type DBManager struct {
 	db *gorm.DB
 }
 
-// New crea una nueva instancia del gestor de base de datos
+// New inicializa la conexion a la base de datos
 func New(dsn string) *DBManager {
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 		NamingStrategy: schema.NamingStrategy{
-			SingularTable: true, // Usar nombres de tabla singulares
-			NoLowerCase:   true, // NO convertir a minúsculas
+			SingularTable: true,
+			NoLowerCase:   true,
 		},
 	})
 	if err != nil {
 		log.Fatalf("Error al conectar con la base de datos: %v", err)
 	}
 
-	log.Println("Conexión a la base de datos establecida correctamente")
 	return &DBManager{db: db}
 }
 
-// VerificarTablas verifica que las tablas existan (sin modificarlas)
+// VerificarTablas valida que todas las tablas necesarias existan
 func (dm *DBManager) VerificarTablas() error {
-	log.Println("Verificando existencia de tablas...")
-
 	tablas := []string{
-		"usuarios",
-		"sesiones",
-		"busquedas",
-		"restaurantes",
-		"resenas",
-		"favoritos",
-		"ciudades",
-		"categorias_cocina",
-		"caracteristicas",
-		"platillos",
-		"horarios",
-		"imagenes_restaurante",
+		"usuarios", "sesiones", "busquedas", "restaurantes",
+		"resenas", "favoritos", "ciudades", "categorias_cocina",
+		"caracteristicas", "platillos", "horarios", "imagenes_restaurante",
 	}
 
 	for _, tabla := range tablas {
 		if !dm.db.Migrator().HasTable(tabla) {
-			log.Printf("Tabla '%s' no existe. Ejecuta el script SQL de inicialización primero.", tabla)
 			return errors.New("faltan tablas en la base de datos")
 		}
 	}
 
-	log.Println("Todas las tablas requeridas existen")
 	return nil
 }
 
@@ -67,18 +54,12 @@ func (dm *DBManager) GetDB() *gorm.DB {
 	return dm.db
 }
 
-// === MÉTODOS PARA USUARIOS ===
-
-// CrearUsuario inserta un nuevo usuario en la BD
+// CrearUsuario inserta un nuevo usuario
 func (dm *DBManager) CrearUsuario(usuario *models.Usuario) error {
-	result := dm.db.Create(usuario)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
+	return dm.db.Create(usuario).Error
 }
 
-// ObtenerUsuarioPorEmail busca un usuario por su email
+// ObtenerUsuarioPorEmail busca un usuario por email
 func (dm *DBManager) ObtenerUsuarioPorEmail(email string) (*models.Usuario, error) {
 	var usuario models.Usuario
 	result := dm.db.Where("email = ?", email).First(&usuario)
@@ -93,7 +74,7 @@ func (dm *DBManager) ObtenerUsuarioPorEmail(email string) (*models.Usuario, erro
 	return &usuario, nil
 }
 
-// ObtenerUsuarioPorID busca un usuario por su ID
+// ObtenerUsuarioPorID busca un usuario por ID
 func (dm *DBManager) ObtenerUsuarioPorID(id uint) (*models.Usuario, error) {
 	var usuario models.Usuario
 	result := dm.db.First(&usuario, id)
@@ -108,7 +89,7 @@ func (dm *DBManager) ObtenerUsuarioPorID(id uint) (*models.Usuario, error) {
 	return &usuario, nil
 }
 
-// ObtenerUsuarioPorGoogleID busca un usuario por su Google ID
+// ObtenerUsuarioPorGoogleID busca un usuario por Google ID
 func (dm *DBManager) ObtenerUsuarioPorGoogleID(googleID string) (*models.Usuario, error) {
 	var usuario models.Usuario
 	result := dm.db.Where("googleId = ?", googleID).First(&usuario)
@@ -123,13 +104,9 @@ func (dm *DBManager) ObtenerUsuarioPorGoogleID(googleID string) (*models.Usuario
 	return &usuario, nil
 }
 
-// ActualizarUsuario actualiza los datos de un usuario
+// ActualizarUsuario guarda los cambios de un usuario
 func (dm *DBManager) ActualizarUsuario(usuario *models.Usuario) error {
-	result := dm.db.Save(usuario)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
+	return dm.db.Save(usuario).Error
 }
 
 // ObtenerTodosLosUsuarios retorna todos los usuarios activos
@@ -144,25 +121,19 @@ func (dm *DBManager) ObtenerTodosLosUsuarios() ([]models.Usuario, error) {
 	return usuarios, nil
 }
 
-// === MÉTODOS PARA SESIONES ===
-
-// CrearSesion crea una nueva sesión de usuario
+// CrearSesion registra una nueva sesion de usuario
 func (dm *DBManager) CrearSesion(sesion *models.Sesion) error {
-	result := dm.db.Create(sesion)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
+	return dm.db.Create(sesion).Error
 }
 
-// ObtenerSesionPorToken busca una sesión por su token
+// ObtenerSesionPorToken busca una sesion por token
 func (dm *DBManager) ObtenerSesionPorToken(token string) (*models.Sesion, error) {
 	var sesion models.Sesion
 	result := dm.db.Where("token = ?", token).First(&sesion)
 
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, errors.New("sesión no encontrada")
+			return nil, errors.New("sesion no encontrada")
 		}
 		return nil, result.Error
 	}
@@ -170,11 +141,7 @@ func (dm *DBManager) ObtenerSesionPorToken(token string) (*models.Sesion, error)
 	return &sesion, nil
 }
 
-// EliminarSesion elimina una sesión de la BD
+// EliminarSesion borra una sesion de la base de datos
 func (dm *DBManager) EliminarSesion(token string) error {
-	result := dm.db.Where("token = ?", token).Delete(&models.Sesion{})
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
+	return dm.db.Where("token = ?", token).Delete(&models.Sesion{}).Error
 }

@@ -21,6 +21,7 @@ func NewRestauranteService(dbManager *repository.DBManager) *RestauranteService 
 	}
 }
 
+// RestauranteConDistancia extiende la informacion del restaurante con datos calculados
 type RestauranteConDistancia struct {
 	models.Restaurante
 	DistanciaKm    float64 `json:"distanciaKm"`
@@ -29,14 +30,17 @@ type RestauranteConDistancia struct {
 	HorarioHoy     string  `json:"horarioHoy,omitempty"`
 }
 
+// ObtenerTodosLosRestaurantes retorna todos los restaurantes activos
 func (rs *RestauranteService) ObtenerTodosLosRestaurantes() ([]models.Restaurante, error) {
 	return rs.dbManager.ObtenerTodosLosRestaurantes()
 }
 
+// ObtenerRestaurantePorID busca un restaurante especifico
 func (rs *RestauranteService) ObtenerRestaurantePorID(id uint) (*models.Restaurante, error) {
 	return rs.dbManager.ObtenerRestaurantePorID(id)
 }
 
+// ObtenerRestaurantesCercanos busca restaurantes dentro de un radio y calcula distancias
 func (rs *RestauranteService) ObtenerRestaurantesCercanos(lat, lng, radioKm float64) ([]RestauranteConDistancia, error) {
 	restaurantes, err := rs.dbManager.ObtenerRestaurantesCercanos(lat, lng, radioKm)
 	if err != nil {
@@ -62,6 +66,7 @@ func (rs *RestauranteService) ObtenerRestaurantesCercanos(lat, lng, radioKm floa
 		}
 	}
 
+	// Ordenar por distancia ascendente
 	sort.Slice(resultado, func(i, j int) bool {
 		return resultado[i].DistanciaKm < resultado[j].DistanciaKm
 	})
@@ -69,6 +74,7 @@ func (rs *RestauranteService) ObtenerRestaurantesCercanos(lat, lng, radioKm floa
 	return resultado, nil
 }
 
+// BuscarRestaurantes busca por termino, categoria o ubicacion
 func (rs *RestauranteService) BuscarRestaurantes(
 	termino string,
 	nombreCategoria string,
@@ -83,6 +89,7 @@ func (rs *RestauranteService) BuscarRestaurantes(
 	var restaurantes []models.Restaurante
 	var err error
 
+	// Buscar segun criterio
 	if idCategoria != nil {
 		restaurantes, err = rs.dbManager.ObtenerRestaurantesPorCategoria(*idCategoria)
 	} else if nombreCategoria != "" {
@@ -101,6 +108,7 @@ func (rs *RestauranteService) BuscarRestaurantes(
 		return []RestauranteConDistancia{}, nil
 	}
 
+	// Si no hay ubicacion, retornar sin calcular distancias
 	if lat == nil || lng == nil {
 		resultado := make([]RestauranteConDistancia, 0, len(restaurantes))
 		for _, rest := range restaurantes {
@@ -115,6 +123,7 @@ func (rs *RestauranteService) BuscarRestaurantes(
 		return resultado, nil
 	}
 
+	// Calcular distancias y filtrar por radio
 	resultado := make([]RestauranteConDistancia, 0)
 
 	for _, rest := range restaurantes {
@@ -143,6 +152,7 @@ func (rs *RestauranteService) BuscarRestaurantes(
 	return resultado, nil
 }
 
+// ObtenerRestaurantesPorCategoria filtra por categoria con informacion de distancia opcional
 func (rs *RestauranteService) ObtenerRestaurantesPorCategoria(idCategoria uint, lat, lng *float64) ([]RestauranteConDistancia, error) {
 	restaurantes, err := rs.dbManager.ObtenerRestaurantesPorCategoria(idCategoria)
 	if err != nil {
@@ -178,14 +188,17 @@ func (rs *RestauranteService) ObtenerRestaurantesPorCategoria(idCategoria uint, 
 	return resultado, nil
 }
 
+// ObtenerCategorias retorna todas las categorias disponibles
 func (rs *RestauranteService) ObtenerCategorias() ([]models.CategoriaRestaurante, error) {
 	return rs.dbManager.ObtenerTodasLasCategorias()
 }
 
+// ObtenerCiudades retorna todas las ciudades disponibles
 func (rs *RestauranteService) ObtenerCiudades() ([]models.Ciudad, error) {
 	return rs.dbManager.ObtenerTodasLasCiudades()
 }
 
+// AgregarFavorito marca un restaurante como favorito
 func (rs *RestauranteService) AgregarFavorito(idUsuario, idRestaurante uint) error {
 	_, err := rs.dbManager.ObtenerRestaurantePorID(idRestaurante)
 	if err != nil {
@@ -195,10 +208,12 @@ func (rs *RestauranteService) AgregarFavorito(idUsuario, idRestaurante uint) err
 	return rs.dbManager.AgregarFavorito(idUsuario, idRestaurante)
 }
 
+// EliminarFavorito remueve un restaurante de favoritos
 func (rs *RestauranteService) EliminarFavorito(idUsuario, idRestaurante uint) error {
 	return rs.dbManager.EliminarFavorito(idUsuario, idRestaurante)
 }
 
+// ObtenerFavoritos lista todos los favoritos del usuario
 func (rs *RestauranteService) ObtenerFavoritos(idUsuario uint, lat, lng *float64) ([]RestauranteConDistancia, error) {
 	restaurantes, err := rs.dbManager.ObtenerFavoritosUsuario(idUsuario)
 	if err != nil {
@@ -228,8 +243,9 @@ func (rs *RestauranteService) ObtenerFavoritos(idUsuario uint, lat, lng *float64
 	return resultado, nil
 }
 
+// calcularDistancia usa la formula de Haversine para calcular distancia entre coordenadas
 func calcularDistancia(lat1, lng1, lat2, lng2 float64) float64 {
-	const R = 6371
+	const R = 6371 // Radio de la Tierra en km
 
 	lat1Rad := lat1 * math.Pi / 180
 	lat2Rad := lat2 * math.Pi / 180
@@ -245,6 +261,7 @@ func calcularDistancia(lat1, lng1, lat2, lng2 float64) float64 {
 	return R * c
 }
 
+// calcularTiempoEstimado estima tiempo de llegada en rangos
 func calcularTiempoEstimado(distanciaKm float64) string {
 	velocidadPromedio := 20.0
 	tiempoHoras := distanciaKm / velocidadPromedio
@@ -264,6 +281,7 @@ func calcularTiempoEstimado(distanciaKm float64) string {
 	return "30+ min"
 }
 
+// verificarHorario determina si un restaurante esta abierto segun el dia y hora actual
 func verificarHorario(horarios []models.Horario) (bool, string) {
 	if len(horarios) == 0 {
 		return false, ""
@@ -272,7 +290,7 @@ func verificarHorario(horarios []models.Horario) (bool, string) {
 	ahora := time.Now()
 	diaActual := int(ahora.Weekday())
 	if diaActual == 0 {
-		diaActual = 7
+		diaActual = 7 // Domingo como 7
 	}
 
 	var horarioHoy *models.Horario

@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-// Restaurante representa un restaurante en el sistema
+// Restaurante representa un establecimiento de comida
 type Restaurante struct {
 	IDRestaurante        uint      `gorm:"column:idRestaurante;primaryKey;autoIncrement" json:"idRestaurante"`
 	Nombre               string    `gorm:"column:nombre;size:100;not null" json:"nombre"`
@@ -21,7 +21,7 @@ type Restaurante struct {
 	Activo               bool      `gorm:"column:activo;default:true" json:"activo"`
 	FechaRegistro        time.Time `gorm:"column:fechaRegistro;not null;default:CURRENT_TIMESTAMP" json:"fechaRegistro"`
 
-	// Relaciones - CON LOS NOMBRES CORRECTOS DE COLUMNAS
+	// Relaciones
 	Ciudad          Ciudad                      `gorm:"foreignKey:IDCiudad" json:"ciudad,omitempty"`
 	Categorias      []CategoriaRestaurante      `gorm:"many2many:restaurante_categorias;foreignKey:IDRestaurante;joinForeignKey:idRestaurante;References:IDCategoria;joinReferences:idCategoria" json:"categorias,omitempty"`
 	Caracteristicas []CaracteristicaRestaurante `gorm:"many2many:restaurante_caracteristicas;foreignKey:IDRestaurante;joinForeignKey:idRestaurante;References:IDCaracteristica;joinReferences:idCaracteristica" json:"caracteristicas,omitempty"`
@@ -34,7 +34,7 @@ func (Restaurante) TableName() string {
 	return "restaurantes"
 }
 
-// Ciudad representa una ciudad
+// Ciudad representa una ubicacion geografica
 type Ciudad struct {
 	IDCiudad     uint    `gorm:"column:idCiudad;primaryKey;autoIncrement" json:"idCiudad"`
 	NombreCiudad string  `gorm:"column:nombreCiudad;size:50;not null" json:"nombreCiudad"`
@@ -48,7 +48,7 @@ func (Ciudad) TableName() string {
 	return "ciudades"
 }
 
-// CategoriaRestaurante representa una categoría de cocina
+// CategoriaRestaurante representa tipos de cocina
 type CategoriaRestaurante struct {
 	IDCategoria     uint   `gorm:"column:idCategoria;primaryKey;autoIncrement" json:"idCategoria"`
 	NombreCategoria string `gorm:"column:nombreCategoria;size:50;not null;unique" json:"nombreCategoria"`
@@ -60,7 +60,7 @@ func (CategoriaRestaurante) TableName() string {
 	return "categorias_cocina"
 }
 
-// CaracteristicaRestaurante representa características del restaurante
+// CaracteristicaRestaurante representa atributos especiales del restaurante
 type CaracteristicaRestaurante struct {
 	IDCaracteristica     uint   `gorm:"column:idCaracteristica;primaryKey;autoIncrement" json:"idCaracteristica"`
 	NombreCaracteristica string `gorm:"column:nombreCaracteristica;size:50;not null;unique" json:"nombreCaracteristica"`
@@ -72,7 +72,7 @@ func (CaracteristicaRestaurante) TableName() string {
 	return "caracteristicas"
 }
 
-// Platillo representa un platillo del menú
+// Platillo representa un item del menu
 type Platillo struct {
 	IDPlatillo    uint    `gorm:"column:idPlatillo;primaryKey;autoIncrement" json:"idPlatillo"`
 	IDRestaurante uint    `gorm:"column:idRestaurante;not null" json:"idRestaurante"`
@@ -89,7 +89,7 @@ func (Platillo) TableName() string {
 	return "platillos"
 }
 
-// Horario representa los horarios de apertura
+// Horario define dias y horas de operacion
 type Horario struct {
 	IDRestaurante uint   `gorm:"column:idRestaurante;primaryKey;not null" json:"idRestaurante"`
 	Dia           int8   `gorm:"column:dia;primaryKey;not null;check:dia >= 1 AND dia <= 7" json:"dia"`
@@ -102,7 +102,7 @@ func (Horario) TableName() string {
 	return "horarios"
 }
 
-// ImagenRestaurante representa las imágenes del restaurante
+// ImagenRestaurante almacena fotos del establecimiento
 type ImagenRestaurante struct {
 	IDImagen      uint      `gorm:"column:idImagen;primaryKey;autoIncrement" json:"idImagen"`
 	IDRestaurante uint      `gorm:"column:idRestaurante;not null" json:"idRestaurante"`

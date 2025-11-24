@@ -16,67 +16,62 @@ import (
 )
 
 func main() {
+	// Cargar variables de entorno desde archivo .env
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("WARNING: .env file not found, using system environment variables")
+		log.Println("Archivo .env no encontrado, usando variables del sistema")
 	}
 
+	// Configuración de la base de datos
 	dbUser := getEnv("DB_USER", "quovi_user")
 	dbPassword := getEnv("DB_PASSWORD", "quovi_secret")
 	dbHost := getEnv("DB_HOST", "db")
 	dbPort := getEnv("DB_PORT", "3306")
 	dbName := getEnv("DB_NAME", "quovi_db")
 
+	// Construir DSN (Data Source Name) para MySQL
 	dsn := dbUser + ":" + dbPassword + "@tcp(" + dbHost + ":" + dbPort + ")/" + dbName + "?charset=utf8mb4&parseTime=True&loc=Local"
 
-	log.Println("Connecting to database...")
-	log.Printf("Host: %s:%s", dbHost, dbPort)
-	log.Printf("Database: %s", dbName)
-
+	// Inicializar gestor de base de datos
 	dbManager := repository.New(dsn)
 
-	log.Println("Waiting for database to be ready...")
+	// Esperar a que la base de datos esté lista
 	time.Sleep(2 * time.Second)
 
+	// Verificar que las tablas existan
 	if err := dbManager.VerificarTablas(); err != nil {
-		log.Println("ERROR: Failed to verify tables, retrying in 5 seconds...")
 		time.Sleep(5 * time.Second)
-
 		if err := dbManager.VerificarTablas(); err != nil {
-			log.Fatalf("FATAL: Could not connect to database: %v", err)
+			log.Fatalf("Error: No se pudo conectar a la base de datos: %v", err)
 		}
 	}
 
-	// ========================================
-	// INYECCIÓN DE DEPENDENCIAS - SERVICES
-	// ========================================
+	// Inicializar servicios con sus dependencias
 	jwtSecret := getEnv("JWT_SECRET", "mi-secreto-super-seguro-cambiar-en-produccion")
 	authService := services.NewAuthService(dbManager, jwtSecret)
 	restauranteService := services.NewRestauranteService(dbManager)
 	perfilService := services.NewPerfilService(dbManager)
 	platilloService := services.NewPlatilloService(dbManager)
 
-	// ========================================
-	// INYECCIÓN DE DEPENDENCIAS - HANDLERS
-	// ========================================
+	// Inicializar handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	restauranteHandler := handlers.NewRestauranteHandler(restauranteService)
 	perfilHandler := handlers.NewPerfilHandler(perfilService)
 	platilloHandler := handlers.NewPlatilloHandler(platilloService)
 
+	// Configurar modo de Gin según el entorno
 	if getEnv("ENVIRONMENT", "development") == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
 	router := gin.Default()
 
-	// ========================================
-	// MIDDLEWARE GLOBAL
-	// ========================================
+	// Aplicar middleware global de seguridad
 	router.Use(middleware.SecurityHeaders())
 	router.Use(middleware.InputSanitization())
-	router.Use(middleware.MaxBodySize(5 * 1024 * 1024))
+	router.Use(middleware.MaxBodySize(5 * 1024 * 1024)) // Límite de 5MB
 
+	// Configurar CORS
 	corsOrigins := getCORSOrigins()
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     corsOrigins,
@@ -86,16 +81,13 @@ func main() {
 		AllowCredentials: true,
 	}))
 
+	// Servir archivos estáticos (imágenes de perfil, etc.)
 	router.Static("/uploads", "./uploads")
 
-	// ========================================
-	// RUTAS DE LA API
-	// ========================================
+	// Grupo de rutas de la API
 	api := router.Group("/api")
 	{
-		// ========================================
-		// AUTENTICACIÓN (público, con rate limiting)
-		// ========================================
+		// Rutas de autenticación (públicas con rate limiting)
 		authRateLimiter := middleware.NewRateLimiter(5)
 		auth := api.Group("/auth")
 		auth.Use(middleware.ValidateContentType("application/json"))
@@ -107,9 +99,7 @@ func main() {
 			auth.POST("/logout", authHandler.Logout)
 		}
 
-		// ========================================
-		// RESTAURANTES (público)
-		// ========================================
+		// Rutas de restaurantes (públicas)
 		restaurantes := api.Group("/restaurantes")
 		{
 			restaurantes.GET("", restauranteHandler.ObtenerTodosLosRestaurantes)
@@ -120,27 +110,21 @@ func main() {
 			restaurantes.POST("/buscar", restauranteHandler.BuscarRestaurantes)
 		}
 
-		// ========================================
-		// CATEGORÍAS (público)
-		// ========================================
+		// Rutas de categorías (públicas)
 		categorias := api.Group("/categorias")
 		{
 			categorias.GET("", restauranteHandler.ObtenerCategorias)
 			categorias.GET("/:id/restaurantes", restauranteHandler.ObtenerRestaurantesPorCategoria)
 		}
 
-		// ========================================
-		// CIUDADES (público)
-		// ========================================
+		// Ruta de ciudades (pública)
 		api.GET("/ciudades", restauranteHandler.ObtenerCiudades)
 
-		// ========================================
-		// RUTAS PROTEGIDAS (requieren autenticación)
-		// ========================================
+		// Rutas protegidas (requieren autenticación)
 		protected := api.Group("/")
 		protected.Use(authHandler.VerificarToken)
 		{
-			// PERFIL
+			// Gestión de perfil de usuario
 			perfil := protected.Group("/perfil")
 			{
 				perfil.GET("", perfilHandler.ObtenerPerfil)
@@ -153,7 +137,7 @@ func main() {
 				perfil.DELETE("/cuenta", perfilHandler.EliminarCuenta)
 			}
 
-			// FAVORITOS
+			// Gestión de favoritos
 			favoritos := protected.Group("/favoritos")
 			{
 				favoritos.GET("", restauranteHandler.ObtenerFavoritos)
@@ -163,9 +147,7 @@ func main() {
 		}
 	}
 
-	// ========================================
-	// RUTAS DE SALUD Y ROOT
-	// ========================================
+	// Rutas de salud y root
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
@@ -182,17 +164,16 @@ func main() {
 		})
 	})
 
-	// ========================================
-	// INICIAR SERVIDOR
-	// ========================================
+	// Iniciar servidor
 	port := getEnv("PORT", "8080")
-	log.Printf("Server starting on port %s", port)
+	log.Printf("Servidor iniciado en puerto %s", port)
 
 	if err := router.Run("0.0.0.0:" + port); err != nil {
-		log.Fatalf("FATAL: Failed to start server: %v", err)
+		log.Fatalf("Error al iniciar servidor: %v", err)
 	}
 }
 
+// getEnv obtiene una variable de entorno o retorna un valor por defecto
 func getEnv(key, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
@@ -201,6 +182,7 @@ func getEnv(key, defaultValue string) string {
 	return value
 }
 
+// getCORSOrigins obtiene los orígenes permitidos para CORS desde variables de entorno
 func getCORSOrigins() []string {
 	corsOriginsStr := getEnv("CORS_ORIGINS", "http://localhost:3000,http://localhost:3001")
 	origins := strings.Split(corsOriginsStr, ",")

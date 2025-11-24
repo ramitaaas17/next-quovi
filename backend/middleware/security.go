@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// RateLimiter implementa rate limiting para prevenir ataques de fuerza bruta
+// RateLimiter previene ataques de fuerza bruta mediante limitacion de peticiones
 type RateLimiter struct {
 	visitors map[string]*Visitor
 	mu       sync.RWMutex
@@ -23,7 +23,6 @@ type Visitor struct {
 	blockedAt *time.Time
 }
 
-// NewRateLimiter crea un nuevo rate limiter
 func NewRateLimiter(requestsPerMinute int) *RateLimiter {
 	rl := &RateLimiter{
 		visitors: make(map[string]*Visitor),
@@ -31,13 +30,11 @@ func NewRateLimiter(requestsPerMinute int) *RateLimiter {
 		duration: time.Minute,
 	}
 
-	// Limpieza periódica de visitantes antiguos
 	go rl.cleanupVisitors()
-
 	return rl
 }
 
-// Middleware retorna el middleware de rate limiting
+// Middleware aplica rate limiting basado en IP del cliente
 func (rl *RateLimiter) Middleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		ip := c.ClientIP()
@@ -53,7 +50,7 @@ func (rl *RateLimiter) Middleware() gin.HandlerFunc {
 			return
 		}
 
-		// Verificar si está bloqueado
+		// Verificar bloqueo temporal
 		if visitor.blockedAt != nil {
 			if time.Since(*visitor.blockedAt) < 15*time.Minute {
 				rl.mu.Unlock()
@@ -64,12 +61,11 @@ func (rl *RateLimiter) Middleware() gin.HandlerFunc {
 				c.Abort()
 				return
 			}
-			// Desbloquear después de 15 minutos
 			visitor.blockedAt = nil
 			visitor.count = 0
 		}
 
-		// Resetear contador si ha pasado el tiempo
+		// Resetear o incrementar contador
 		if time.Since(visitor.lastSeen) > rl.duration {
 			visitor.count = 1
 			visitor.lastSeen = time.Now()
@@ -77,14 +73,13 @@ func (rl *RateLimiter) Middleware() gin.HandlerFunc {
 			visitor.count++
 			visitor.lastSeen = time.Now()
 
-			// Bloquear si excede el límite
 			if visitor.count > rl.rate {
 				now := time.Now()
 				visitor.blockedAt = &now
 				rl.mu.Unlock()
 				c.JSON(http.StatusTooManyRequests, gin.H{
 					"error":   "rate_limit_exceeded",
-					"message": "Demasiados intentos. Intenta de nuevo más tarde",
+					"message": "Demasiados intentos. Intenta de nuevo mas tarde",
 				})
 				c.Abort()
 				return
@@ -96,7 +91,7 @@ func (rl *RateLimiter) Middleware() gin.HandlerFunc {
 	}
 }
 
-// cleanupVisitors limpia visitantes antiguos cada 5 minutos
+// cleanupVisitors elimina visitantes inactivos cada 5 minutos
 func (rl *RateLimiter) cleanupVisitors() {
 	ticker := time.NewTicker(5 * time.Minute)
 	defer ticker.Stop()
@@ -112,38 +107,23 @@ func (rl *RateLimiter) cleanupVisitors() {
 	}
 }
 
-// SecurityHeaders añade headers de seguridad a todas las respuestas
+// SecurityHeaders agrega headers de seguridad HTTP a todas las respuestas
 func SecurityHeaders() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Protección contra clickjacking
 		c.Header("X-Frame-Options", "DENY")
-
-		// Protección XSS
 		c.Header("X-XSS-Protection", "1; mode=block")
-
-		// Prevenir MIME sniffing
 		c.Header("X-Content-Type-Options", "nosniff")
-
-		// Referrer Policy
 		c.Header("Referrer-Policy", "strict-origin-when-cross-origin")
-
-		// Content Security Policy
 		c.Header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'")
-
-		// Permissions Policy
 		c.Header("Permissions-Policy", "geolocation=(), microphone=(), camera=()")
-
-		// HSTS (solo para producción con HTTPS)
-		// c.Header("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
 
 		c.Next()
 	}
 }
 
-// InputSanitization sanitiza inputs para prevenir SQL Injection y XSS
+// InputSanitization valida query parameters contra patrones de ataque
 func InputSanitization() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Lista de patrones sospechosos
 		suspiciousPatterns := []string{
 			"<script",
 			"javascript:",
@@ -163,7 +143,6 @@ func InputSanitization() gin.HandlerFunc {
 			"OR '1'='1",
 		}
 
-		// Verificar query parameters
 		for key, values := range c.Request.URL.Query() {
 			for _, value := range values {
 				lowerValue := strings.ToLower(value)
@@ -185,7 +164,7 @@ func InputSanitization() gin.HandlerFunc {
 	}
 }
 
-// ValidateContentType valida que el Content-Type sea el esperado
+// ValidateContentType verifica que el Content-Type de la peticion sea correcto
 func ValidateContentType(expectedType string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.Method == "POST" || c.Request.Method == "PUT" || c.Request.Method == "PATCH" {
@@ -203,7 +182,7 @@ func ValidateContentType(expectedType string) gin.HandlerFunc {
 	}
 }
 
-// IPWhitelist permite solo IPs específicas (útil para endpoints admin)
+// IPWhitelist permite acceso solo a IPs especificas
 func IPWhitelist(allowedIPs []string) gin.HandlerFunc {
 	allowed := make(map[string]bool)
 	for _, ip := range allowedIPs {
@@ -224,13 +203,13 @@ func IPWhitelist(allowedIPs []string) gin.HandlerFunc {
 	}
 }
 
-// MaxBodySize limita el tamaño del body de la petición
+// MaxBodySize limita el tamaño maximo del body de la peticion
 func MaxBodySize(maxSize int64) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		if c.Request.ContentLength > maxSize {
 			c.JSON(http.StatusRequestEntityTooLarge, gin.H{
 				"error":   "body_too_large",
-				"message": "El tamaño del body excede el límite permitido",
+				"message": "El tamaño del body excede el limite permitido",
 			})
 			c.Abort()
 			return

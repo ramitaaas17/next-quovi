@@ -13,11 +13,10 @@ type RestauranteHandler struct {
 }
 
 func NewRestauranteHandler(restauranteService *services.RestauranteService) *RestauranteHandler {
-	return &RestauranteHandler{
-		restauranteService: restauranteService,
-	}
+	return &RestauranteHandler{restauranteService: restauranteService}
 }
 
+// Estructuras de peticion
 type ObtenerRestaurantesCercanosRequest struct {
 	Latitud  float64 `json:"latitud" binding:"required"`
 	Longitud float64 `json:"longitud" binding:"required"`
@@ -37,6 +36,7 @@ type AgregarFavoritoRequest struct {
 	IDRestaurante uint `json:"idRestaurante" binding:"required"`
 }
 
+// ObtenerTodosLosRestaurantes devuelve la lista completa de restaurantes
 func (rh *RestauranteHandler) ObtenerTodosLosRestaurantes(c *gin.Context) {
 	restaurantes, err := rh.restauranteService.ObtenerTodosLosRestaurantes()
 	if err != nil {
@@ -54,13 +54,14 @@ func (rh *RestauranteHandler) ObtenerTodosLosRestaurantes(c *gin.Context) {
 	})
 }
 
+// ObtenerRestaurantePorID devuelve los detalles de un restaurante especifico
 func (rh *RestauranteHandler) ObtenerRestaurantePorID(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_id",
-			Message: "ID de restaurante inválido",
+			Message: "ID de restaurante invalido",
 		})
 		return
 	}
@@ -80,17 +81,19 @@ func (rh *RestauranteHandler) ObtenerRestaurantePorID(c *gin.Context) {
 	})
 }
 
+// ObtenerRestaurantesCercanos busca restaurantes en un radio determinado
 func (rh *RestauranteHandler) ObtenerRestaurantesCercanos(c *gin.Context) {
 	var req ObtenerRestaurantesCercanosRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Datos inválidos: " + err.Error(),
+			Message: "Datos invalidos: " + err.Error(),
 		})
 		return
 	}
 
+	// Validar coordenadas
 	if req.Latitud < -90 || req.Latitud > 90 {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_latitude",
@@ -107,10 +110,10 @@ func (rh *RestauranteHandler) ObtenerRestaurantesCercanos(c *gin.Context) {
 		return
 	}
 
+	// Establecer radio por defecto o limitar maximo
 	if req.Radio <= 0 {
 		req.Radio = 5.0
 	}
-
 	if req.Radio > 50 {
 		req.Radio = 50.0
 	}
@@ -120,7 +123,6 @@ func (rh *RestauranteHandler) ObtenerRestaurantesCercanos(c *gin.Context) {
 		req.Longitud,
 		req.Radio,
 	)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "fetch_failed",
@@ -141,25 +143,28 @@ func (rh *RestauranteHandler) ObtenerRestaurantesCercanos(c *gin.Context) {
 	})
 }
 
+// BuscarRestaurantes realiza una busqueda por termino y/o categoria
 func (rh *RestauranteHandler) BuscarRestaurantes(c *gin.Context) {
 	var req BuscarRestaurantesRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Datos de búsqueda inválidos: " + err.Error(),
+			Message: "Datos de busqueda invalidos: " + err.Error(),
 		})
 		return
 	}
 
+	// Validar que haya al menos un criterio de busqueda
 	if req.Termino == "" && req.Categoria == "" && req.IDCategoria == nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "missing_criteria",
-			Message: "Debe proporcionar al menos un término de búsqueda o categoría",
+			Message: "Debe proporcionar al menos un termino de busqueda o categoria",
 		})
 		return
 	}
 
+	// Validar coordenadas si se proporcionan
 	if req.Latitud != nil && (*req.Latitud < -90 || *req.Latitud > 90) {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_latitude",
@@ -184,7 +189,6 @@ func (rh *RestauranteHandler) BuscarRestaurantes(c *gin.Context) {
 		req.Longitud,
 		req.Radio,
 	)
-
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "search_failed",
@@ -198,16 +202,17 @@ func (rh *RestauranteHandler) BuscarRestaurantes(c *gin.Context) {
 		"total":     len(restaurantes),
 		"termino":   req.Termino,
 		"categoria": req.Categoria,
-		"message":   "Búsqueda completada",
+		"message":   "Busqueda completada",
 	})
 }
 
+// ObtenerCategorias devuelve todas las categorias disponibles
 func (rh *RestauranteHandler) ObtenerCategorias(c *gin.Context) {
 	categorias, err := rh.restauranteService.ObtenerCategorias()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{
 			Error:   "fetch_failed",
-			Message: "Error al obtener categorías: " + err.Error(),
+			Message: "Error al obtener categorias: " + err.Error(),
 		})
 		return
 	}
@@ -215,21 +220,23 @@ func (rh *RestauranteHandler) ObtenerCategorias(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"data":    categorias,
 		"total":   len(categorias),
-		"message": "Categorías obtenidas exitosamente",
+		"message": "Categorias obtenidas exitosamente",
 	})
 }
 
+// ObtenerRestaurantesPorCategoria filtra restaurantes por categoria
 func (rh *RestauranteHandler) ObtenerRestaurantesPorCategoria(c *gin.Context) {
 	idStr := c.Param("id")
 	id, err := strconv.ParseUint(idStr, 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_id",
-			Message: "ID de categoría inválido",
+			Message: "ID de categoria invalido",
 		})
 		return
 	}
 
+	// Obtener coordenadas opcionales de query params
 	var lat, lng *float64
 	if latStr := c.Query("lat"); latStr != "" {
 		latVal, err := strconv.ParseFloat(latStr, 64)
@@ -261,6 +268,7 @@ func (rh *RestauranteHandler) ObtenerRestaurantesPorCategoria(c *gin.Context) {
 	})
 }
 
+// ObtenerCiudades devuelve la lista de ciudades con restaurantes
 func (rh *RestauranteHandler) ObtenerCiudades(c *gin.Context) {
 	ciudades, err := rh.restauranteService.ObtenerCiudades()
 	if err != nil {
@@ -278,6 +286,7 @@ func (rh *RestauranteHandler) ObtenerCiudades(c *gin.Context) {
 	})
 }
 
+// AgregarFavorito marca un restaurante como favorito del usuario
 func (rh *RestauranteHandler) AgregarFavorito(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -292,7 +301,7 @@ func (rh *RestauranteHandler) AgregarFavorito(c *gin.Context) {
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_request",
-			Message: "Datos inválidos: " + err.Error(),
+			Message: "Datos invalidos: " + err.Error(),
 		})
 		return
 	}
@@ -311,6 +320,7 @@ func (rh *RestauranteHandler) AgregarFavorito(c *gin.Context) {
 	})
 }
 
+// EliminarFavorito remueve un restaurante de los favoritos del usuario
 func (rh *RestauranteHandler) EliminarFavorito(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -326,7 +336,7 @@ func (rh *RestauranteHandler) EliminarFavorito(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{
 			Error:   "invalid_id",
-			Message: "ID de restaurante inválido",
+			Message: "ID de restaurante invalido",
 		})
 		return
 	}
@@ -345,6 +355,7 @@ func (rh *RestauranteHandler) EliminarFavorito(c *gin.Context) {
 	})
 }
 
+// ObtenerFavoritos devuelve los restaurantes favoritos del usuario
 func (rh *RestauranteHandler) ObtenerFavoritos(c *gin.Context) {
 	userID, exists := c.Get("userID")
 	if !exists {
@@ -355,6 +366,7 @@ func (rh *RestauranteHandler) ObtenerFavoritos(c *gin.Context) {
 		return
 	}
 
+	// Obtener coordenadas opcionales para calcular distancia
 	var lat, lng *float64
 	if latStr := c.Query("lat"); latStr != "" {
 		latVal, err := strconv.ParseFloat(latStr, 64)
