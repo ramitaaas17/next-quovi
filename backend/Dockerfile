@@ -1,5 +1,5 @@
-# Usa una imagen oficial de Go
-FROM golang:1.22-alpine
+# Usa una imagen oficial de Go con la versión correcta
+FROM golang:1.23-alpine
 
 # Establece el directorio de trabajo
 WORKDIR /app
@@ -8,7 +8,7 @@ WORKDIR /app
 RUN apk add --no-cache git
 
 # Copia go.mod y go.sum primero (para aprovechar la caché de Docker)
-COPY go.mod go.sum* ./
+COPY go.mod go.sum ./
 
 # Descarga las dependencias
 RUN go mod download
@@ -16,11 +16,8 @@ RUN go mod download
 # Copia el resto del código
 COPY . .
 
-# Asegúrate de que las dependencias están sincronizadas
-RUN go mod tidy
-
 # Expone el puerto
 EXPOSE 8080
 
-# Comando para iniciar la aplicación
+# Comando para iniciar la aplicación (igual que antes)
 CMD ["go", "run", "main.go"]

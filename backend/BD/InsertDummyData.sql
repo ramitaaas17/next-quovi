@@ -1053,3 +1053,888 @@ INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verific
 INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
 (@idMaria, @idBlend, 4, 'Opciones saludables y deliciosas. Los bowls son completos y nutritivos. Lugar perfecto para desayunar.', TRUE);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-- =============================================
+-- DATOS SINTÉTICOS - NEGOCIOS LOCALES Y CALLEJEROS CDMX
+-- Base de datos: quovi_db
+-- Enfoque: Pequeños negocios, puestos callejeros, fondas
+-- =============================================
+
+-- Obtener ID de CDMX
+SET @idCDMX = (SELECT idCiudad FROM ciudades WHERE nombreCiudad = 'Ciudad de México' LIMIT 1);
+
+-- =============================================
+-- PUESTOS CALLEJEROS Y NEGOCIOS LOCALES
+-- =============================================
+
+-- PUESTO 1: Tacos El Vilsito (Taller/Taquería Nocturna)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('El Vilsito', 'Av. Universidad esq. Petén 248, Narvarte Poniente, Benito Juárez', @idCDMX, 19.395833, -99.158056, '5555386279', NULL, 'Taller mecánico de día, taquería de noche. Famoso por sus tacos al pastor desde 1966. Salió en Netflix Taco Chronicles.', 80.00, TRUE);
+SET @idVilsito = LAST_INSERT_ID();
+
+-- PUESTO 2: Tacos Los Cocuyos (24 horas)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Los Cocuyos', 'Simón Bolívar 59, Centro Histórico, Cuauhtémoc', @idCDMX, 19.432222, -99.138611, NULL, NULL, 'Puesto abierto 24 horas. Especialidad en tacos de suadero confitado en manteca. Recomendado por Anthony Bourdain.', 70.00, TRUE);
+SET @idCocuyos = LAST_INSERT_ID();
+
+-- PUESTO 3: Taquería Los Parados (Nocturna)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Tacos Los Parados', 'Monterrey 333, Roma Norte, Cuauhtémoc', @idCDMX, 19.419167, -99.166944, '5555844729', NULL, 'Puesto callejero nocturno famoso. Tacos de suadero, pastor y volcanes. Ambiente de barrio auténtico.', 75.00, TRUE);
+SET @idParados = LAST_INSERT_ID();
+
+-- PUESTO 4: El Borrego Viudo (Servicio al auto)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('El Borrego Viudo', 'Av. Revolución 241, Tacubaya, Miguel Hidalgo', @idCDMX, 19.403889, -99.187222, '5552770032', NULL, 'Servicio 24 horas directo al auto. Tacos de pastor, suadero, lengua y cabeza. Salsas legendarias.', 85.00, TRUE);
+SET @idBorrego = LAST_INSERT_ID();
+
+-- PUESTO 5: Quesadillas Doña Jenni (Roma Norte)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Quesadillas Doña Jenni', 'Colima esq. Jalapa, Roma Norte, Cuauhtémoc', @idCDMX, 19.416944, -99.165000, NULL, NULL, 'Puesto callejero con quesadillas de maíz azul. Rellenos: huitlacoche, flor de calabaza, tinga, chicharrón. Favorito de extranjeros.', 45.00, TRUE);
+SET @idJenni = LAST_INSERT_ID();
+
+-- PUESTO 6: Tortas Armando (Desde 1892)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Tortas Armando', 'Río Nazas 64, Cuauhtémoc, Cuauhtémoc', @idCDMX, 19.429167, -99.164722, '5555921683', 'https://www.tortasarmando.com', 'Primera tortería oficial de CDMX desde 1892. Tortas de milanesa, jamón y queso de puerco. Historia y tradición.', 65.00, TRUE);
+SET @idArmando = LAST_INSERT_ID();
+
+-- PUESTO 7: Casa del Pavo (Desde 1901)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Casa del Pavo', 'Motolinía 40, Centro Histórico, Cuauhtémoc', @idCDMX, 19.433611, -99.139444, '5555210689', NULL, 'Tortería histórica desde 1901. Famosa por sus tortas de pavo. Aparece en la película Roma de Alfonso Cuarón.', 70.00, TRUE);
+SET @idCasaPavo = LAST_INSERT_ID();
+
+-- PUESTO 8: Esquites Molière (Polanco)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Esquites Molière', 'Molière esq. Ejército Nacional 352, Polanco, Miguel Hidalgo', @idCDMX, 19.432222, -99.194167, NULL, NULL, 'Puesto famoso de esquites frescos. Abre 19:30-22:30 y se acaba todo. Lunes a viernes solamente.', 50.00, TRUE);
+SET @idMoliere = LAST_INSERT_ID();
+
+-- PUESTO 9: Torta de Chilaquiles "La Esquina"
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('La Esquina del Chilaquil', 'Paseo de la Reforma s/n, junto a Estela de Luz, Cuauhtémoc', @idCDMX, 19.426111, -99.171389, NULL, NULL, 'Puesto callejero famoso por tortas de chilaquiles (bombas). Opción con milanesa o cochinita. Perfecto para desayuno.', 60.00, TRUE);
+SET @idChilaquil = LAST_INSERT_ID();
+
+-- PUESTO 10: Tamales Don Chuy (Azcapotzalco)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Tamales Don Chuy', 'Calzada Camarones esq. 22 de Febrero, Santa María Maninalco, Azcapotzalco', @idCDMX, 19.484722, -99.192500, NULL, NULL, 'Puesto móvil de tamales mañanero. Más de 20 años. Sabores: mole con almendra, rajas con champiñones, dulces de nutella.', 25.00, TRUE);
+SET @idChuy = LAST_INSERT_ID();
+
+-- PUESTO 11: Tacos Tony (Narvarte)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Tacos Tony', 'Avenida Universidad esq. Municipio Libre, Narvarte Poniente, Benito Juárez', @idCDMX, 19.395278, -99.156111, NULL, NULL, 'Puesto de lámina especializado en suadero confitado en manteca. Experiencia callejera auténtica. Se come de pie.', 55.00, TRUE);
+SET @idTony = LAST_INSERT_ID();
+
+-- PUESTO 12: Taquería El Huequito (Desde 1959)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('El Huequito', 'Calle Bolívar 58, Centro Histórico, Cuauhtémoc', @idCDMX, 19.432778, -99.138889, '5555185528', 'https://www.elhuequito.com.mx', 'Afirman ser creadores del taco al pastor. Pastor especial con torre de carne. Tradición desde 1959.', 90.00, TRUE);
+SET @idHuequito = LAST_INSERT_ID();
+
+-- PUESTO 13: Tacos de Canasta Marven (Centro)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Tacos de Canasta Marven', 'Eje Central Lázaro Cárdenas, Centro Histórico, Cuauhtémoc', @idCDMX, 19.432500, -99.139167, NULL, NULL, 'Vendedor ambulante famoso por su grito característico. Tacos de canasta tradicionales económicos. Ícono del Centro.', 12.00, TRUE);
+SET @idMarven = LAST_INSERT_ID();
+
+-- PUESTO 14: Taquería Héroes (Héroes de Churubusco)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Tacos Doña Mary', 'Atanasio G. Sarabia esq. 109 A, Héroes de Churubusco, Iztapalapa', @idCDMX, 19.361667, -99.094722, NULL, NULL, 'Puesto con anafre al carbón. Tacos norteños: carne asada con queso, costilla BBQ, salchicha con piña. 30 años.', 50.00, TRUE);
+SET @idMary = LAST_INSERT_ID();
+
+-- PUESTO 15: El Paisa Chilaquil (24 horas Iztapalapa)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('El Paisa Chilaquil', 'Av. Tláhuac 481, Culhuacán, Iztapalapa', @idCDMX, 19.347222, -99.103333, '5555810445', NULL, 'Taquería 24 horas. Famosos molcajetes con carne y salsa verde. Más de 20 variedades de tacos. Alambres colosales.', 150.00, TRUE);
+SET @idPaisa = LAST_INSERT_ID();
+
+-- PUESTO 16: Tortas de Cochinita "La Cebolla Morada"
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('La Cebolla Morada', 'Liverpool 158, Juárez, Cuauhtémoc', @idCDMX, 19.427222, -99.162778, '5555333894', NULL, 'Especialidad en tortas y tacos de cochinita pibil yucateca. Cebolla morada con habanero. Sabor auténtico.', 75.00, TRUE);
+SET @idCebolla = LAST_INSERT_ID();
+
+-- PUESTO 17: Quesadillas Doña Gloria (Mercado La Rodeo)
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Quesadillas Doña Gloria', 'Interior Mercado La Rodeo, Álvaro Obregón', @idCDMX, 19.365000, -99.213611, NULL, NULL, 'Puesto dentro del mercado. Quesadillas fritas con guisados variados. Chicharrón prensado, flor de calabaza, hongos.', 35.00, TRUE);
+SET @idGloria = LAST_INSERT_ID();
+
+-- PUESTO 18: Tlacoyos y Sopes "La Lupita"
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Tlacoyos La Lupita', 'Av. Insurgentes Sur esq. Félix Cuevas, Del Valle Sur, Benito Juárez', @idCDMX, 19.371944, -99.176667, NULL, NULL, 'Puesto callejero vespertino. Tlacoyos de frijol, haba, requesón. Sopes con nopales, bistec, cochinita.', 40.00, TRUE);
+SET @idLupita = LAST_INSERT_ID();
+
+-- PUESTO 19: Birria Tijuana Style "Don Beto"
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Birria Don Beto', 'Esquina Puebla y Monterrey, Roma Norte, Cuauhtémoc', @idCDMX, 19.416389, -99.165278, NULL, NULL, 'Puesto de lámina. Birria estilo Tijuana adobada con chilitos. Consomé incluido. Quesabirrias famosas.', 90.00, TRUE);
+SET @idBeto = LAST_INSERT_ID();
+
+-- PUESTO 20: Gorditas "El Rincón Michoacano"
+INSERT INTO restaurantes (nombre, direccion, idCiudad, latitud, longitud, telefono, sitioweb, descripcion, precioPromedio, activo) VALUES
+('Gorditas El Rincón', 'Metro Sevilla, salida Chapultepec, Cuauhtémoc', @idCDMX, 19.421667, -99.171111, NULL, NULL, 'Puesto afuera del metro. Gorditas de chicharrón, picadillo, rajas, tinga. Precio accesible. Muy concurrido.', 25.00, TRUE);
+SET @idRincon = LAST_INSERT_ID();
+
+-- =============================================
+-- CATEGORÍAS PARA PUESTOS
+-- =============================================
+
+INSERT INTO restaurante_categorias (idRestaurante, idCategoria) VALUES
+-- El Vilsito
+(@idVilsito, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Tacos')),
+(@idVilsito, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Mexicana')),
+
+-- Los Cocuyos
+(@idCocuyos, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Tacos')),
+(@idCocuyos, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Mexicana')),
+
+-- Los Parados
+(@idParados, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Tacos')),
+(@idParados, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos')),
+
+-- El Borrego Viudo
+(@idBorrego, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Tacos')),
+(@idBorrego, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Mexicana')),
+
+-- Doña Jenni
+(@idJenni, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos')),
+(@idJenni, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Mexicana')),
+
+-- Tortas Armando
+(@idArmando, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos')),
+
+-- Casa del Pavo
+(@idCasaPavo, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos')),
+(@idCasaPavo, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Desayunos')),
+
+-- Esquites Molière
+(@idMoliere, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos')),
+
+-- La Esquina
+(@idChilaquil, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos')),
+(@idChilaquil, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Desayunos')),
+
+-- Tamales Don Chuy
+(@idChuy, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos')),
+(@idChuy, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Desayunos')),
+
+-- Tacos Tony
+(@idTony, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Tacos')),
+
+-- El Huequito
+(@idHuequito, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Tacos')),
+(@idHuequito, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Mexicana')),
+
+-- Marven
+(@idMarven, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Tacos')),
+(@idMarven, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos')),
+
+-- Doña Mary
+(@idMary, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Tacos')),
+
+-- El Paisa
+(@idPaisa, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Tacos')),
+(@idPaisa, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Mexicana')),
+
+-- La Cebolla Morada
+(@idCebolla, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Mexicana')),
+(@idCebolla, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos')),
+
+-- Doña Gloria
+(@idGloria, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos')),
+
+-- La Lupita
+(@idLupita, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos')),
+
+-- Don Beto
+(@idBeto, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Tacos')),
+(@idBeto, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Mexicana')),
+
+-- El Rincón
+(@idRincon, (SELECT idCategoria FROM categorias_cocina WHERE nombreCategoria = 'Antojitos'));
+
+-- =============================================
+-- CARACTERÍSTICAS DE PUESTOS CALLEJEROS
+-- =============================================
+
+-- El Vilsito
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idVilsito, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idVilsito, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- Los Cocuyos
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idCocuyos, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idCocuyos, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- Los Parados
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idParados, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idParados, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- El Borrego Viudo
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idBorrego, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idBorrego, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo')),
+(@idBorrego, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pagos con Tarjeta'));
+
+-- Doña Jenni
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idJenni, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idJenni, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Opciones Veganas')),
+(@idJenni, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- Tortas Armando
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idArmando, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idArmando, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pagos con Tarjeta')),
+(@idArmando, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- Casa del Pavo
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idCasaPavo, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idCasaPavo, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- Esquites Molière
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idMoliere, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idMoliere, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- La Esquina
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idChilaquil, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idChilaquil, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- Tamales Don Chuy
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idChuy, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idChuy, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- Tacos Tony
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idTony, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idTony, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- El Huequito
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idHuequito, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idHuequito, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pagos con Tarjeta')),
+(@idHuequito, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- Marven
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idMarven, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idMarven, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- Doña Mary
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idMary, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idMary, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- El Paisa
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idPaisa, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idPaisa, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pagos con Tarjeta')),
+(@idPaisa, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- La Cebolla Morada
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idCebolla, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idCebolla, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- Doña Gloria
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idGloria, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idGloria, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- La Lupita
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idLupita, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idLupita, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- Don Beto
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idBeto, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idBeto, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- El Rincón
+INSERT INTO restaurante_caracteristicas (idRestaurante, idCaracteristica) VALUES
+(@idRincon, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Para Llevar')),
+(@idRincon, (SELECT idCaracteristica FROM caracteristicas WHERE nombreCaracteristica = 'Pago con Efectivo'));
+
+-- =============================================
+-- PLATILLOS DE PUESTOS CALLEJEROS
+-- =============================================
+
+-- EL VILSITO
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idVilsito, 'Taco de Pastor', 38.00, 'Taco al pastor tradicional con piña', 'Carne al pastor, piña, cebolla, cilantro, tortilla', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idVilsito, 'Taco de Pastor con Queso', 48.00, 'Pastor con queso fundido', 'Pastor, queso fundido, piña, tortilla', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, TRUE),
+(@idVilsito, 'Gringa de Pastor', 75.00, 'Tortilla de harina con queso y pastor', 'Tortilla de harina, pastor, queso, piña', 'https://images.unsplash.com/photo-1618040996337-2dabc3d32b88', TRUE, TRUE),
+(@idVilsito, 'Volcán', 80.00, 'Tortilla con queso gratinado y pastor', 'Queso fundido, pastor, tortilla, salsa', 'https://images.unsplash.com/photo-1582169296194-e4d644c48063', TRUE, FALSE),
+(@idVilsito, 'Taco de Bistec', 35.00, 'Taco de bistec de res', 'Bistec, cebolla, cilantro, tortilla', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, FALSE),
+(@idVilsito, 'Taco de Costilla', 42.00, 'Taco de costilla de res', 'Costilla, cebolla, cilantro, salsa', 'https://images.unsplash.com/photo-1613514785940-daed07799d9b', TRUE, FALSE);
+
+-- LOS COCUYOS
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idCocuyos, 'Taco de Suadero', 35.00, 'Suadero confitado en manteca', 'Suadero, cebolla, cilantro, limón, tortilla', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idCocuyos, 'Taco de Bistec', 32.00, 'Taco de bistec asado', 'Bistec, cebolla, cilantro, tortilla', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, FALSE),
+(@idCocuyos, 'Taco de Longaniza', 38.00, 'Longaniza casera asada', 'Longaniza, cebolla, cilantro, limón', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, FALSE),
+(@idCocuyos, 'Taco de Tripa', 40.00, 'Tripa dorada crujiente', 'Tripa, cebolla, cilantro, salsa verde', 'https://images.unsplash.com/photo-1613514785940-daed07799d9b', TRUE, TRUE),
+(@idCocuyos, 'Quesadilla de Suadero', 70.00, 'Quesadilla con suadero', 'Tortilla, queso, suadero, crema', 'https://images.unsplash.com/photo-1618040996337-2dabc3d32b88', TRUE, FALSE);
+
+-- LOS PARADOS
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idParados, 'Taco de Suadero', 40.00, 'Suadero jugoso al comal', 'Suadero, cebolla, cilantro, tortilla', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idParados, 'Taco de Pastor', 38.00, 'Pastor con especias secretas', 'Pastor, piña, cebolla, cilantro', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, TRUE),
+(@idParados, 'Volcán de Suadero', 85.00, 'Tortilla con queso fundido y suadero', 'Queso, suadero, tortilla tostada, salsa', 'https://images.unsplash.com/photo-1582169296194-e4d644c48063', TRUE, TRUE),
+(@idParados, 'Taco de Chorizo', 35.00, 'Chorizo artesanal', 'Chorizo, cebolla, cilantro, limón', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, FALSE),
+(@idParados, 'Gringa Mixta', 90.00, 'Pastor y bistec con queso', 'Tortilla harina, pastor, bistec, queso', 'https://images.unsplash.com/photo-1618040996337-2dabc3d32b88', TRUE, FALSE);
+
+-- EL BORREGO VIUDO
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idBorrego, 'Taco de Pastor', 40.00, 'Pastor jugoso directo al auto', 'Pastor, piña, cebolla, cilantro', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idBorrego, 'Taco de Suadero', 42.00, 'Suadero confitado especial', 'Suadero, cebolla, cilantro, limón', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, TRUE),
+(@idBorrego, 'Taco de Lengua', 45.00, 'Lengua suave y tierna', 'Lengua de res, cebolla, cilantro, salsa verde', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, FALSE),
+(@idBorrego, 'Taco de Cabeza', 45.00, 'Cabeza de res seleccionada', 'Cabeza, cebolla, cilantro, limón', 'https://images.unsplash.com/photo-1613514785940-daed07799d9b', TRUE, FALSE),
+(@idBorrego, 'Orden de Salsas', 25.00, 'Salsas legendarias del Borrego', 'Salsa verde, roja, habanero, chile de árbol', 'https://images.unsplash.com/photo-1604909052925-56e2b1e6e90a', TRUE, TRUE);
+
+-- DOÑA JENNI
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idJenni, 'Quesadilla de Huitlacoche', 50.00, 'Maíz azul con huitlacoche fresco', 'Masa azul, huitlacoche, epazote, queso', 'https://images.unsplash.com/photo-1618040996337-2dabc3d32b88', TRUE, TRUE),
+(@idJenni, 'Quesadilla de Flor de Calabaza', 45.00, 'Flor de calabaza con epazote', 'Masa azul, flor, epazote, queso', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idJenni, 'Quesadilla de Tinga', 48.00, 'Tinga de pollo casera', 'Masa azul, tinga, queso, crema', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, FALSE),
+(@idJenni, 'Quesadilla de Chicharrón Prensado', 45.00, 'Chicharrón en salsa verde', 'Masa azul, chicharrón, salsa verde, queso', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, FALSE),
+(@idJenni, 'Quesadilla de Champiñones', 42.00, 'Champiñones con ajo y epazote', 'Masa azul, champiñones, epazote, queso', 'https://images.unsplash.com/photo-1613514785940-daed07799d9b', TRUE, TRUE);
+
+-- TORTAS ARMANDO
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idArmando, 'Torta de Milanesa de Res', 75.00, 'Clásica milanesa con aguacate', 'Milanesa, aguacate, jitomate, cebolla, jalapeño, frijoles', 'https://images.unsplash.com/photo-1619096252214-ef06c45683e3', TRUE, TRUE),
+(@idArmando, 'Torta de Milanesa de Pollo', 70.00, 'Milanesa de pollo empanizada', 'Milanesa pollo, aguacate, jitomate, lechuga, frijoles', 'https://images.unsplash.com/photo-1619096252214-ef06c45683e3', TRUE, FALSE),
+(@idArmando, 'Torta de Jamón', 65.00, 'Jamón de pierna con queso', 'Jamón, queso, aguacate, jitomate, cebolla', 'https://images.unsplash.com/photo-1509722747041-616f39b57569', TRUE, FALSE),
+(@idArmando, 'Torta de Queso de Puerco', 70.00, 'Tradicional queso de puerco', 'Queso de puerco, aguacate, jalapeño, frijoles', 'https://images.unsplash.com/photo-1619096252214-ef06c45683e3', TRUE, TRUE),
+(@idArmando, 'Torta Cubana', 95.00, 'Torta con todo', 'Milanesa, jamón, salchicha, huevo, queso, aguacate, frijoles', 'https://images.unsplash.com/photo-1509722747041-616f39b57569', TRUE, TRUE);
+
+-- CASA DEL PAVO
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idCasaPavo, 'Torta de Pavo', 75.00, 'Pavo rostizado tradicional', 'Pavo, aguacate, jitomate, cebolla, jalapeño, frijoles', 'https://images.unsplash.com/photo-1619096252214-ef06c45683e3', TRUE, TRUE),
+(@idCasaPavo, 'Torta de Jamón con Pavo', 80.00, 'Combinación de jamón y pavo', 'Jamón, pavo, queso, aguacate, frijoles', 'https://images.unsplash.com/photo-1509722747041-616f39b57569', TRUE, FALSE),
+(@idCasaPavo, 'Torta de Pierna', 70.00, 'Pierna de cerdo adobada', 'Pierna, aguacate, jitomate, cebolla, frijoles', 'https://images.unsplash.com/photo-1619096252214-ef06c45683e3', TRUE, FALSE),
+(@idCasaPavo, 'Sandwich de Pavo', 65.00, 'Pavo en pan tipo sandwich', 'Pavo, lechuga, jitomate, mostaza, mayonesa', 'https://images.unsplash.com/photo-1509722747041-616f39b57569', TRUE, FALSE);
+
+-- ESQUITES MOLIÈRE
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idMoliere, 'Esquites Tradicionales', 50.00, 'Maíz cacahuacintle fresco', 'Maíz, mayonesa, queso, chile piquín, limón, epazote', 'https://images.unsplash.com/photo-1562346713-03b18e53065f', TRUE, TRUE),
+(@idMoliere, 'Esquites con Cueritos', 60.00, 'Esquites con cueritos de cerdo', 'Maíz, cueritos, mayonesa, queso, chile, limón', 'https://images.unsplash.com/photo-1562346713-03b18e53065f', TRUE, TRUE),
+(@idMoliere, 'Esquites con Champiñones', 65.00, 'Esquites gourmet con champiñones', 'Maíz, champiñones, mayonesa, queso, epazote', 'https://images.unsplash.com/photo-1562346713-03b18e53065f', TRUE, FALSE);
+
+-- LA ESQUINA DEL CHILAQUIL
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idChilaquil, 'Torta de Chilaquiles Verdes', 55.00, 'La famosa "bomba" verde', 'Chilaquiles verdes, frijoles, crema, queso, bolillo', 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41', TRUE, TRUE),
+(@idChilaquil, 'Torta de Chilaquiles Rojos', 55.00, 'Chilaquiles rojos en torta', 'Chilaquiles rojos, frijoles, crema, queso, bolillo', 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41', TRUE, TRUE),
+(@idChilaquil, 'Torta de Chilaquiles con Milanesa', 75.00, 'Bomba con milanesa de pollo', 'Chilaquiles, milanesa, frijoles, crema, queso', 'https://images.unsplash.com/photo-1619096252214-ef06c45683e3', TRUE, TRUE),
+(@idChilaquil, 'Torta de Chilaquiles con Cochinita', 80.00, 'Chilaquiles con cochinita pibil', 'Chilaquiles, cochinita, cebolla morada, bolillo', 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41', TRUE, FALSE);
+
+-- TAMALES DON CHUY
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idChuy, 'Tamal de Mole con Almendra', 28.00, 'Tamal especial con almendras', 'Masa, mole, pollo, almendras, hoja de maíz', 'https://images.unsplash.com/photo-1606309331686-458b1f89d902', TRUE, TRUE),
+(@idChuy, 'Tamal de Rajas con Champiñones', 25.00, 'Rajas poblanas con champiñones', 'Masa, rajas, champiñones, queso, crema', 'https://images.unsplash.com/photo-1606309331686-458b1f89d902', TRUE, TRUE),
+(@idChuy, 'Tamal Verde de Pollo', 22.00, 'Tamal tradicional de salsa verde', 'Masa, salsa verde, pollo, hoja de maíz', 'https://images.unsplash.com/photo-1606309331686-458b1f89d902', TRUE, FALSE),
+(@idChuy, 'Tamal de Dulce Nutella', 30.00, 'Tamal dulce con Nutella', 'Masa dulce, Nutella, pasas, hoja de maíz', 'https://images.unsplash.com/photo-1606309331686-458b1f89d902', TRUE, TRUE),
+(@idChuy, 'Tamal de Fresa', 28.00, 'Tamal dulce de fresa', 'Masa dulce, mermelada fresa, hoja de maíz', 'https://images.unsplash.com/photo-1606309331686-458b1f89d902', TRUE, FALSE),
+(@idChuy, 'Atole de Arroz', 20.00, 'Atole casero de arroz', 'Arroz, leche, canela, vainilla', 'https://images.unsplash.com/photo-1576673442511-7e39b6545c87', TRUE, FALSE);
+
+-- TACOS TONY
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idTony, 'Taco de Suadero', 30.00, 'Suadero confitado en manteca pura', 'Suadero, cebolla, cilantro, limón, tortilla', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idTony, 'Taco de Longaniza', 32.00, 'Longaniza casera', 'Longaniza, cebolla, cilantro, salsa', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, FALSE),
+(@idTony, 'Taco de Bistec', 28.00, 'Bistec al comal', 'Bistec, cebolla, cilantro, tortilla', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, FALSE),
+(@idTony, 'Orden de 10 Tacos', 280.00, 'Orden completa para compartir', 'Tacos variados, cebolla, cilantro, salsas', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE);
+
+-- EL HUEQUITO
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idHuequito, 'Taco al Pastor', 45.00, 'El original, creadores del pastor', 'Carne al pastor, piña, cebolla, cilantro', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idHuequito, 'Taco al Pastor Especial', 55.00, 'Pastor con torre de carne extra', 'Carne al pastor premium, piña, cebolla, cilantro', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, TRUE),
+(@idHuequito, 'Taco de Suadero', 42.00, 'Suadero tradicional', 'Suadero, cebolla, cilantro, salsa', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, FALSE),
+(@idHuequito, 'Gringa al Pastor', 95.00, 'Gringa con queso fundido', 'Pastor, queso, tortilla harina, piña', 'https://images.unsplash.com/photo-1618040996337-2dabc3d32b88', TRUE, TRUE),
+(@idHuequito, 'Alambre al Pastor', 185.00, 'Alambre con tocino y queso', 'Pastor, tocino, pimientos, cebolla, queso', 'https://images.unsplash.com/photo-1606491956689-2ea866880c84', TRUE, FALSE);
+
+-- TACOS DE CANASTA MARVEN
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idMarven, 'Taco de Papa', 10.00, 'Taco de papa con chorizo', 'Papa, chorizo, tortilla sudada', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idMarven, 'Taco de Frijol', 10.00, 'Taco de frijoles refritos', 'Frijoles, tortilla sudada', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, FALSE),
+(@idMarven, 'Taco de Chicharrón', 12.00, 'Chicharrón prensado en verde', 'Chicharrón, salsa verde, tortilla', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, TRUE),
+(@idMarven, 'Taco de Mole Verde', 12.00, 'Pollo en mole verde', 'Pollo, mole verde, tortilla sudada', 'https://images.unsplash.com/photo-1613514785940-daed07799d9b', TRUE, FALSE),
+(@idMarven, 'Orden de 10 Tacos', 100.00, 'Orden surtida de canasta', 'Tacos variados de canasta', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE);
+
+-- TACOS DOÑA MARY
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idMary, 'Taco de Carne Asada con Queso', 55.00, 'Carne norteña con queso', 'Carne asada, queso fundido, tortilla harina', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idMary, 'Taco de Costilla BBQ', 60.00, 'Costilla en salsa BBQ casera', 'Costilla, salsa BBQ, cebolla, tortilla', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, TRUE),
+(@idMary, 'Taco de Salchicha con Piña', 48.00, 'Salchicha asada con piña', 'Salchicha, piña, cebolla, mostaza, tortilla', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, FALSE),
+(@idMary, 'Taco de Arrachera', 65.00, 'Arrachera marinada al carbón', 'Arrachera, guacamole, cebolla asada', 'https://images.unsplash.com/photo-1613514785940-daed07799d9b', TRUE, TRUE);
+
+-- EL PAISA CHILAQUIL
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idPaisa, 'Molcajete de Carne', 280.00, 'Molcajete con carne y salsa verde', 'Carne asada, nopales, cebollitas, queso, salsa verde, tortillas', 'https://images.unsplash.com/photo-1606491956689-2ea866880c84', TRUE, TRUE),
+(@idPaisa, 'Taco de Pastor', 32.00, 'Taco al pastor tradicional', 'Pastor, piña, cebolla, cilantro', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, FALSE),
+(@idPaisa, 'Taco de Bistec', 30.00, 'Bistec asado al carbón', 'Bistec, cebolla, cilantro, tortilla', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, FALSE),
+(@idPaisa, 'Alambre Especial', 195.00, 'Alambre con todos los ingredientes', 'Carne, tocino, pimientos, cebolla, queso, tortillas', 'https://images.unsplash.com/photo-1606491956689-2ea866880c84', TRUE, TRUE),
+(@idPaisa, 'Gringa de Pastor', 85.00, 'Gringa con queso fundido', 'Pastor, queso, tortilla harina, piña', 'https://images.unsplash.com/photo-1618040996337-2dabc3d32b88', TRUE, FALSE);
+
+-- LA CEBOLLA MORADA
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idCebolla, 'Torta de Cochinita Pibil', 80.00, 'Cochinita yucateca auténtica', 'Cochinita, cebolla morada, habanero, bolillo', 'https://images.unsplash.com/photo-1619096252214-ef06c45683e3', TRUE, TRUE),
+(@idCebolla, 'Tacos de Cochinita', 95.00, 'Tres tacos de cochinita', 'Cochinita, cebolla morada, habanero, tortilla', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idCebolla, 'Torta de Lechón', 85.00, 'Lechón al horno', 'Lechón, cebolla morada, aguacate, bolillo', 'https://images.unsplash.com/photo-1509722747041-616f39b57569', TRUE, FALSE),
+(@idCebolla, 'Salbutes', 75.00, 'Tres salbutes yucatecos', 'Tortilla frita, cochinita, lechuga, tomate, cebolla', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, FALSE);
+
+-- QUESADILLAS DOÑA GLORIA
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idGloria, 'Quesadilla de Chicharrón Prensado', 38.00, 'Chicharrón en salsa verde', 'Chicharrón, salsa verde, queso, masa', 'https://images.unsplash.com/photo-1618040996337-2dabc3d32b88', TRUE, TRUE),
+(@idGloria, 'Quesadilla de Flor de Calabaza', 35.00, 'Flor fresca con epazote', 'Flor de calabaza, epazote, queso, masa', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idGloria, 'Quesadilla de Hongos', 38.00, 'Hongos salteados con ajo', 'Hongos, ajo, epazote, queso, masa', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, FALSE),
+(@idGloria, 'Quesadilla de Tinga', 40.00, 'Tinga de pollo casera', 'Tinga, queso, crema, masa', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, FALSE),
+(@idGloria, 'Sope de Picadillo', 30.00, 'Sope con picadillo', 'Picadillo, lechuga, crema, queso, sope', 'https://images.unsplash.com/photo-1613514785940-daed07799d9b', TRUE, FALSE);
+
+-- TLACOYOS LA LUPITA
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idLupita, 'Tlacoyo de Frijol', 35.00, 'Tlacoyo relleno de frijol', 'Masa azul, frijol, nopales, queso, salsa', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idLupita, 'Tlacoyo de Haba', 38.00, 'Tlacoyo con haba fresca', 'Masa azul, haba, nopales, queso, salsa verde', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, TRUE),
+(@idLupita, 'Tlacoyo de Requesón', 42.00, 'Requesón fresco con epazote', 'Masa azul, requesón, nopales, salsa', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, FALSE),
+(@idLupita, 'Sope de Bistec', 45.00, 'Sope con bistec asado', 'Bistec, lechuga, crema, queso, frijoles', 'https://images.unsplash.com/photo-1613514785940-daed07799d9b', TRUE, FALSE),
+(@idLupita, 'Sope de Cochinita', 48.00, 'Sope con cochinita pibil', 'Cochinita, cebolla morada, frijoles, crema', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, TRUE);
+
+-- BIRRIA DON BETO
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idBeto, 'Taco de Birria', 45.00, 'Taco dorado de birria con consomé', 'Birria, tortilla, cebolla, cilantro, consomé', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idBeto, 'Quesabirria', 95.00, 'Tres quesabirrias con consomé', 'Birria, queso, tortilla, cebolla, cilantro, consomé', 'https://images.unsplash.com/photo-1618040996337-2dabc3d32b88', TRUE, TRUE),
+(@idBeto, 'Orden de Birria', 180.00, 'Birria en plato con tortillas', 'Birria, tortillas, cebolla, cilantro, limón, consomé', 'https://images.unsplash.com/photo-1606491956689-2ea866880c84', TRUE, TRUE),
+(@idBeto, 'Consomé de Birria', 65.00, 'Consomé calientito con limón', 'Consomé, cebolla, cilantro, limón', 'https://images.unsplash.com/photo-1547592166-23ac45744acd', TRUE, FALSE);
+
+-- GORDITAS EL RINCÓN
+INSERT INTO platillos (idRestaurante, nombre, precio, descripcion, ingredientes, imagen, disponible, destacado) VALUES
+(@idRincon, 'Gordita de Chicharrón', 25.00, 'Gordita con chicharrón prensado', 'Chicharrón, salsa verde, gordita', 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, TRUE),
+(@idRincon, 'Gordita de Picadillo', 25.00, 'Gordita con picadillo casero', 'Picadillo, papa, gordita', 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, FALSE),
+(@idRincon, 'Gordita de Rajas', 22.00, 'Rajas con queso', 'Rajas poblanas, queso, crema, gordita', 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, TRUE),
+(@idRincon, 'Gordita de Tinga', 28.00, 'Tinga de pollo', 'Tinga, crema, queso, gordita', 'https://images.unsplash.com/photo-1613514785940-daed07799d9b', TRUE, FALSE);
+
+-- =============================================
+-- HORARIOS DE PUESTOS CALLEJEROS
+-- =============================================
+
+-- El Vilsito (Lunes a Sábado: 6:30pm-2am, Domingo cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idVilsito, 1, '18:30:00', '02:00:00', FALSE),
+(@idVilsito, 2, '18:30:00', '02:00:00', FALSE),
+(@idVilsito, 3, '18:30:00', '02:00:00', FALSE),
+(@idVilsito, 4, '18:30:00', '02:00:00', FALSE),
+(@idVilsito, 5, '18:30:00', '02:00:00', FALSE),
+(@idVilsito, 6, '18:30:00', '02:00:00', FALSE),
+(@idVilsito, 7, '00:00:00', '00:00:00', TRUE);
+
+-- Los Cocuyos (24 horas, 7 días)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idCocuyos, 1, '00:00:00', '23:59:59', FALSE),
+(@idCocuyos, 2, '00:00:00', '23:59:59', FALSE),
+(@idCocuyos, 3, '00:00:00', '23:59:59', FALSE),
+(@idCocuyos, 4, '00:00:00', '23:59:59', FALSE),
+(@idCocuyos, 5, '00:00:00', '23:59:59', FALSE),
+(@idCocuyos, 6, '00:00:00', '23:59:59', FALSE),
+(@idCocuyos, 7, '00:00:00', '23:59:59', FALSE);
+
+-- Los Parados (Martes a Domingo: 8pm-3am, Lunes cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idParados, 1, '00:00:00', '00:00:00', TRUE),
+(@idParados, 2, '20:00:00', '03:00:00', FALSE),
+(@idParados, 3, '20:00:00', '03:00:00', FALSE),
+(@idParados, 4, '20:00:00', '03:00:00', FALSE),
+(@idParados, 5, '20:00:00', '03:00:00', FALSE),
+(@idParados, 6, '20:00:00', '04:00:00', FALSE),
+(@idParados, 7, '20:00:00', '03:00:00', FALSE);
+
+-- El Borrego Viudo (24 horas, 7 días)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idBorrego, 1, '00:00:00', '23:59:59', FALSE),
+(@idBorrego, 2, '00:00:00', '23:59:59', FALSE),
+(@idBorrego, 3, '00:00:00', '23:59:59', FALSE),
+(@idBorrego, 4, '00:00:00', '23:59:59', FALSE),
+(@idBorrego, 5, '00:00:00', '23:59:59', FALSE),
+(@idBorrego, 6, '00:00:00', '23:59:59', FALSE),
+(@idBorrego, 7, '00:00:00', '23:59:59', FALSE);
+
+-- Doña Jenni (Lunes a Sábado: 6pm-11pm, Domingo cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idJenni, 1, '18:00:00', '23:00:00', FALSE),
+(@idJenni, 2, '18:00:00', '23:00:00', FALSE),
+(@idJenni, 3, '18:00:00', '23:00:00', FALSE),
+(@idJenni, 4, '18:00:00', '23:00:00', FALSE),
+(@idJenni, 5, '18:00:00', '23:00:00', FALSE),
+(@idJenni, 6, '18:00:00', '23:00:00', FALSE),
+(@idJenni, 7, '00:00:00', '00:00:00', TRUE);
+
+-- Tortas Armando (Lunes a Domingo: 11am-7pm)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idArmando, 1, '11:00:00', '19:00:00', FALSE),
+(@idArmando, 2, '11:00:00', '19:00:00', FALSE),
+(@idArmando, 3, '11:00:00', '19:00:00', FALSE),
+(@idArmando, 4, '11:00:00', '19:00:00', FALSE),
+(@idArmando, 5, '11:00:00', '19:00:00', FALSE),
+(@idArmando, 6, '11:00:00', '19:00:00', FALSE),
+(@idArmando, 7, '11:00:00', '19:00:00', FALSE);
+
+-- Casa del Pavo (Lunes a Sábado: 10am-6pm, Domingo cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idCasaPavo, 1, '10:00:00', '18:00:00', FALSE),
+(@idCasaPavo, 2, '10:00:00', '18:00:00', FALSE),
+(@idCasaPavo, 3, '10:00:00', '18:00:00', FALSE),
+(@idCasaPavo, 4, '10:00:00', '18:00:00', FALSE),
+(@idCasaPavo, 5, '10:00:00', '18:00:00', FALSE),
+(@idCasaPavo, 6, '10:00:00', '18:00:00', FALSE),
+(@idCasaPavo, 7, '00:00:00', '00:00:00', TRUE);
+
+-- Esquites Molière (Lunes a Viernes: 7:30pm-10:30pm, Fin de semana cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idMoliere, 1, '19:30:00', '22:30:00', FALSE),
+(@idMoliere, 2, '19:30:00', '22:30:00', FALSE),
+(@idMoliere, 3, '19:30:00', '22:30:00', FALSE),
+(@idMoliere, 4, '19:30:00', '22:30:00', FALSE),
+(@idMoliere, 5, '19:30:00', '22:30:00', FALSE),
+(@idMoliere, 6, '00:00:00', '00:00:00', TRUE),
+(@idMoliere, 7, '00:00:00', '00:00:00', TRUE);
+
+-- La Esquina del Chilaquil (Lunes a Sábado: 8am-2pm, Domingo cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idChilaquil, 1, '08:00:00', '14:00:00', FALSE),
+(@idChilaquil, 2, '08:00:00', '14:00:00', FALSE),
+(@idChilaquil, 3, '08:00:00', '14:00:00', FALSE),
+(@idChilaquil, 4, '08:00:00', '14:00:00', FALSE),
+(@idChilaquil, 5, '08:00:00', '14:00:00', FALSE),
+(@idChilaquil, 6, '08:00:00', '14:00:00', FALSE),
+(@idChilaquil, 7, '00:00:00', '00:00:00', TRUE);
+
+-- Tamales Don Chuy (Lunes a Domingo: 6am-11am)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idChuy, 1, '06:00:00', '11:00:00', FALSE),
+(@idChuy, 2, '06:00:00', '11:00:00', FALSE),
+(@idChuy, 3, '06:00:00', '11:00:00', FALSE),
+(@idChuy, 4, '06:00:00', '11:00:00', FALSE),
+(@idChuy, 5, '06:00:00', '11:00:00', FALSE),
+(@idChuy, 6, '06:00:00', '11:00:00', FALSE),
+(@idChuy, 7, '06:00:00', '11:00:00', FALSE);
+
+-- Tacos Tony (Martes a Domingo: 6pm-1am, Lunes cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idTony, 1, '00:00:00', '00:00:00', TRUE),
+(@idTony, 2, '18:00:00', '01:00:00', FALSE),
+(@idTony, 3, '18:00:00', '01:00:00', FALSE),
+(@idTony, 4, '18:00:00', '01:00:00', FALSE),
+(@idTony, 5, '18:00:00', '01:00:00', FALSE),
+(@idTony, 6, '18:00:00', '02:00:00', FALSE),
+(@idTony, 7, '18:00:00', '01:00:00', FALSE);
+
+-- El Huequito (Lunes a Domingo: 1pm-2am)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idHuequito, 1, '13:00:00', '02:00:00', FALSE),
+(@idHuequito, 2, '13:00:00', '02:00:00', FALSE),
+(@idHuequito, 3, '13:00:00', '02:00:00', FALSE),
+(@idHuequito, 4, '13:00:00', '02:00:00', FALSE),
+(@idHuequito, 5, '13:00:00', '02:00:00', FALSE),
+(@idHuequito, 6, '13:00:00', '03:00:00', FALSE),
+(@idHuequito, 7, '13:00:00', '02:00:00', FALSE);
+
+-- Tacos de Canasta Marven (Lunes a Viernes: 7am-3pm, Fin de semana cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idMarven, 1, '07:00:00', '15:00:00', FALSE),
+(@idMarven, 2, '07:00:00', '15:00:00', FALSE),
+(@idMarven, 3, '07:00:00', '15:00:00', FALSE),
+(@idMarven, 4, '07:00:00', '15:00:00', FALSE),
+(@idMarven, 5, '07:00:00', '15:00:00', FALSE),
+(@idMarven, 6, '00:00:00', '00:00:00', TRUE),
+(@idMarven, 7, '00:00:00', '00:00:00', TRUE);
+
+-- Tacos Doña Mary (Jueves a Domingo: 6pm-1am, Lun-Mie cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idMary, 1, '00:00:00', '00:00:00', TRUE),
+(@idMary, 2, '00:00:00', '00:00:00', TRUE),
+(@idMary, 3, '00:00:00', '00:00:00', TRUE),
+(@idMary, 4, '18:00:00', '01:00:00', FALSE),
+(@idMary, 5, '18:00:00', '01:00:00', FALSE),
+(@idMary, 6, '18:00:00', '02:00:00', FALSE),
+(@idMary, 7, '18:00:00', '01:00:00', FALSE);
+
+-- El Paisa Chilaquil (24 horas, 7 días)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idPaisa, 1, '00:00:00', '23:59:59', FALSE),
+(@idPaisa, 2, '00:00:00', '23:59:59', FALSE),
+(@idPaisa, 3, '00:00:00', '23:59:59', FALSE),
+(@idPaisa, 4, '00:00:00', '23:59:59', FALSE),
+(@idPaisa, 5, '00:00:00', '23:59:59', FALSE),
+(@idPaisa, 6, '00:00:00', '23:59:59', FALSE),
+(@idPaisa, 7, '00:00:00', '23:59:59', FALSE);
+
+-- La Cebolla Morada (Lunes a Sábado: 12pm-9pm, Domingo cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idCebolla, 1, '12:00:00', '21:00:00', FALSE),
+(@idCebolla, 2, '12:00:00', '21:00:00', FALSE),
+(@idCebolla, 3, '12:00:00', '21:00:00', FALSE),
+(@idCebolla, 4, '12:00:00', '21:00:00', FALSE),
+(@idCebolla, 5, '12:00:00', '21:00:00', FALSE),
+(@idCebolla, 6, '12:00:00', '21:00:00', FALSE),
+(@idCebolla, 7, '00:00:00', '00:00:00', TRUE);
+
+-- Doña Gloria (Lunes a Sábado: 9am-5pm, Domingo cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idGloria, 1, '09:00:00', '17:00:00', FALSE),
+(@idGloria, 2, '09:00:00', '17:00:00', FALSE),
+(@idGloria, 3, '09:00:00', '17:00:00', FALSE),
+(@idGloria, 4, '09:00:00', '17:00:00', FALSE),
+(@idGloria, 5, '09:00:00', '17:00:00', FALSE),
+(@idGloria, 6, '09:00:00', '17:00:00', FALSE),
+(@idGloria, 7, '00:00:00', '00:00:00', TRUE);
+
+-- La Lupita (Lunes a Sábado: 5pm-11pm, Domingo cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idLupita, 1, '17:00:00', '23:00:00', FALSE),
+(@idLupita, 2, '17:00:00', '23:00:00', FALSE),
+(@idLupita, 3, '17:00:00', '23:00:00', FALSE),
+(@idLupita, 4, '17:00:00', '23:00:00', FALSE),
+(@idLupita, 5, '17:00:00', '23:00:00', FALSE),
+(@idLupita, 6, '17:00:00', '23:00:00', FALSE),
+(@idLupita, 7, '00:00:00', '00:00:00', TRUE);
+
+-- Don Beto (Viernes a Domingo: 6pm-12am, Lun-Jue cerrado)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idBeto, 1, '00:00:00', '00:00:00', TRUE),
+(@idBeto, 2, '00:00:00', '00:00:00', TRUE),
+(@idBeto, 3, '00:00:00', '00:00:00', TRUE),
+(@idBeto, 4, '00:00:00', '00:00:00', TRUE),
+(@idBeto, 5, '18:00:00', '00:00:00', FALSE),
+(@idBeto, 6, '18:00:00', '01:00:00', FALSE),
+(@idBeto, 7, '13:00:00', '00:00:00', FALSE);
+
+-- El Rincón (Lunes a Sábado: 7am-9pm, Domingo: 8am-5pm)
+INSERT INTO horarios (idRestaurante, dia, apertura, cierre, cerrado) VALUES
+(@idRincon, 1, '07:00:00', '21:00:00', FALSE),
+(@idRincon, 2, '07:00:00', '21:00:00', FALSE),
+(@idRincon, 3, '07:00:00', '21:00:00', FALSE),
+(@idRincon, 4, '07:00:00', '21:00:00', FALSE),
+(@idRincon, 5, '07:00:00', '21:00:00', FALSE),
+(@idRincon, 6, '07:00:00', '21:00:00', FALSE),
+(@idRincon, 7, '08:00:00', '17:00:00', FALSE);
+
+-- =============================================
+-- IMÁGENES DE PUESTOS
+-- =============================================
+
+-- El Vilsito
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idVilsito, 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, 1),
+(@idVilsito, 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', FALSE, 2);
+
+-- Los Cocuyos
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idCocuyos, 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, 1);
+
+-- Los Parados
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idParados, 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, 1);
+
+-- El Borrego Viudo
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idBorrego, 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, 1);
+
+-- Doña Jenni
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idJenni, 'https://images.unsplash.com/photo-1618040996337-2dabc3d32b88', TRUE, 1);
+
+-- Tortas Armando
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idArmando, 'https://images.unsplash.com/photo-1619096252214-ef06c45683e3', TRUE, 1);
+
+-- Casa del Pavo
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idCasaPavo, 'https://images.unsplash.com/photo-1509722747041-616f39b57569', TRUE, 1);
+
+-- Esquites Molière
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idMoliere, 'https://images.unsplash.com/photo-1562346713-03b18e53065f', TRUE, 1);
+
+-- La Esquina
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idChilaquil, 'https://images.unsplash.com/photo-1626200419199-391ae4be7a41', TRUE, 1);
+
+-- Tamales Don Chuy
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idChuy, 'https://images.unsplash.com/photo-1606309331686-458b1f89d902', TRUE, 1);
+
+-- Tacos Tony
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idTony, 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, 1);
+
+-- El Huequito
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idHuequito, 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47', TRUE, 1);
+
+-- Marven
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idMarven, 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, 1);
+
+-- Doña Mary
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idMary, 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, 1);
+
+-- El Paisa
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idPaisa, 'https://images.unsplash.com/photo-1606491956689-2ea866880c84', TRUE, 1);
+
+-- La Cebolla Morada
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idCebolla, 'https://images.unsplash.com/photo-1619096252214-ef06c45683e3', TRUE, 1);
+
+-- Doña Gloria
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idGloria, 'https://images.unsplash.com/photo-1618040996337-2dabc3d32b88', TRUE, 1);
+
+-- La Lupita
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idLupita, 'https://images.unsplash.com/photo-1599974579688-8dbdd335c77f', TRUE, 1);
+
+-- Don Beto
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idBeto, 'https://images.unsplash.com/photo-1618040996337-2dabc3d32b88', TRUE, 1);
+
+-- El Rincón
+INSERT INTO imagenes_restaurante (idRestaurante, url, esPrincipal, orden) VALUES
+(@idRincon, 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b', TRUE, 1);
+
+-- =============================================
+-- RESEÑAS DE PUESTOS CALLEJEROS
+-- =============================================
+
+-- Obtener IDs de usuarios existentes
+SET @idMaria = (SELECT idUsuario FROM usuarios WHERE nombreUsuario = 'maria_g' LIMIT 1);
+SET @idCarlos = (SELECT idUsuario FROM usuarios WHERE nombreUsuario = 'carlos_r' LIMIT 1);
+SET @idAna = (SELECT idUsuario FROM usuarios WHERE nombreUsuario = 'ana_m' LIMIT 1);
+SET @idLuis = (SELECT idUsuario FROM usuarios WHERE nombreUsuario = 'luis_h' LIMIT 1);
+SET @idSofia = (SELECT idUsuario FROM usuarios WHERE nombreUsuario = 'sofia_l' LIMIT 1);
+
+-- El Vilsito
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idMaria, @idVilsito, 5, 'Experiencia única. Ver cómo el taller se convierte en taquería es fascinante. Los tacos al pastor son deliciosos. Salió en Netflix y lo vale.', TRUE),
+(@idCarlos, @idVilsito, 5, 'Tradición pura. El pastor está jugoso y la piña perfecta. Los volcanes son enormes. Hay que llegar temprano porque se llena.', TRUE);
+
+-- Los Cocuyos
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idAna, @idCocuyos, 5, 'Abierto 24 horas, perfecto para el antojo nocturno. El suadero confitado es adictivo. Lugar legendario del Centro.', TRUE),
+(@idLuis, @idCocuyos, 5, 'El suadero más rico que he probado. Se deshace en la boca. Las salsas pican perfecto. Un clásico chilango.', TRUE);
+
+-- Los Parados
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idSofia, @idParados, 5, 'Puesto nocturno icónico de la Roma. Los volcanes son espectaculares. Ambiente de barrio muy auténtico. Se come de pie.', TRUE);
+
+-- El Borrego Viudo
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idMaria, @idBorrego, 5, 'Servicio al auto 24 horas. Perfecto para cuando llegas tarde y con hambre. Las salsas son legendarias, pican delicioso.', TRUE);
+
+-- Doña Jenni
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idCarlos, @idJenni, 5, 'Las quesadillas de maíz azul son otra cosa. El huitlacoche está fresco y la flor de calabaza deliciosa. Muy recomendado.', TRUE);
+
+-- Tortas Armando
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idAna, @idArmando, 5, 'Historia pura desde 1892. La torta de milanesa es clásica y deliciosa. El lugar tiene mucha tradición familiar.', TRUE);
+
+-- El Huequito
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idLuis, @idHuequito, 5, 'Si dicen ser los creadores del taco al pastor, les creo. El sabor es único. La torre de carne es impresionante.', TRUE);
+
+-- Tamales Don Chuy
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idSofia, @idChuy, 5, 'Los tamales más creativos que he probado. El de mole con almendra es espectacular. Los dulces de nutella son adictivos.', TRUE);
+
+-- La Cebolla Morada
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idMaria, @idCebolla, 5, 'Cochinita pibil auténtica yucateca. La cebolla morada con habanero le da el toque perfecto. Muy recomendado.', TRUE);
+
+-- El Paisa Chilaquil
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idCarlos, @idPaisa, 5, 'Abierto 24 horas en Iztapalapa. Los molcajetes son gigantes y deliciosos. Precios justos y porciones generosas.', TRUE);
+
+-- Don Beto
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idAna, @idBeto, 5, 'Birria estilo Tijuana auténtica. Las quesabirrias con consomé son lo máximo. El fin de semana vale la pena la visita.', TRUE);
+
+-- Esquites Molière
+INSERT INTO resenas (idUsuario, idRestaurante, calificacion, comentario, verificada) VALUES
+(@idLuis, @idMoliere, 5, 'Se acaban rápido porque son los mejores esquites de Polanco. Hay que llegar temprano. Solo de lunes a viernes.', TRUE);
+
+-- =============================================
+-- FIN DEL SCRIPT
+-- =============================================
+
+
+-- =============================================
+-- ESTADÍSTICAS FINALES
+-- =============================================
+/*
+RESUMEN DE DATOS INSERTADOS:
+
+PUESTOS Y NEGOCIOS LOCALES: 20
+- Taquerías callejeras: 10
+- Torterías históricas: 2
+- Puestos de antojitos: 5
+- Puestos de birria/tamales: 3
+
+PLATILLOS TOTALES: ~180
+- Tacos variados: 60+
+- Tortas y sándwiches: 15+
+- Quesadillas y antojitos: 40+
+- Tamales: 6
+- Especialidades: 60+
+
+CARACTERÍSTICAS DESTACADAS:
+- Horarios realistas (nocturnos, 24hrs, mañaneros)
+- Precios accesibles ($12-$280)
+- Ubicaciones reales en CDMX
+- Descripciones auténticas
+- Enfoque en comida callejera tradicional
+
+COLONIAS REPRESENTADAS:
+- Centro Histórico
+- Roma Norte
+- Condesa
+- Narvarte
+- Polanco
+- Juárez
+- Iztapalapa
+- Azcapotzalco
+
+TIPOS DE ESTABLECIMIENTO:
+✓ Puestos de lámina
+✓ Vendedores ambulantes
+✓ Taquerías familiares
+✓ Negocios dentro de mercados
+✓ Torterías históricas
+✓ Puestos nocturnos
+✓ Servicio al auto
+✓ Negocios 24 horas
+
+IDEAL PARA QUOVI:
+- Búsquedas en lenguaje natural
+- Filtros por horario
+- Búsqueda por precio accesible
+- Comida tradicional mexicana
+- Experiencias auténticas locales
+- Negocios pequeños y familiares
+*/

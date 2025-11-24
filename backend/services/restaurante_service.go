@@ -4,6 +4,7 @@ import (
 	"errors"
 	"math"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/tuusuario/quovi/models"
@@ -68,10 +69,36 @@ func (rs *RestauranteService) ObtenerRestaurantesCercanos(lat, lng, radioKm floa
 	return resultado, nil
 }
 
-func (rs *RestauranteService) BuscarRestaurantes(termino string, lat, lng *float64, radioKm float64) ([]RestauranteConDistancia, error) {
-	restaurantes, err := rs.dbManager.BuscarRestaurantes(termino)
+func (rs *RestauranteService) BuscarRestaurantes(
+	termino string,
+	nombreCategoria string,
+	idCategoria *uint,
+	lat, lng *float64,
+	radioKm float64,
+) ([]RestauranteConDistancia, error) {
+
+	termino = strings.TrimSpace(termino)
+	nombreCategoria = strings.TrimSpace(nombreCategoria)
+
+	var restaurantes []models.Restaurante
+	var err error
+
+	if idCategoria != nil {
+		restaurantes, err = rs.dbManager.ObtenerRestaurantesPorCategoria(*idCategoria)
+	} else if nombreCategoria != "" {
+		restaurantes, err = rs.dbManager.BuscarRestaurantesPorCategoriaNombre(nombreCategoria)
+	} else if termino != "" {
+		restaurantes, err = rs.dbManager.BuscarRestaurantes(termino)
+	} else {
+		return nil, errors.New("debe proporcionar al menos un criterio de busqueda")
+	}
+
 	if err != nil {
 		return nil, err
+	}
+
+	if len(restaurantes) == 0 {
+		return []RestauranteConDistancia{}, nil
 	}
 
 	if lat == nil || lng == nil {

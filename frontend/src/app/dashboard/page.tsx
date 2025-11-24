@@ -1,3 +1,4 @@
+// frontend/src/app/dashboard/page.tsx (o donde esté MapDashboard)
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -116,12 +117,14 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
 
   useEffect(() => {
     if (mapInstanceRef.current && window.L) {
+      // Limpiar marcadores existentes
       mapInstanceRef.current.eachLayer((layer: any) => {
         if (layer instanceof window.L.Marker) {
           mapInstanceRef.current.removeLayer(layer);
         }
       });
 
+      // Agregar marcador de ubicación del usuario
       if (userLocation) {
         const currentLocationIcon = window.L.divIcon({
           className: 'current-location-marker',
@@ -140,25 +143,17 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
           .bindPopup('Tu ubicación actual');
       }
 
+      // Agregar marcadores de restaurantes
       restaurantes.forEach(rest => {
         const emoji = restauranteService.obtenerEmojiCategoria(
           rest.categorias?.[0]?.nombreCategoria || 'Internacional'
         );
-        const color = restauranteService.obtenerColorCategoria(
-          rest.categorias?.[0]?.nombreCategoria || 'Internacional'
-        );
 
-        const customIcon = window.L.divIcon({
-          className: 'custom-marker',
-          html: `
-            <div class="relative">
-              <div class="w-12 h-12 ${color} rounded-full flex items-center justify-center shadow-lg border-3 border-white hover:scale-110 transition-transform duration-200 cursor-pointer">
-                <span class="text-white text-lg">${emoji}</span>
-              </div>
-            </div>
-          `,
-          iconSize: [48, 60],
-          iconAnchor: [24, 48]
+        const customIcon = window.L.icon({
+          iconUrl: '/images/quoviPin.png',
+          iconSize: [64, 80],    
+          iconAnchor: [32, 80],    
+          popupAnchor: [0, -80]   
         });
 
         const marker = window.L.marker([rest.latitud, rest.longitud], {
@@ -190,6 +185,17 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
           </div>
         `);
       });
+
+      // Ajustar vista si hay restaurantes
+      if (restaurantes.length > 0) {
+        const bounds = window.L.latLngBounds(
+          restaurantes.map(r => [r.latitud, r.longitud])
+        );
+        if (userLocation) {
+          bounds.extend(userLocation);
+        }
+        mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50] });
+      }
     }
   }, [restaurantes, userLocation, onRestaurantClick]);
 
@@ -221,7 +227,7 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
         <div className="flex items-center space-x-2">
           <MapPin className="w-4 h-4 text-blue-500" />
           <span className="font-semibold text-gray-700">Ciudad de México</span>
-          {userLocation && (
+          {restaurantes.length > 0 && (
             <span className="text-xs text-gray-500">• {restaurantes.length} restaurantes</span>
           )}
         </div>
@@ -240,6 +246,7 @@ export default function MapDashboard() {
   const [showRoute, setShowRoute] = useState(false);
   const [restaurantes, setRestaurantes] = useState<RestauranteConDistancia[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [mensajeBusqueda, setMensajeBusqueda] = useState<string>('');
 
   const { ubicacion, error: errorUbicacion, cargando: cargandoUbicacion, refrescarUbicacion } = useGeolocation(false);
 
@@ -247,12 +254,14 @@ export default function MapDashboard() {
     ? [ubicacion.latitud, ubicacion.longitud] 
     : null;
 
+  // Cargar restaurantes cercanos inicialmente
   useEffect(() => {
-    const cargarRestaurantes = async () => {
+    const cargarRestaurantesIniciales = async () => {
       if (!ubicacion) return;
 
       try {
         setCargando(true);
+        setMensajeBusqueda('Cargando restaurantes cercanos...');
         
         const data = await restauranteService.obtenerRestaurantesCercanos(
           ubicacion.latitud,
@@ -260,18 +269,15 @@ export default function MapDashboard() {
           10
         );
 
+        // Cargar favoritos si el usuario está autenticado
         const token = localStorage.getItem('token');
         if (token) {
           try {
-            const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api';
-            const favResponse = await fetch(`${API_URL}/favoritos`, {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            });
-            const favData = await favResponse.json();
-            const favIds = new Set(favData.data?.map((r: any) => r.idRestaurante) || []);
+            const favResponse = await restauranteService.obtenerFavoritos(
+              ubicacion.latitud,
+              ubicacion.longitud
+            );
+            const favIds = new Set(favResponse.map((r) => r.idRestaurante));
             
             const dataConFavoritos = data.map(r => ({
               ...r,
@@ -286,45 +292,55 @@ export default function MapDashboard() {
         } else {
           setRestaurantes(data);
         }
+
+        setMensajeBusqueda(`${data.length} restaurantes cercanos`);
       } catch (error) {
         console.error('Error loading restaurants:', error);
+        setMensajeBusqueda('Error al cargar restaurantes');
       } finally {
         setCargando(false);
       }
     };
 
-    cargarRestaurantes();
+    cargarRestaurantesIniciales();
   }, [ubicacion]);
-  const handleSearch = async (searchTerm: string) => {
-    if (!searchTerm.trim()) {
-      if (ubicacion) {
-        const data = await restauranteService.obtenerRestaurantesCercanos(
-          ubicacion.latitud,
-          ubicacion.longitud,
-          10
-        );
-        setRestaurantes(data);
-      }
-      return;
-    }
 
-    try {
-      setCargando(true);
-
-      const data = await restauranteService.buscarRestaurantes(
-        searchTerm,
-        ubicacion?.latitud,
-        ubicacion?.longitud,
-        10
-      );
-
-      setRestaurantes(data);
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
+  // Escuchar eventos de búsqueda
+  useEffect(() => {
+    const handleSearchResults = (event: CustomEvent) => {
+      console.log('🎯 Evento de búsqueda recibido:', event.detail);
+      
+      const { data, total, filtros } = event.detail;
+      
+      setRestaurantes(data || []);
       setCargando(false);
-    }
-  };
+      
+      // Generar mensaje descriptivo
+      let mensaje = `${total} resultado${total !== 1 ? 's' : ''}`;
+      if (filtros?.categoria) {
+        mensaje += ` de ${filtros.categoria}`;
+      }
+      if (filtros?.termino) {
+        mensaje += ` para "${filtros.termino}"`;
+      }
+      
+      setMensajeBusqueda(mensaje);
+    };
+
+    const handleSearchError = (event: CustomEvent) => {
+      console.error('❌ Error en búsqueda:', event.detail);
+      setMensajeBusqueda('Error en la búsqueda');
+      setCargando(false);
+    };
+
+    window.addEventListener('searchResults', handleSearchResults as EventListener);
+    window.addEventListener('searchError', handleSearchError as EventListener);
+
+    return () => {
+      window.removeEventListener('searchResults', handleSearchResults as EventListener);
+      window.removeEventListener('searchError', handleSearchError as EventListener);
+    };
+  }, []);
 
   const handleRestaurantClick = (restaurant: RestauranteConDistancia) => {
     setSelectedRestaurant(restaurant);
@@ -372,9 +388,12 @@ export default function MapDashboard() {
       <div className="relative z-10 h-screen flex flex-col">
         <div className="pt-20 pb-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
           <SearchBar 
-            onSearch={handleSearch}
+            onSearch={(resultados) => {
+              console.log('✅ Resultados recibidos en onSearch:', resultados.length);
+            }}
             showLocationFilter={true}
             placeholder="¿Antojo de tacos al pastor o un café con leche?"
+            userLocation={ubicacion ? { lat: ubicacion.latitud, lng: ubicacion.longitud } : undefined}
           />
 
           {errorUbicacion && (
@@ -399,6 +418,12 @@ export default function MapDashboard() {
               <span className="text-sm text-gray-600">
                 {cargandoUbicacion ? 'Obteniendo ubicación...' : 'Cargando restaurantes...'}
               </span>
+            </div>
+          )}
+
+          {mensajeBusqueda && !cargando && (
+            <div className="mt-4 bg-white rounded-xl p-3 text-center">
+              <span className="text-sm font-medium text-gray-700">{mensajeBusqueda}</span>
             </div>
           )}
         </div>
@@ -431,6 +456,7 @@ export default function MapDashboard() {
           openingHours: selectedRestaurant.horarioHoy,
           price: restauranteService.obtenerRangoPrecio(selectedRestaurant.precioPromedio),
           description: selectedRestaurant.descripcion,
+          isFavorite: selectedRestaurant.esFavorito || false,
         } : null}
         onShowRoute={handleShowRoute}
       />

@@ -28,7 +28,7 @@ export interface Caracteristica {
 }
 
 export interface Horario {
-  dia: number; // 1=Lunes, 7=Domingo
+  dia: number;
   apertura: string;
   cierre: string;
   cerrado: boolean;
@@ -82,17 +82,28 @@ export interface RestauranteConDistancia extends Restaurante {
   esFavorito?: boolean;
 }
 
+// ========== REQUEST INTERFACES ==========
+
 export interface ObtenerRestaurantesCercanosRequest {
   latitud: number;
   longitud: number;
-  radio?: number; // en kilómetros
+  radio?: number;
 }
 
 export interface BuscarRestaurantesRequest {
-  termino: string;
+  termino?: string;
+  categoria?: string;
+  idCategoria?: number;
   latitud?: number;
   longitud?: number;
   radio?: number;
+}
+
+export interface FiltrosAvanzados {
+  distancia?: number;
+  precioMin?: number;
+  precioMax?: number;
+  caracteristicas?: string[];
 }
 
 // ========== SERVICIO ==========
@@ -104,7 +115,7 @@ class RestauranteService {
     };
 
     if (includeAuth && typeof window !== 'undefined') {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('token');
       if (token) {
         headers['Authorization'] = `Bearer ${token}`;
       }
@@ -115,10 +126,9 @@ class RestauranteService {
 
   // ===== RESTAURANTES =====
 
-  // Obtener todos los restaurantes
   async obtenerTodosLosRestaurantes(): Promise<Restaurante[]> {
     try {
-      console.log(' Obteniendo todos los restaurantes...');
+      console.log('📍 Obteniendo todos los restaurantes...');
       
       const response = await fetch(`${API_BASE_URL}/restaurantes`, {
         method: 'GET',
@@ -130,15 +140,14 @@ class RestauranteService {
       }
 
       const data = await response.json();
-      console.log(' Restaurantes obtenidos:', data.total);
+      console.log('✅ Restaurantes obtenidos:', data.total);
       return data.data;
     } catch (error: any) {
-      console.error(' Error obteniendo restaurantes:', error);
+      console.error('  Error obteniendo restaurantes:', error);
       throw error;
     }
   }
 
-  // Obtener un restaurante por ID
   async obtenerRestaurantePorID(id: number): Promise<Restaurante> {
     try {
       console.log('📍 Obteniendo restaurante ID:', id);
@@ -153,15 +162,14 @@ class RestauranteService {
       }
 
       const data = await response.json();
-      console.log(' Restaurante obtenido:', data.data.nombre);
+      console.log('✅ Restaurante obtenido:', data.data.nombre);
       return data.data;
     } catch (error: any) {
-      console.error(' Error obteniendo restaurante:', error);
+      console.error('  Error obteniendo restaurante:', error);
       throw error;
     }
   }
 
-  // Obtener restaurantes cercanos
   async obtenerRestaurantesCercanos(
     latitud: number,
     longitud: number,
@@ -181,53 +189,97 @@ class RestauranteService {
       }
 
       const data = await response.json();
-      console.log(' Restaurantes cercanos encontrados:', data.total);
+      console.log('✅ Restaurantes cercanos encontrados:', data.total);
       return data.data;
     } catch (error: any) {
-      console.error(' Error buscando restaurantes cercanos:', error);
+      console.error('  Error buscando restaurantes cercanos:', error);
       throw error;
     }
   }
 
-  // Buscar restaurantes por término
+  /**
+   * Buscar restaurantes con filtros avanzados
+   * Soporta búsqueda por término, categoría (nombre o ID), ubicación y radio
+   */
   async buscarRestaurantes(
+    filtros: BuscarRestaurantesRequest
+  ): Promise<RestauranteConDistancia[]> {
+    try {
+      console.log('🔍 Buscando restaurantes con filtros:', filtros);
+      
+      const response = await fetch(`${API_BASE_URL}/restaurantes/buscar`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        body: JSON.stringify(filtros),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Error al buscar restaurantes');
+      }
+
+      const data = await response.json();
+      console.log('✅ Búsqueda completada:', data.total, 'resultados');
+      return data.data;
+    } catch (error: any) {
+      console.error('  Error en búsqueda:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Buscar por término simple (retrocompatibilidad)
+   */
+  async buscarPorTermino(
     termino: string,
     latitud?: number,
     longitud?: number,
     radio?: number
   ): Promise<RestauranteConDistancia[]> {
-    try {
-      console.log('🔍 Buscando restaurantes:', termino);
-      
-      const body: BuscarRestaurantesRequest = {
-        termino,
-        latitud,
-        longitud,
-        radio,
-      };
+    return this.buscarRestaurantes({
+      termino,
+      latitud,
+      longitud,
+      radio,
+    });
+  }
 
-      const response = await fetch(`${API_BASE_URL}/restaurantes/buscar`, {
-        method: 'POST',
-        headers: this.getHeaders(),
-        body: JSON.stringify(body),
-      });
+  /**
+   * Buscar por categoría usando nombre
+   */
+  async buscarPorCategoria(
+    nombreCategoria: string,
+    latitud?: number,
+    longitud?: number,
+    radio?: number
+  ): Promise<RestauranteConDistancia[]> {
+    return this.buscarRestaurantes({
+      categoria: nombreCategoria,
+      latitud,
+      longitud,
+      radio,
+    });
+  }
 
-      if (!response.ok) {
-        throw new Error('Error al buscar restaurantes');
-      }
-
-      const data = await response.json();
-      console.log(' Búsqueda completada:', data.total, 'resultados');
-      return data.data;
-    } catch (error: any) {
-      console.error(' Error en búsqueda:', error);
-      throw error;
-    }
+  /**
+   * Buscar por ID de categoría
+   */
+  async buscarPorIDCategoria(
+    idCategoria: number,
+    latitud?: number,
+    longitud?: number,
+    radio?: number
+  ): Promise<RestauranteConDistancia[]> {
+    return this.buscarRestaurantes({
+      idCategoria,
+      latitud,
+      longitud,
+      radio,
+    });
   }
 
   // ===== CATEGORÍAS =====
 
-  // Obtener todas las categorías
   async obtenerCategorias(): Promise<Categoria[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/categorias`, {
@@ -242,12 +294,11 @@ class RestauranteService {
       const data = await response.json();
       return data.data;
     } catch (error: any) {
-      console.error('❌ Error obteniendo categorías:', error);
+      console.error('  Error obteniendo categorías:', error);
       throw error;
     }
   }
 
-  // Obtener restaurantes por categoría
   async obtenerRestaurantesPorCategoria(
     idCategoria: number,
     lat?: number,
@@ -276,14 +327,13 @@ class RestauranteService {
       const data = await response.json();
       return data.data;
     } catch (error: any) {
-      console.error(' Error obteniendo restaurantes por categoría:', error);
+      console.error('  Error obteniendo restaurantes por categoría:', error);
       throw error;
     }
   }
 
   // ===== CIUDADES =====
 
-  // Obtener todas las ciudades
   async obtenerCiudades(): Promise<Ciudad[]> {
     try {
       const response = await fetch(`${API_BASE_URL}/ciudades`, {
@@ -298,14 +348,13 @@ class RestauranteService {
       const data = await response.json();
       return data.data;
     } catch (error: any) {
-      console.error(' Error obteniendo ciudades:', error);
+      console.error('  Error obteniendo ciudades:', error);
       throw error;
     }
   }
 
-  // ===== FAVORITOS (requieren autenticación) =====
+  // ===== FAVORITOS =====
 
-  // Obtener favoritos del usuario
   async obtenerFavoritos(lat?: number, lng?: number): Promise<RestauranteConDistancia[]> {
     try {
       let url = `${API_BASE_URL}/favoritos`;
@@ -330,15 +379,14 @@ class RestauranteService {
       const data = await response.json();
       return data.data;
     } catch (error: any) {
-      console.error(' Error obteniendo favoritos:', error);
+      console.error('  Error obteniendo favoritos:', error);
       throw error;
     }
   }
 
-  // Agregar restaurante a favoritos
   async agregarFavorito(idRestaurante: number): Promise<void> {
     try {
-      console.log(' Agregando a favoritos:', idRestaurante);
+      console.log('⭐ Agregando a favoritos:', idRestaurante);
       
       const response = await fetch(`${API_BASE_URL}/favoritos`, {
         method: 'POST',
@@ -351,17 +399,16 @@ class RestauranteService {
         throw new Error(data.message || 'Error al agregar favorito');
       }
 
-      console.log(' Agregado a favoritos exitosamente');
+      console.log('✅ Agregado a favoritos exitosamente');
     } catch (error: any) {
-      console.error(' Error agregando favorito:', error);
+      console.error('  Error agregando favorito:', error);
       throw error;
     }
   }
 
-  // Eliminar restaurante de favoritos
   async eliminarFavorito(idRestaurante: number): Promise<void> {
     try {
-      console.log(' Eliminando de favoritos:', idRestaurante);
+      console.log('🗑️ Eliminando de favoritos:', idRestaurante);
       
       const response = await fetch(`${API_BASE_URL}/favoritos/${idRestaurante}`, {
         method: 'DELETE',
@@ -372,22 +419,41 @@ class RestauranteService {
         throw new Error('Error al eliminar favorito');
       }
 
-      console.log(' Eliminado de favoritos exitosamente');
+      console.log('✅ Eliminado de favoritos exitosamente');
     } catch (error: any) {
-      console.error(' Error eliminando favorito:', error);
+      console.error('  Error eliminando favorito:', error);
+      throw error;
+    }
+  }
+
+  // ===== PLATILLOS =====
+
+  async obtenerPlatillosPorRestaurante(idRestaurante: number): Promise<Platillo[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/restaurantes/${idRestaurante}/platillos`, {
+        method: 'GET',
+        headers: this.getHeaders(),
+      });
+
+      if (!response.ok) {
+        throw new Error('Error al obtener platillos');
+      }
+
+      const data = await response.json();
+      return data.data || [];
+    } catch (error: any) {
+      console.error('  Error obteniendo platillos:', error);
       throw error;
     }
   }
 
   // ===== UTILIDADES =====
 
-  // Formatear precio
   formatearPrecio(precio: number): string {
     if (precio === 0) return 'Gratis';
     return `$${precio.toFixed(2)} MXN`;
   }
 
-  // Formatear distancia
   formatearDistancia(km: number): string {
     if (km < 1) {
       return `${Math.round(km * 1000)} m`;
@@ -395,7 +461,6 @@ class RestauranteService {
     return `${km.toFixed(1)} km`;
   }
 
-  // Obtener rango de precio
   obtenerRangoPrecio(precioPromedio?: number): string {
     if (!precioPromedio || precioPromedio === 0) return '$';
     if (precioPromedio < 100) return '$';
@@ -404,7 +469,6 @@ class RestauranteService {
     return '$$$$';
   }
 
-  // Obtener emoji de categoría
   obtenerEmojiCategoria(nombreCategoria: string): string {
     const mapeo: Record<string, string> = {
       'Mexicana': '🌮',
@@ -417,12 +481,17 @@ class RestauranteService {
       'Tacos': '🌮',
       'Postres': '🍰',
       'Internacional': '🍽️',
+      'Pizza': '🍕',
+      'Sushi': '🍣',
+      'Café': '☕',
+      'Saludable': '🥗',
+      'Antojitos': '🫔',
+      'Desayunos': '🍳',
     };
 
     return mapeo[nombreCategoria] || '🍽️';
   }
 
-  // Obtener color por categoría
   obtenerColorCategoria(nombreCategoria: string): string {
     const mapeo: Record<string, string> = {
       'Mexicana': 'bg-red-500',
@@ -435,6 +504,12 @@ class RestauranteService {
       'Tacos': 'bg-red-600',
       'Postres': 'bg-pink-400',
       'Internacional': 'bg-gray-600',
+      'Pizza': 'bg-orange-500',
+      'Sushi': 'bg-pink-500',
+      'Café': 'bg-blue-500',
+      'Saludable': 'bg-green-500',
+      'Antojitos': 'bg-yellow-600',
+      'Desayunos': 'bg-orange-400',
     };
 
     return mapeo[nombreCategoria] || 'bg-gray-500';

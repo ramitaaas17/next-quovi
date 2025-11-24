@@ -1,0 +1,63 @@
+# Archivos de Git
+.git
+.gitignore
+.gitattributes
+
+# Archivos de entorno
+.env
+.env.local
+.env.*.local
+*.env
+
+# Archivos de configuración del editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Archivos de compilación y binarios
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+# main (comentado porque no queremos excluir main.go)
+*.test
+*.out
+bin/
+dist/
+
+# Archivos de dependencias (se descargarán en el contenedor)
+vendor/
+
+# Archivos de testing y cobertura
+*.test
+coverage.txt
+coverage.html
+*.coverprofile
+
+# Archivos de log
+*.log
+logs/
+
+# Archivos temporales
+tmp/
+temp/
+*.tmp
+
+# Documentación
+README.md
+docs/
+*.md
+
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.*.yml
+.dockerignore
+
+
+

@@ -54,7 +54,7 @@ func main() {
 	authService := services.NewAuthService(dbManager, jwtSecret)
 	restauranteService := services.NewRestauranteService(dbManager)
 	perfilService := services.NewPerfilService(dbManager)
-	platilloService := services.NewPlatilloService(dbManager) // ✅ NUEVO
+	platilloService := services.NewPlatilloService(dbManager)
 
 	// ========================================
 	// INYECCIÓN DE DEPENDENCIAS - HANDLERS
@@ -62,7 +62,7 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 	restauranteHandler := handlers.NewRestauranteHandler(restauranteService)
 	perfilHandler := handlers.NewPerfilHandler(perfilService)
-	platilloHandler := handlers.NewPlatilloHandler(platilloService) // ✅ NUEVO
+	platilloHandler := handlers.NewPlatilloHandler(platilloService)
 
 	if getEnv("ENVIRONMENT", "development") == "production" {
 		gin.SetMode(gin.ReleaseMode)

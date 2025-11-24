@@ -8,9 +8,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// === MÉTODOS PARA RESTAURANTES ===
-
-// ObtenerTodosLosRestaurantes obtiene todos los restaurantes activos con sus relaciones
 func (dm *DBManager) ObtenerTodosLosRestaurantes() ([]models.Restaurante, error) {
 	var restaurantes []models.Restaurante
 
@@ -30,7 +27,6 @@ func (dm *DBManager) ObtenerTodosLosRestaurantes() ([]models.Restaurante, error)
 	return restaurantes, nil
 }
 
-// ObtenerRestaurantePorID obtiene un restaurante por su ID con todas sus relaciones
 func (dm *DBManager) ObtenerRestaurantePorID(id uint) (*models.Restaurante, error) {
 	var restaurante models.Restaurante
 
@@ -56,7 +52,6 @@ func (dm *DBManager) ObtenerRestaurantePorID(id uint) (*models.Restaurante, erro
 	return &restaurante, nil
 }
 
-// ObtenerRestaurantesPorCiudad obtiene restaurantes de una ciudad específica
 func (dm *DBManager) ObtenerRestaurantesPorCiudad(idCiudad uint) ([]models.Restaurante, error) {
 	var restaurantes []models.Restaurante
 
@@ -76,17 +71,17 @@ func (dm *DBManager) ObtenerRestaurantesPorCiudad(idCiudad uint) ([]models.Resta
 	return restaurantes, nil
 }
 
-// ObtenerRestaurantesPorCategoria obtiene restaurantes de una categoría específica
 func (dm *DBManager) ObtenerRestaurantesPorCategoria(idCategoria uint) ([]models.Restaurante, error) {
 	var restaurantes []models.Restaurante
 
 	result := dm.db.
+		Distinct("restaurantes.*").
 		Preload("Ciudad").
 		Preload("Categorias").
 		Preload("Caracteristicas").
 		Preload("Horarios").
 		Preload("Imagenes").
-		Joins("JOIN restaurante_categorias ON restaurante_categorias.idRestaurante = restaurantes.idRestaurante").
+		Joins("INNER JOIN restaurante_categorias ON restaurante_categorias.idRestaurante = restaurantes.idRestaurante").
 		Where("restaurante_categorias.idCategoria = ? AND restaurantes.activo = ?", idCategoria, true).
 		Find(&restaurantes)
 
@@ -97,7 +92,6 @@ func (dm *DBManager) ObtenerRestaurantesPorCategoria(idCategoria uint) ([]models
 	return restaurantes, nil
 }
 
-// BuscarRestaurantes busca restaurantes por nombre o categoría
 func (dm *DBManager) BuscarRestaurantes(termino string) ([]models.Restaurante, error) {
 	var restaurantes []models.Restaurante
 
@@ -119,14 +113,33 @@ func (dm *DBManager) BuscarRestaurantes(termino string) ([]models.Restaurante, e
 	return restaurantes, nil
 }
 
-// ObtenerRestaurantesCercanos obtiene restaurantes dentro de un radio (en km) de una ubicación
+func (dm *DBManager) BuscarRestaurantesPorCategoriaNombre(nombreCategoria string) ([]models.Restaurante, error) {
+	var restaurantes []models.Restaurante
+
+	result := dm.db.
+		Distinct("restaurantes.*").
+		Preload("Ciudad").
+		Preload("Categorias").
+		Preload("Caracteristicas").
+		Preload("Horarios").
+		Preload("Imagenes").
+		Joins("INNER JOIN restaurante_categorias rc ON rc.idRestaurante = restaurantes.idRestaurante").
+		Joins("INNER JOIN categorias_cocina cc ON cc.idCategoria = rc.idCategoria").
+		Where("cc.nombreCategoria = ? AND restaurantes.activo = ?", nombreCategoria, true).
+		Find(&restaurantes)
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return restaurantes, nil
+}
+
 func (dm *DBManager) ObtenerRestaurantesCercanos(lat, lng, radioKm float64) ([]models.Restaurante, error) {
 	var restaurantes []models.Restaurante
 
-	// Fórmula de Haversine simplificada para filtrado inicial
-	// 1 grado ≈ 111 km
 	deltaLat := radioKm / 111.0
-	deltaLng := radioKm / (111.0 * 0.8) // Ajuste aproximado para longitud
+	deltaLng := radioKm / (111.0 * 0.8)
 
 	result := dm.db.
 		Preload("Ciudad").
@@ -148,9 +161,6 @@ func (dm *DBManager) ObtenerRestaurantesCercanos(lat, lng, radioKm float64) ([]m
 	return restaurantes, nil
 }
 
-// === MÉTODOS PARA CIUDADES ===
-
-// ObtenerTodasLasCiudades obtiene todas las ciudades disponibles
 func (dm *DBManager) ObtenerTodasLasCiudades() ([]models.Ciudad, error) {
 	var ciudades []models.Ciudad
 
@@ -162,7 +172,6 @@ func (dm *DBManager) ObtenerTodasLasCiudades() ([]models.Ciudad, error) {
 	return ciudades, nil
 }
 
-// ObtenerCiudadPorID obtiene una ciudad por su ID
 func (dm *DBManager) ObtenerCiudadPorID(id uint) (*models.Ciudad, error) {
 	var ciudad models.Ciudad
 
@@ -177,9 +186,6 @@ func (dm *DBManager) ObtenerCiudadPorID(id uint) (*models.Ciudad, error) {
 	return &ciudad, nil
 }
 
-// === MÉTODOS PARA CATEGORÍAS ===
-
-// ObtenerTodasLasCategorias obtiene todas las categorías de cocina
 func (dm *DBManager) ObtenerTodasLasCategorias() ([]models.CategoriaRestaurante, error) {
 	var categorias []models.CategoriaRestaurante
 
@@ -191,9 +197,6 @@ func (dm *DBManager) ObtenerTodasLasCategorias() ([]models.CategoriaRestaurante,
 	return categorias, nil
 }
 
-// === MÉTODOS PARA CARACTERÍSTICAS ===
-
-// ObtenerTodasLasCaracteristicas obtiene todas las características disponibles
 func (dm *DBManager) ObtenerTodasLasCaracteristicas() ([]models.CaracteristicaRestaurante, error) {
 	var caracteristicas []models.CaracteristicaRestaurante
 
@@ -205,9 +208,6 @@ func (dm *DBManager) ObtenerTodasLasCaracteristicas() ([]models.CaracteristicaRe
 	return caracteristicas, nil
 }
 
-// === MÉTODOS PARA PLATILLOS ===
-
-// ObtenerPlatillosPorRestaurante obtiene los platillos de un restaurante
 func (dm *DBManager) ObtenerPlatillosPorRestaurante(idRestaurante uint) ([]models.Platillo, error) {
 	var platillos []models.Platillo
 
@@ -223,9 +223,6 @@ func (dm *DBManager) ObtenerPlatillosPorRestaurante(idRestaurante uint) ([]model
 	return platillos, nil
 }
 
-// === MÉTODOS PARA FAVORITOS ===
-
-// AgregarFavorito agrega un restaurante a los favoritos del usuario
 func (dm *DBManager) AgregarFavorito(idUsuario, idRestaurante uint) error {
 	favorito := models.Favorito{
 		IDUsuario:     idUsuario,
@@ -240,7 +237,6 @@ func (dm *DBManager) AgregarFavorito(idUsuario, idRestaurante uint) error {
 	return nil
 }
 
-// EliminarFavorito elimina un restaurante de los favoritos del usuario
 func (dm *DBManager) EliminarFavorito(idUsuario, idRestaurante uint) error {
 	result := dm.db.
 		Where("idUsuario = ? AND idRestaurante = ?", idUsuario, idRestaurante).
@@ -253,7 +249,6 @@ func (dm *DBManager) EliminarFavorito(idUsuario, idRestaurante uint) error {
 	return nil
 }
 
-// ObtenerFavoritosUsuario obtiene los restaurantes favoritos de un usuario
 func (dm *DBManager) ObtenerFavoritosUsuario(idUsuario uint) ([]models.Restaurante, error) {
 	var restaurantes []models.Restaurante
 
@@ -274,7 +269,6 @@ func (dm *DBManager) ObtenerFavoritosUsuario(idUsuario uint) ([]models.Restauran
 	return restaurantes, nil
 }
 
-// VerificarFavorito verifica si un restaurante está en los favoritos del usuario
 func (dm *DBManager) VerificarFavorito(idUsuario, idRestaurante uint) (bool, error) {
 	var count int64
 

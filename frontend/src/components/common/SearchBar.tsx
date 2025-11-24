@@ -1,39 +1,119 @@
-'use client';
-
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Mic, MapPin, Sliders, X, Pizza, Coffee, Salad, Beef, Fish } from 'lucide-react';
+import restauranteService, { BuscarRestaurantesRequest } from '@/services/restauranteService';
 
 interface SearchBarProps {
   placeholder?: string;
-  onSearch?: (searchTerm: string) => void;
+  onSearch?: (resultados: any[]) => void;
   showLocationFilter?: boolean;
   className?: string;
   initialValue?: string;
+  userLocation?: { lat: number; lng: number };
+}
+
+interface Filtros {
+  foodType: string;
+  priceRange: string;
+  distance: string;
 }
 
 const SearchBar: React.FC<SearchBarProps> = ({ 
-  placeholder = "¿Antojo de tacos al pastor o un café con leche?", 
+  placeholder = "Antojo de tacos al pastor o un cafe con leche?", 
   onSearch,
   showLocationFilter = true,
   className = "",
-  initialValue = ""
+  initialValue = "",
+  userLocation
 }) => {
   const [searchTerm, setSearchTerm] = useState<string>(initialValue);
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [hoveredButton, setHoveredButton] = useState<string | null>(null);
-  const [filters, setFilters] = useState({
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [filters, setFilters] = useState<Filtros>({
     foodType: 'Todos los tipos',
     priceRange: 'Cualquier precio',
     distance: 'Cualquier distancia'
   });
 
-  const handleSubmit = (): void => {
-    if (onSearch) {
-      onSearch(searchTerm);
+  const categoryMap: Record<string, string> = {
+    'Tacos': 'Tacos',
+    'Pizzas': 'Pizzas',
+    'Argentina': 'Argentina',
+    'Mariscos': 'Mariscos',
+    'Cafetería': 'Cafetería',
+    'Vegana': 'Vegana',
+  };
+
+  const TacosIcon = () => (
+    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+    </svg>
+  );
+
+  const categories = [
+    { icon: <TacosIcon />, label: 'Tacos', id: 'Tacos' },
+    { icon: <Pizza className="w-5 h-5" />, label: 'Pizza', id: 'Pizzas' },
+    { icon: <Beef className="w-5 h-5" />, label: 'Parrilla', id: 'Argentina' },
+    { icon: <Fish className="w-5 h-5" />, label: 'Mariscos', id: 'Mariscos' },
+    { icon: <Coffee className="w-5 h-5" />, label: 'Cafe', id: 'Cafetería' },
+    { icon: <Salad className="w-5 h-5" />, label: 'Saludable', id: 'Vegana' },
+  ];
+
+  const handleSubmit = async (): Promise<void> => {
+    if (!searchTerm && !activeCategory) {
+      return;
     }
-    console.log('Búsqueda:', { searchTerm, filters });
+
+    setIsSearching(true);
+    setError(null);
+
+    try {
+      const searchFilters: BuscarRestaurantesRequest = {};
+
+      if (searchTerm) {
+        searchFilters.termino = searchTerm;
+      }
+
+      if (activeCategory) {
+        searchFilters.categoria = categoryMap[activeCategory];
+      }
+
+      if (userLocation) {
+        searchFilters.latitud = userLocation.lat;
+        searchFilters.longitud = userLocation.lng;
+      }
+
+      if (filters.distance !== 'Cualquier distancia') {
+        searchFilters.radio = parseFloat(filters.distance);
+      }
+
+      const resultados = await restauranteService.buscarRestaurantes(searchFilters);
+
+      if (onSearch) {
+        onSearch(resultados);
+      }
+
+      window.dispatchEvent(new CustomEvent('searchResults', { 
+        detail: { 
+          data: resultados,
+          total: resultados.length,
+          filtros: searchFilters
+        } 
+      }));
+
+    } catch (error: any) {
+      setError(error.message || 'Error al buscar restaurantes');
+      
+      window.dispatchEvent(new CustomEvent('searchError', { 
+        detail: { error: error.message } 
+      }));
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>): void => {
@@ -45,6 +125,58 @@ const SearchBar: React.FC<SearchBarProps> = ({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchTerm(e.target.value);
+    setError(null);
+    
+    if (e.target.value && activeCategory) {
+      setActiveCategory(null);
+    }
+  };
+
+  const handleCategoryClick = async (categoryId: string): Promise<void> => {
+    const newCategory = activeCategory === categoryId ? null : categoryId;
+    setActiveCategory(newCategory);
+    setError(null);
+
+    if (!newCategory) {
+      return;
+    }
+
+    setIsSearching(true);
+
+    try {
+      const searchFilters: BuscarRestaurantesRequest = {
+        categoria: categoryMap[newCategory],
+      };
+
+      if (userLocation) {
+        searchFilters.latitud = userLocation.lat;
+        searchFilters.longitud = userLocation.lng;
+        searchFilters.radio = 10;
+      }
+
+      const resultados = await restauranteService.buscarRestaurantes(searchFilters);
+
+      if (onSearch) {
+        onSearch(resultados);
+      }
+
+      window.dispatchEvent(new CustomEvent('searchResults', { 
+        detail: { 
+          data: resultados,
+          total: resultados.length,
+          filtros: searchFilters
+        } 
+      }));
+
+    } catch (error: any) {
+      setError(error.message || 'Error al buscar por categoria');
+      
+      window.dispatchEvent(new CustomEvent('searchError', { 
+        detail: { error: error.message } 
+      }));
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleFilterChange = (filterType: string, value: string): void => {
@@ -55,11 +187,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   const applyFilters = (): void => {
-    console.log('Aplicando filtros:', filters);
-    if (onSearch) {
-      onSearch(searchTerm);
-    }
     setShowFilters(false);
+    handleSubmit();
   };
 
   const clearFilters = (): void => {
@@ -69,29 +198,13 @@ const SearchBar: React.FC<SearchBarProps> = ({
       distance: 'Cualquier distancia'
     });
     setSearchTerm('');
+    setActiveCategory(null);
     setShowFilters(false);
+    setError(null);
   };
-
-  // Icono personalizado para Tacos
-  const TacosIcon = () => (
-    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
-    </svg>
-  );
-
-  // Categorías con iconos en lugar de emojis
-  const categories = [
-    { icon: <TacosIcon />, label: 'Tacos', id: 'tacos' },
-    { icon: <Pizza className="w-5 h-5" />, label: 'Pizza', id: 'pizza' },
-    { icon: <Beef className="w-5 h-5" />, label: 'Burgers', id: 'burgers' },
-    { icon: <Fish className="w-5 h-5" />, label: 'Sushi', id: 'sushi' },
-    { icon: <Coffee className="w-5 h-5" />, label: 'Café', id: 'cafe' },
-    { icon: <Salad className="w-5 h-5" />, label: 'Saludable', id: 'saludable' },
-  ];
 
   return (
     <div className={`w-full max-w-4xl mx-auto ${className}`}>
-      {/* Main Search Bar - Simplificado sin conflictos de motion */}
       <div 
         className={`relative backdrop-blur-xl border rounded-full shadow-2xl overflow-hidden mb-6 transition-all duration-300 ${
           isFocused ? 'scale-102 shadow-orange-400/40' : 'hover:shadow-orange-300/30'
@@ -105,7 +218,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
         }}
       >
         <div className="flex items-center px-6 py-4">
-          {/* Location indicator */}
           {showLocationFilter && (
             <div className="flex items-center space-x-2 mr-4 pr-4 border-r border-orange-300/50">
               <MapPin className="w-4 h-4 text-orange-600" />
@@ -113,7 +225,18 @@ const SearchBar: React.FC<SearchBarProps> = ({
             </div>
           )}
           
-          {/* Search Input - Sin wrapper motion */}
+          {activeCategory && (
+            <div className="flex items-center gap-2 mr-3 px-3 py-1.5 bg-orange-500 text-white rounded-full text-sm font-medium">
+              <span>{categories.find(c => c.id === activeCategory)?.label}</span>
+              <button
+                onClick={() => setActiveCategory(null)}
+                className="hover:bg-orange-600 rounded-full p-0.5 transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+          
           <input
             type="text"
             value={searchTerm}
@@ -121,15 +244,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
             onKeyDown={handleKeyPress}
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
-            placeholder={placeholder}
+            placeholder={activeCategory ? `Buscando ${categories.find(c => c.id === activeCategory)?.label}...` : placeholder}
             className="flex-1 text-gray-700 placeholder-gray-500 bg-transparent border-none outline-none text-base font-medium"
             autoComplete="off"
             spellCheck="false"
+            disabled={isSearching}
           />
           
-          {/* Action Buttons */}
           <div className="flex items-center space-x-2 ml-4">
-            {/* Voice Search Button */}
             <button
               type="button"
               className={`relative flex items-center justify-center w-10 h-10 rounded-full transition-all duration-300 ${
@@ -143,7 +265,6 @@ const SearchBar: React.FC<SearchBarProps> = ({
               <Mic className={`w-4 h-4 ${hoveredButton === 'voice' ? 'text-white' : 'text-blue-500'}`} />
             </button>
             
-            {/* Filters Button */}
             <button
               type="button"
               onClick={() => setShowFilters(!showFilters)}
@@ -162,183 +283,144 @@ const SearchBar: React.FC<SearchBarProps> = ({
               )}
             </button>
             
-            {/* Search Button */}
             <button
               onClick={handleSubmit}
-              className="relative flex items-center justify-center w-12 h-10 rounded-full bg-red-500 hover:bg-red-600 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 ml-2"
+              disabled={isSearching}
+              className="relative flex items-center justify-center w-12 h-10 rounded-full bg-red-500 hover:bg-red-600 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 ml-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Search className="w-5 h-5 text-white" />
+              {isSearching ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Search className="w-5 h-5 text-white" />
+              )}
             </button>
           </div>
         </div>
       </div>
 
-      {/* Quick Access Categories - Estilo original restaurado */}
-      <motion.div 
-        className="flex flex-wrap justify-center gap-3 mb-4"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, staggerChildren: 0.1 }}
-      >
-        {categories.map((category, index) => (
-          <motion.button
-            key={category.id}
-            className="relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 group overflow-hidden"
-            style={{
-              background: hoveredButton === category.id 
-                ? 'rgba(251, 146, 60, 0.8)' 
-                : 'rgba(255, 255, 255, 0.6)',
-              boxShadow: hoveredButton === category.id
-                ? '0 8px 20px rgba(251, 146, 60, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)'
-                : '0 3px 10px rgba(251, 146, 60, 0.1), inset 0 1px 0 rgba(255,255,255,0.4)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(251, 146, 60, 0.2)'
-            }}
-            onMouseEnter={() => setHoveredButton(category.id)}
-            onMouseLeave={() => setHoveredButton(null)}
-            whileHover={{ 
-              y: -6,
-              scale: 1.1,
-              transition: { 
-                y: { type: "spring", stiffness: 300, damping: 25 },
-                scale: { type: "spring", stiffness: 250, damping: 20 },
-                duration: 0.4
-              }
-            }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1, type: "spring", stiffness: 300 }}
-          >
-            {/* Efecto de ondas al hacer hover */}
-            {hoveredButton === category.id && (
-              <motion.div
-                className="absolute inset-0 rounded-full"
-                initial={{ scale: 0, opacity: 0.4 }}
-                animate={{ scale: 1.2, opacity: 0 }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-                style={{
-                  background: 'radial-gradient(circle, rgba(251, 146, 60, 0.5) 0%, transparent 70%)'
-                }}
-              />
-            )}
-            
-            <div className="w-5 h-5 z-10 relative" style={{ color: hoveredButton === category.id ? '#ffffff' : '#fb923c' }}>
-              {category.icon}
-            </div>
-            
-            {/* Tooltip mejorado */}
-            <AnimatePresence>
-              {hoveredButton === category.id && (
-                <motion.div
-                  initial={{ opacity: 0, y: 15, scale: 0.9 }}
-                  animate={{ opacity: 1, y: -50, scale: 1 }}
-                  exit={{ opacity: 0, y: 15, scale: 0.9 }}
-                  transition={{ 
-                    type: "spring", 
-                    stiffness: 300, 
-                    damping: 25,
-                    opacity: { duration: 0.3 }
+      <div className="flex flex-wrap justify-center gap-3 mb-4">
+        {categories.map((category) => {
+          const isActive = activeCategory === category.id;
+          
+          return (
+            <button
+              key={category.id}
+              onClick={() => handleCategoryClick(category.id)}
+              disabled={isSearching}
+              className={`relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-500 group overflow-hidden ${
+                isActive ? 'ring-2 ring-orange-500 ring-offset-2' : ''
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              style={{
+                background: isActive 
+                  ? 'rgba(251, 146, 60, 0.9)' 
+                  : hoveredButton === category.id 
+                    ? 'rgba(251, 146, 60, 0.8)' 
+                    : 'rgba(255, 255, 255, 0.6)',
+                boxShadow: isActive
+                  ? '0 12px 24px rgba(251, 146, 60, 0.5), inset 0 1px 0 rgba(255,255,255,0.3)'
+                  : hoveredButton === category.id
+                    ? '0 8px 20px rgba(251, 146, 60, 0.4), inset 0 1px 0 rgba(255,255,255,0.3)'
+                    : '0 3px 10px rgba(251, 146, 60, 0.1), inset 0 1px 0 rgba(255,255,255,0.4)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(251, 146, 60, 0.2)',
+                transform: isActive ? 'scale(1.1)' : 'scale(1)'
+              }}
+              onMouseEnter={() => setHoveredButton(category.id)}
+              onMouseLeave={() => setHoveredButton(null)}
+            >
+              {isActive && (
+                <div
+                  className="absolute inset-0 rounded-full animate-ping"
+                  style={{
+                    background: 'radial-gradient(circle, rgba(251, 146, 60, 0.4) 0%, transparent 70%)'
                   }}
+                />
+              )}
+              
+              <div 
+                className="w-5 h-5 z-10 relative transition-transform duration-300" 
+                style={{ 
+                  color: isActive || hoveredButton === category.id ? '#ffffff' : '#fb923c',
+                  transform: isActive ? 'scale(1.2)' : 'scale(1)'
+                }}
+              >
+                {category.icon}
+              </div>
+              
+              {hoveredButton === category.id && !isActive && (
+                <div
                   className="absolute left-1/2 transform -translate-x-1/2 pointer-events-none z-20"
+                  style={{ top: '-55px' }}
                 >
                   <div className="bg-orange-900/90 text-orange-100 text-sm font-medium px-3 py-2 rounded-full whitespace-nowrap shadow-2xl border border-orange-600/50">
                     {category.label}
-                    <motion.div 
-                      className="absolute top-full left-1/2 transform -translate-x-1/2"
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      transition={{ delay: 0.1 }}
-                    >
+                    <div className="absolute top-full left-1/2 transform -translate-x-1/2">
                       <div className="border-4 border-transparent border-t-orange-900" />
-                    </motion.div>
+                    </div>
                   </div>
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
-          </motion.button>
-        ))}
-      </motion.div>
+            </button>
+          );
+        })}
+      </div>
 
-      {/* Filters Panel - Simplificado */}
+      {isSearching && (
+        <div className="text-center text-orange-600 text-sm font-medium animate-pulse">
+          Buscando restaurantes...
+        </div>
+      )}
+
+      {error && (
+        <div className="text-center text-red-500 text-sm font-medium bg-red-50 py-2 px-4 rounded-lg">
+          {error}
+        </div>
+      )}
+
       {showFilters && (
-        <div
-          className="backdrop-blur-xl border rounded-3xl shadow-2xl overflow-hidden mb-4 animate-in slide-in-from-top-4 duration-300"
-          style={{
-            background: 'rgba(251, 146, 60, 0.15)',
-            borderColor: 'rgba(251, 146, 60, 0.3)',
-            boxShadow: '0 25px 50px -12px rgba(251, 146, 60, 0.4), 0 0 0 1px rgba(251, 146, 60, 0.3), inset 0 1px 0 rgba(255,255,255,0.2)'
-          }}
-        >
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Food Type Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-orange-800 mb-3">
-                  Tipo de comida
-                </label>
-                <select 
-                  className="w-full border border-orange-300/50 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all font-medium"
-                  value={filters.foodType}
-                  onChange={(e) => handleFilterChange('foodType', e.target.value)}
-                >
-                  <option>Todos los tipos</option>
-                  <option>Mexicana</option>
-                  <option>Italiana</option>
-                  <option>Japonesa</option>
-                  <option>Americana</option>
-                  <option>Saludable</option>
-                  <option>Cafeterías</option>
-                </select>
-              </div>
-              
-              {/* Price Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-orange-800 mb-3">
-                  Rango de precio
-                </label>
-                <select 
-                  className="w-full border border-orange-300/50 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all font-medium"
-                  value={filters.priceRange}
-                  onChange={(e) => handleFilterChange('priceRange', e.target.value)}
-                >
-                  <option>Cualquier precio</option>
-                  <option>$ - Económico (hasta $150)</option>
-                  <option>$$ - Moderado ($150-$300)</option>
-                  <option>$$$ - Premium ($300+)</option>
-                </select>
-              </div>
-              
-              {/* Distance Filter */}
-              <div>
-                <label className="block text-sm font-semibold text-orange-800 mb-3">
-                  Distancia máxima
-                </label>
-                <select 
-                  className="w-full border border-orange-300/50 rounded-2xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white/80 backdrop-blur-sm transition-all font-medium"
-                  value={filters.distance}
-                  onChange={(e) => handleFilterChange('distance', e.target.value)}
-                >
-                  <option>Cualquier distancia</option>
-                  <option>Menos de 500m</option>
-                  <option>Menos de 1 km</option>
-                  <option>Menos de 3 km</option>
-                  <option>Menos de 5 km</option>
-                </select>
-              </div>
-            </div>
-            
-            {/* Filter Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 mt-6 pt-4 border-t border-orange-300/30">
-              <button 
-                onClick={applyFilters}
-                className="flex-1 bg-gradient-to-r from-red-500 to-orange-500 text-white py-3 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105"
+        <div className="mt-4 p-4 bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-orange-200">
+          <h3 className="text-lg font-bold text-orange-800 mb-3">Filtros Avanzados</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Distancia (km)</label>
+              <select
+                value={filters.distance}
+                onChange={(e) => handleFilterChange('distance', e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               >
-                Aplicar filtros
+                <option>Cualquier distancia</option>
+                <option>1</option>
+                <option>3</option>
+                <option>5</option>
+                <option>10</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Precio</label>
+              <select
+                value={filters.priceRange}
+                onChange={(e) => handleFilterChange('priceRange', e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-orange-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+              >
+                <option>Cualquier precio</option>
+                <option>$</option>
+                <option>$$</option>
+                <option>$$$</option>
+                <option>$$$$</option>
+              </select>
+            </div>
+            <div className="flex items-end gap-2">
+              <button
+                onClick={applyFilters}
+                disabled={isSearching}
+                className="flex-1 px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors font-medium disabled:opacity-50"
+              >
+                Aplicar
               </button>
-              <button 
+              <button
                 onClick={clearFilters}
-                className="flex-1 sm:flex-none px-6 py-3 border border-orange-300/50 text-orange-700 rounded-2xl font-semibold transition-all duration-200 bg-white/60 backdrop-blur-sm hover:bg-white/80 hover:scale-105"
+                disabled={isSearching}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50"
               >
                 Limpiar
               </button>
