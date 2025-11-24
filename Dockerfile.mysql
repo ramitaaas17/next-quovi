@@ -1,8 +1,0 @@
-FROM mysql:8.0
-
-# Copia los scripts de inicialización
-COPY ./backend/BD/quovi.sql /docker-entrypoint-initdb.d/01-quovi.sql
-COPY ./backend/BD/InsertDummyData.sql /docker-entrypoint-initdb.d/02-InsertDummyData.sql
-
-# Expone el puerto
-EXPOSE 3306
