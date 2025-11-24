@@ -24,7 +24,9 @@ services:
 
   # Backend API (Go)
   backend:
-    build: ./backend
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: quovi_backend
     ports:
       - "8080:8080"
@@ -47,15 +49,20 @@ services:
     restart: unless-stopped
 
   # Frontend (Next.js)
-  frontend:  # ← Ahora con 2 espacios
-    build: ./frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8080/api
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: 268691260379-gq3u019erlkn68103l7fttpsp3jm7hoo.apps.googleusercontent.com
     container_name: quovi_frontend
     ports:
       - "3000:3000"
-    env_file:
-      - ./frontend/.env  
     environment:
       NEXT_TELEMETRY_DISABLED: 1
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: 268691260379-gq3u019erlkn68103l7fttpsp3jm7hoo.apps.googleusercontent.com
     depends_on:
       - backend
     networks:
