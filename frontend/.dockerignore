@@ -1,18 +1,78 @@
+# ============================================
+# 🚀 OPTIMIZACIÓN DE VELOCIDAD
+# ============================================
+# Ignora carpetas pesadas que NO se necesitan en Docker
+
+# 1. Dependencias (las más pesadas - pueden ser GB)
 node_modules
+**/node_modules
+
+# 2. Builds locales anteriores (pueden ser cientos de MB)
 .next
-.git
-.gitignore
-README.md
-.env*.local    
-.DS_Store
+**/.next
+build
+dist
+out
+coverage
+
+# 3. Cache de herramientas
+.turbo
+.cache
+.npm
+.eslintcache
+.stylelintcache
+
+# 4. Archivos de desarrollo
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
+lerna-debug.log*
+
+# 5. Archivos temporales
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# 6. Git (puede ser pesado si tienes mucho historial)
+.git
+.gitignore
+.gitattributes
+
+# 7. IDEs y editores
 .vscode
 .idea
-coverage
-dist
-build
-.cache
-.turbo
+*.sublime-*
+.project
+.classpath
+.settings
+
+# 8. Entornos y secretos
+.env
+.env.*
+!.env.example
+
+# 9. Testing
+__tests__
+**/__tests__
+*.test.ts
+*.test.tsx
+*.test.js
+*.test.jsx
+*.spec.ts
+*.spec.tsx
+
+# 10. Documentación (si es pesada)
+docs
+*.md
+!README.md
+
+# 11. Archivos de CI/CD locales
+.github
+.gitlab-ci.yml
+
+# 12. Vercel
+.vercel

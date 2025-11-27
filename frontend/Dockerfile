@@ -5,22 +5,25 @@ WORKDIR /app
 
 RUN apk add --no-cache libc6-compat
 
-# Declarar build arguments
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ARG NEXT_PUBLIC_AI_SERVICE_URL
 
-# Copiar package files
-COPY frontend/package.json frontend/package-lock.json* ./
-RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+# Copiar solo archivos de dependencias primero para aprovechar cache de Docker
+COPY package.json package-lock.json* ./
 
-# Copiar código
-COPY frontend/ .
+# Cache mount: reutiliza paquetes npm entre builds
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci --legacy-peer-deps || npm install --legacy-peer-deps
 
-# Build con las variables de entorno
+# Copiar código después de instalar dependencias
+COPY . .
+
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_GOOGLE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_CLIENT_ID
+ENV NEXT_PUBLIC_AI_SERVICE_URL=$NEXT_PUBLIC_AI_SERVICE_URL
 
 RUN npm run build
 

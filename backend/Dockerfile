@@ -6,12 +6,11 @@ WORKDIR /app
 # Instalar dependencias de sistema
 RUN apk add --no-cache git
 
-# Copiar archivos de dependencias
-COPY backend/go.mod backend/go.sum ./
+COPY go.mod go.sum ./
 RUN go mod download
 
-# Copiar el resto del código
-COPY backend/ .
+# Copiamos todo lo que está en el contexto actual
+COPY . .
 
 # Compilar la aplicación
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
@@ -23,7 +22,7 @@ RUN apk --no-cache add ca-certificates
 
 WORKDIR /root/
 
-# Copiar el binario
+# Copiar el binario desde la etapa builder
 COPY --from=builder /app/main .
 
 EXPOSE 8080
