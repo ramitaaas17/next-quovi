@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://backend:8080/api')
 OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY', None)
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
-PORT = int(os.getenv('PORT', '5000'))
+PORT = int(os.getenv('PORT', '5050'))
 
 # Configuracion de Recocido Simulado desde .env
 SA_TEMPERATURA_INICIAL = float(os.getenv('SA_TEMPERATURA_INICIAL', '100.0'))
@@ -48,16 +48,15 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# Configurar CORS para permitir requests desde el frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:3000",
-        "http://localhost:3001",
+        "http://localhost:3001",  
         "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001",
+        "http://127.0.0.1:3001",  
         "http://localhost:5173",
-        "http://frontend:3000",  # Comunicación entre contenedores
+        "http://frontend:3000",
         "*"  # TEMPORAL para desarrollo - QUITAR en producción
     ],
     allow_credentials=True,

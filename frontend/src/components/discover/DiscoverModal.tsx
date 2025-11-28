@@ -23,10 +23,6 @@ interface PreferenciasUsuario {
   presupuesto?: string;
 }
 
-/**
- * Modal principal del sistema "Descubre"
- * Z-index fijo para aparecer sobre el mapa
- */
 const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLocation }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [preferencias, setPreferencias] = useState<PreferenciasUsuario>({});
@@ -35,17 +31,14 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
   const [showResults, setShowResults] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Resetear al abrir
   useEffect(() => {
     if (isOpen) {
       setCurrentStep(0);
       setPreferencias({});
       setShowResults(false);
       setError(null);
-      // Bloquear scroll del body cuando el modal está abierto
       document.body.style.overflow = 'hidden';
     } else {
-      // Restaurar scroll
       document.body.style.overflow = 'unset';
     }
 
@@ -57,7 +50,6 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
   const currentQuestion = discoverQuestions[currentStep];
   const progress = ((currentStep + 1) / discoverQuestions.length) * 100;
 
-  // Maneja selección de opción
   const handleSelectOption = (value: string) => {
     const updatedPrefs = {
       ...preferencias,
@@ -65,7 +57,6 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
     };
     setPreferencias(updatedPrefs);
 
-    // Auto-avanzar después de 400ms
     setTimeout(() => {
       if (currentStep < discoverQuestions.length - 1) {
         setCurrentStep(currentStep + 1);
@@ -75,61 +66,64 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
     }, 400);
   };
 
-  // Envía preferencias al backend
-const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
-  if (!userLocation) {
-    setError('No se pudo obtener tu ubicación');
-    return;
-  }
-
-  setIsLoading(true);
-  setError(null);
-
-  try {
-    // USAR PUERTO 5001 para Docker
-    const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:5001/api/ai';
-    
-    console.log('🔍 Enviando request a:', `${AI_SERVICE_URL}/discover`);
-    console.log('📍 Ubicación:', userLocation);
-    console.log('⚙️ Preferencias:', finalPrefs);
-    
-    const response = await fetch(`${AI_SERVICE_URL}/discover`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        preferencias: finalPrefs,
-        ubicacion: {
-          latitud: userLocation.lat,
-          longitud: userLocation.lng
-        },
-        top_n: 10
-      }),
-    });
-
-    console.log('📡 Response status:', response.status);
-    console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Error response:', errorText);
-      throw new Error(`Error ${response.status}: ${errorText}`);
+  // 🔧 CORRECCIÓN PRINCIPAL: URL correcta del endpoint
+  const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
+    if (!userLocation) {
+      setError('No se pudo obtener tu ubicación');
+      return;
     }
 
-    const data = await response.json();
-    console.log('✅ Datos recibidos:', data);
-    
-    setRecommendations(data.recomendaciones || []);
-    setShowResults(true);
-  } catch (err: any) {
-    console.error('💥 Error completo:', err);
-    console.error('💥 Error stack:', err.stack);
-    setError(err.message || 'Error al procesar tu solicitud');
-  } finally {
-    setIsLoading(false);
-  }
-};
+    setIsLoading(true);
+    setError(null);
+
+    try {
+    const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:5050';
+    const endpoint = `${AI_SERVICE_URL}/api/ai/discover`;  
+          
+      console.log('🔍 Enviando request a:', endpoint);
+      console.log('📍 Ubicación:', userLocation);
+      console.log('⚙️ Preferencias:', finalPrefs);
+      
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          preferencias: finalPrefs,
+          ubicacion: {
+            latitud: userLocation.lat,
+            longitud: userLocation.lng
+          },
+          top_n: 10
+        }),
+      });
+
+      console.log('📡 Response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('❌ Error response:', errorText);
+        throw new Error(`Error del servidor (${response.status}). Por favor verifica que los servicios estén corriendo.`);
+      }
+
+      const data = await response.json();
+      console.log('✅ Datos recibidos:', data);
+      
+      setRecommendations(data.recomendaciones || []);
+      setShowResults(true);
+    } catch (err: any) {
+      console.error('💥 Error completo:', err);
+      
+      if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
+        setError('❌ No se pudo conectar con el servidor de IA.\n\n🔧 Verifica que:\n1. Docker esté corriendo\n2. El servicio ai-service esté activo\n3. El puerto 5001 esté disponible\n\n💡 Ejecuta: docker-compose ps');
+      } else {
+        setError(err.message || 'Error al procesar tu solicitud');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleBack = () => {
     if (currentStep > 0) {
@@ -148,7 +142,6 @@ const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay con z-index muy alto */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -157,7 +150,6 @@ const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
             style={{ zIndex: 9999 }}
             onClick={onClose}
           >
-            {/* Modal con z-index aún más alto */}
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -167,14 +159,13 @@ const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
               className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden relative"
               style={{ zIndex: 10000 }}
             >
-              {/* Header con gradiente */}
+              {/* Header */}
               <div 
                 className="relative p-6 sm:p-8 text-white overflow-hidden"
                 style={{
                   background: 'linear-gradient(135deg, #f59e0b 0%, #ec4899 50%, #8b5cf6 100%)'
                 }}
               >
-                {/* Partículas decorativas */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                   {[...Array(8)].map((_, i) => (
                     <motion.div
@@ -197,7 +188,6 @@ const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
                   ))}
                 </div>
 
-                {/* Botón cerrar */}
                 <motion.button
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
@@ -207,7 +197,6 @@ const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
                   <X className="w-5 h-5" />
                 </motion.button>
 
-                {/* Título */}
                 <motion.div
                   initial={{ y: -20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
@@ -227,7 +216,6 @@ const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
                   </p>
                 </motion.div>
 
-                {/* Barra de progreso */}
                 {!showResults && !isLoading && (
                   <motion.div
                     initial={{ scaleX: 0 }}
@@ -267,7 +255,7 @@ const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
                         <X className="w-8 h-8 text-red-600" />
                       </div>
                       <h3 className="text-xl font-bold text-red-800 mb-2">Algo salió mal</h3>
-                      <p className="text-red-600 mb-6">{error}</p>
+                      <p className="text-red-600 mb-6 whitespace-pre-line text-sm">{error}</p>
                       <button
                         onClick={handleRestart}
                         className="px-6 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors"
@@ -288,7 +276,7 @@ const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
                 </AnimatePresence>
               </div>
 
-              {/* Footer con navegación */}
+              {/* Footer */}
               {!showResults && !isLoading && !error && (
                 <div className="border-t border-gray-200 p-4 sm:p-6 flex items-center justify-between bg-gray-50">
                   <motion.button
@@ -325,7 +313,7 @@ const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
                     ))}
                   </div>
 
-                  <div className="w-20" /> {/* Espaciador */}
+                  <div className="w-20" />
                 </div>
               )}
             </motion.div>

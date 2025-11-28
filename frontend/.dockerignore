@@ -1,6 +1,4 @@
-# ============================================
-# 🚀 OPTIMIZACIÓN DE VELOCIDAD
-# ============================================
+# frontend/.dockerignore
 # Ignora carpetas pesadas que NO se necesitan en Docker
 
 # 1. Dependencias (las más pesadas - pueden ser GB)

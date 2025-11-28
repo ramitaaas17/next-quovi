@@ -1,3 +1,5 @@
+# docker-compose.yml - PUERTO 5000 UNIFICADO
+
 services:
   # ==================== BASE DE DATOS ====================
   db:
@@ -28,9 +30,6 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      # Cache para builds más rápidos
-      cache_from:
-        - quovi_backend:latest
     container_name: quovi_backend
     ports:
       - "8080:8080"
@@ -42,14 +41,13 @@ services:
       DB_NAME: quovi_db
       JWT_SECRET: mi-secreto-super-seguro-cambiar-en-produccion-quovi-2024
       ENVIRONMENT: development
-      CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:5000,http://localhost:5001
+      CORS_ORIGINS: http://localhost:3000,http://localhost:3001,http://localhost:5050,http://frontend:3000
     depends_on:
       db:
         condition: service_healthy
     networks:
       - quovi-network
     volumes:
-      # Solo en desarrollo - quitar en producción
       - ./backend:/app
     restart: unless-stopped
     healthcheck:
@@ -59,45 +57,39 @@ services:
       retries: 5
       start_period: 15s
 
-  # ==================== AI SERVICE (Python/FastAPI) ====================
+  # ==================== AI SERVICE (Python/FastAPI) - PUERTO 5000 ====================
   ai-service:
     build:
       context: ./ai-service
       dockerfile: Dockerfile
-      # CRÍTICO: Cache para builds rápidos
       cache_from:
-        - nx-quovi-ai-service:latest
+        - quovi-ai-service:latest
     container_name: quovi_ai_service
     ports:
-      - "5001:5000"
-    env_file:
-      - ./ai-service/.env
+      - "5050:5050"  # ✅ UNIFICADO: Host:Container ambos 5050
     environment:
       BACKEND_URL: http://backend:8080/api
-      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
-      PORT: 5000
+      PORT: 5050
       ENVIRONMENT: development
       PYTHONUNBUFFERED: 1
       PYTHONDONTWRITEBYTECODE: 1
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
     depends_on:
       backend:
         condition: service_healthy
     networks:
       - quovi-network
     volumes:
-      # Montar código para hot-reload en desarrollo
       - ./ai-service:/app
-      # Cache persistente de embeddings
       - ai_cache:/app/cache
-      # Excluir pycache del host
       - /app/__pycache__
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s  # Dar tiempo para que carguen los modelos de ML
+      start_period: 120s
 
   # ==================== FRONTEND (Next.js) ====================
   frontend:
@@ -106,17 +98,17 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:8080/api
-        NEXT_PUBLIC_AI_SERVICE_URL: http://localhost:5001/api/ai
+        NEXT_PUBLIC_AI_SERVICE_URL: http://localhost:5050  
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: 268691260379-gq3u019erlkn68103l7fttpsp3jm7hoo.apps.googleusercontent.com
-      # Cache para builds de Next.js
-      cache_from:
-        - quovi_frontend:latest
     container_name: quovi_frontend
     ports:
       - "3000:3000"
     environment:
       NEXT_TELEMETRY_DISABLED: 1
       NODE_ENV: production
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api
+      NEXT_PUBLIC_AI_SERVICE_URL: http://localhost:5050 
+      NEXT_PUBLIC_GOOGLE_CLIENT_ID: 268691260379-gq3u019erlkn68103l7fttpsp3jm7hoo.apps.googleusercontent.com
     depends_on:
       - backend
       - ai-service
