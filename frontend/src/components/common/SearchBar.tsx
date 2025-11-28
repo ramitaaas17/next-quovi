@@ -223,7 +223,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             
             {/* Botones de acción */}
             <div className="flex items-center space-x-1 sm:space-x-2">
-              {/* Botón Descubre - reemplaza al de voz */}
+              {/* Botón Descubre */}
               <DiscoverButton onClick={() => setIsDiscoverModalOpen(true)} />
               
               {/* Botón de búsqueda */}
@@ -327,11 +327,11 @@ const SearchBar: React.FC<SearchBarProps> = ({
         )}
       </div>
 
-      {/* Modal de Descubre */}
+      {/* Modal de Descubre - ✅ FIX: userLocation correctamente pasado */}
       <DiscoverModal
         isOpen={isDiscoverModalOpen}
         onClose={() => setIsDiscoverModalOpen(false)}
-        userLocation={userLocation ?? null}
+        userLocation={userLocation || null}
       />
     </>
   );

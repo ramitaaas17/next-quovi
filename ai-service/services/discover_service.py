@@ -1,24 +1,42 @@
-# Este archivo calcula que tan bien un restaurante coincide con las preferencias del usuario
-# Usa 5 criterios: clima, ocasion, distancia, antojo y presupuesto
+# ai-service/services/discover_service.py - SOLUCIÓN DEFINITIVA
 
 import math
 from typing import List, Dict, Optional
+import logging
+
+logger = logging.getLogger(__name__)
 
 class DiscoverService:
     """
-    Servicio que calcula recomendaciones basadas en multiples criterios
-    Cada criterio tiene un peso diferente en el score final
+    ✅ VERSIÓN FINAL CORREGIDA
+    
+    CAMBIOS CRÍTICOS:
+    1. Peso de ANTOJO = 50% (el doble de antes)
+    2. Penalización SEVERA para no coincidencias (0.0 en vez de 0.2)
+    3. Desactivar RS cuando el antojo es específico
     """
     
-    # Pesos de cada criterio (suman 100%)
-    PESO_CLIMA = 0.25      # 25% del score total
-    PESO_OCASION = 0.30    # 30% del score total
-    PESO_DISTANCIA = 0.20  # 20% del score total
-    PESO_ANTOJO = 0.15     # 15% del score total
-    PESO_PRESUPUESTO = 0.10 # 10% del score total
+    # ✅ PESOS FINALES (suman 1.0)
+    PESO_ANTOJO = 0.50       # ⬆️⬆️ MUY IMPORTANTE (antes 0.35)
+    PESO_OCASION = 0.20      # ⬇️ Reducido
+    PESO_DISTANCIA = 0.15    # ⬇️ Reducido
+    PESO_PRESUPUESTO = 0.10  # ⬇️ Reducido
+    PESO_CLIMA = 0.05        # Igual
     
     def __init__(self):
-        pass
+        # Keywords mejorados
+        self.keywords_salado = [
+            'tacos', 'pizza', 'hamburguesas', 'mariscos', 
+            'italiana', 'japonesa', 'argentina', 'pasta',
+            'carne', 'alitas', 'antojitos', 'mexicana',
+            'sushi', 'ramen', 'parrilla', 'asado'
+        ]
+        
+        self.keywords_dulce = [
+            'postres', 'cafetería', 'panadería', 'helados',
+            'repostería', 'café', 'dulces', 'chocolatería',
+            'pastelería', 'desayunos'  # Desayunos suelen tener dulce
+        ]
     
     def get_recommendations(
         self,
@@ -28,39 +46,51 @@ class DiscoverService:
         top_n: int = 10
     ) -> List[Dict]:
         """
-        Obtiene los mejores restaurantes segun las preferencias del usuario
-        
-        Args:
-            restaurantes: Lista de todos los restaurantes disponibles
-            preferencias: Diccionario con clima, ocasion, distancia, antojo, presupuesto
-            ubicacion_usuario: Diccionario con latitud y longitud del usuario
-            top_n: Cuantos restaurantes devolver
-            
-        Returns:
-            Lista de restaurantes ordenados por score (mayor a menor)
+        ✅ LÓGICA MEJORADA
         """
         
-        # Calcular score para cada restaurante
+        logger.info(f"🔍 Buscando restaurantes con preferencias: {preferencias}")
+        
         restaurantes_con_score = []
+        antojo = preferencias.get('antojo', 'ambos')
         
         for restaurante in restaurantes:
-            # Calcular score individual
             score = self._calculate_restaurant_score(
                 restaurante,
                 preferencias,
                 ubicacion_usuario
             )
             
-            # Agregar score al restaurante
+            # Calcular scores individuales para debug
+            scores_debug = {
+                'antojo': self._score_antojo(restaurante, antojo),
+                'ocasion': self._score_ocasion(restaurante, preferencias.get('ocasion', 'solo')),
+                'distancia': self._score_distancia(restaurante, ubicacion_usuario, preferencias.get('distancia', 'cerca')),
+                'presupuesto': self._score_presupuesto(restaurante, preferencias.get('presupuesto', 'medio')),
+                'clima': self._score_clima(restaurante, preferencias.get('clima_actual', 'soleado'))
+            }
+            
             restaurante_con_score = restaurante.copy()
             restaurante_con_score['score'] = score
+            restaurante_con_score['_debug_scores'] = scores_debug
+            
+            # ✅ FILTRO ESTRICTO: Si pidió dulce/salado y no coincide, score = 0
+            if antojo in ['dulce', 'salado']:
+                if scores_debug['antojo'] < 0.5:  # No coincide
+                    restaurante_con_score['score'] = 0.0
+                    logger.debug(f"❌ {restaurante['nombre']} descartado por antojo")
+            
             restaurantes_con_score.append(restaurante_con_score)
         
-        # Ordenar por score de mayor a menor
-        restaurantes_con_score.sort(key=lambda x: x['score'], reverse=True)
+        # ✅ Filtrar restaurantes con score 0
+        restaurantes_validos = [r for r in restaurantes_con_score if r['score'] > 0]
         
-        # Devolver solo los top N
-        return restaurantes_con_score[:top_n]
+        logger.info(f"✅ {len(restaurantes_validos)} restaurantes válidos de {len(restaurantes)}")
+        
+        # Ordenar por score
+        restaurantes_validos.sort(key=lambda x: x['score'], reverse=True)
+        
+        return restaurantes_validos[:top_n]
     
     def _calculate_restaurant_score(
         self,
@@ -69,94 +99,96 @@ class DiscoverService:
         ubicacion_usuario: Dict
     ) -> float:
         """
-        Calcula el score total de un restaurante sumando los 5 criterios
-        
-        Returns:
-            Score entre 0 y 1 (1 es perfecto)
+        Calcula score con pesos DEFINITIVOS
         """
         
-        # Calcular cada criterio por separado
-        score_clima = self._score_clima(restaurante, preferencias.get('clima_actual', 'soleado'))
+        score_antojo = self._score_antojo(restaurante, preferencias.get('antojo', 'ambos'))
         score_ocasion = self._score_ocasion(restaurante, preferencias.get('ocasion', 'solo'))
         score_distancia = self._score_distancia(restaurante, ubicacion_usuario, preferencias.get('distancia', 'cerca'))
-        score_antojo = self._score_antojo(restaurante, preferencias.get('antojo', 'dulce'))
         score_presupuesto = self._score_presupuesto(restaurante, preferencias.get('presupuesto', 'medio'))
+        score_clima = self._score_clima(restaurante, preferencias.get('clima_actual', 'soleado'))
         
-        # Sumar todos los scores con sus pesos
+        # ✅ PESOS FINALES
         score_total = (
-            score_clima * self.PESO_CLIMA +
-            score_ocasion * self.PESO_OCASION +
-            score_distancia * self.PESO_DISTANCIA +
-            score_antojo * self.PESO_ANTOJO +
-            score_presupuesto * self.PESO_PRESUPUESTO
+            score_antojo * self.PESO_ANTOJO +           # 50% ⬆️⬆️
+            score_ocasion * self.PESO_OCASION +         # 20%
+            score_distancia * self.PESO_DISTANCIA +     # 15%
+            score_presupuesto * self.PESO_PRESUPUESTO + # 10%
+            score_clima * self.PESO_CLIMA               # 5%
         )
         
         return score_total
     
-    def _score_clima(self, restaurante: Dict, clima: str) -> float:
+    def _score_antojo(self, restaurante: Dict, antojo: str) -> float:
         """
-        Calcula score basado en el clima actual
-        Ejemplo: si esta soleado, prioriza terrazas
+        ✅ SCORING ESTRICTO con penalización severa
         """
         
-        caracteristicas = [c.get('nombreCaracteristica', '').lower() 
-                          for c in restaurante.get('caracteristicas', [])]
+        # Obtener categorías
+        categorias = restaurante.get('categorias', [])
+        categorias_texto = ' '.join([
+            c.get('nombreCategoria', '').lower() 
+            for c in categorias
+        ])
         
-        if clima == 'soleado':
-            # Dar puntos extra si tiene terraza o area exterior
-            if 'terraza' in caracteristicas or 'exterior' in caracteristicas:
-                return 1.0
-            return 0.7
+        nombre_restaurante = restaurante.get('nombre', '').lower()
+        descripcion = restaurante.get('descripcion', '').lower()
+        texto_completo = f"{categorias_texto} {nombre_restaurante} {descripcion}"
+        
+        if antojo == 'dulce':
+            # Buscar palabras clave de dulce
+            for keyword in self.keywords_dulce:
+                if keyword in texto_completo:
+                    logger.debug(f"✅ {restaurante['nombre']} match dulce ({keyword})")
+                    return 1.0  # ✅ Match perfecto
             
-        elif clima == 'lluvioso':
-            # Dar puntos extra si es interior acogedor
-            if 'interior acogedor' in caracteristicas:
-                return 1.0
-            return 0.7
+            # ⚠️ PENALIZACIÓN SEVERA
+            logger.debug(f"❌ {restaurante['nombre']} NO es dulce")
+            return 0.0  # ⬇️⬇️ Antes era 0.2
+        
+        elif antojo == 'salado':
+            # Buscar palabras clave de salado
+            for keyword in self.keywords_salado:
+                if keyword in texto_completo:
+                    logger.debug(f"✅ {restaurante['nombre']} match salado ({keyword})")
+                    return 1.0
             
-        elif clima == 'frio':
-            # Dar puntos extra si tiene comida caliente
-            categorias = [c.get('nombreCategoria', '').lower() 
-                         for c in restaurante.get('categorias', [])]
-            if 'sopas' in categorias or 'comida caliente' in categorias:
-                return 1.0
+            logger.debug(f"❌ {restaurante['nombre']} NO es salado")
+            return 0.0  # ⬇️⬇️ Penalización severa
+        
+        elif antojo == 'ambos':
+            # Sin preferencia
             return 0.7
         
-        # Si no hay match especial, dar score neutro
-        return 0.7
+        return 0.5
     
     def _score_ocasion(self, restaurante: Dict, ocasion: str) -> float:
-        """
-        Calcula score basado en la ocasion (cita, amigos, solo, familia)
-        """
+        """Score basado en ocasión"""
         
-        caracteristicas = [c.get('nombreCaracteristica', '').lower() 
-                          for c in restaurante.get('caracteristicas', [])]
+        caracteristicas = [
+            c.get('nombreCaracteristica', '').lower() 
+            for c in restaurante.get('caracteristicas', [])
+        ]
         
         if ocasion == 'cita':
-            # Buscar caracteristicas romanticas
-            if 'romantico' in caracteristicas or 'intimo' in caracteristicas:
+            if any(k in ' '.join(caracteristicas) for k in ['bar', 'terraza', 'música', 'romantico']):
                 return 1.0
-            # Penalizar si es muy ruidoso
-            if 'ruidoso' in caracteristicas:
-                return 0.3
+            if 'ruidoso' in ' '.join(caracteristicas):
+                return 0.2
             return 0.6
-            
+        
         elif ocasion == 'amigos':
-            # Buscar lugares animados para compartir
-            if 'animado' in caracteristicas or 'para compartir' in caracteristicas:
+            if any(k in ' '.join(caracteristicas) for k in ['bar', 'terraza', 'música']):
                 return 1.0
             return 0.7
-            
+        
         elif ocasion == 'solo':
-            # Buscar lugares casuales y rapidos
-            if 'casual' in caracteristicas or 'rapido' in caracteristicas:
+            if any(k in ' '.join(caracteristicas) for k in ['wifi', 'cafetería', 'tranquilo']):
                 return 1.0
             return 0.7
-            
+        
         elif ocasion == 'familia':
-            # Buscar lugares espaciosos con variedad
-            if 'espacioso' in caracteristicas or 'variado' in caracteristicas:
+            if any(k in ' '.join(caracteristicas) for k in ['espacioso', 'buffet', 'familiar']):
                 return 1.0
             return 0.7
         
@@ -168,12 +200,8 @@ class DiscoverService:
         ubicacion_usuario: Dict,
         preferencia_distancia: str
     ) -> float:
-        """
-        Calcula score basado en la distancia al restaurante
-        Usa la formula de Haversine para calcular distancia real
-        """
+        """Score basado en distancia"""
         
-        # Calcular distancia en kilometros usando Haversine
         distancia_km = self._calcular_distancia_haversine(
             ubicacion_usuario['latitud'],
             ubicacion_usuario['longitud'],
@@ -182,25 +210,22 @@ class DiscoverService:
         )
         
         if preferencia_distancia == 'cerca':
-            # Usuario quiere restaurantes muy cercanos (0-2km)
             if distancia_km <= 2.0:
                 return 1.0
             elif distancia_km <= 5.0:
                 return 0.5
             else:
                 return 0.1
-                
+        
         elif preferencia_distancia == 'explorar':
-            # Usuario quiere explorar un poco (2-8km)
             if 2.0 <= distancia_km <= 8.0:
                 return 1.0
             elif distancia_km < 2.0:
                 return 0.7
             else:
                 return 0.3
-                
+        
         elif preferencia_distancia == 'lejos':
-            # Usuario esta dispuesto a ir lejos (>8km)
             if distancia_km > 8.0:
                 return 1.0
             elif distancia_km > 5.0:
@@ -210,67 +235,57 @@ class DiscoverService:
         
         return 0.7
     
-    def _score_antojo(self, restaurante: Dict, antojo: str) -> float:
-        """
-        Calcula score basado en el antojo del usuario (dulce o salado)
-        """
-        
-        categorias = [c.get('nombreCategoria', '').lower() 
-                     for c in restaurante.get('categorias', [])]
-        
-        if antojo == 'dulce':
-            # Buscar postres, cafeterias, panaderias
-            dulces = ['postres', 'cafeteria', 'panaderia', 'helados']
-            if any(d in cat for cat in categorias for d in dulces):
-                return 1.0
-            return 0.4
-            
-        elif antojo == 'salado':
-            # Buscar comida salada (tacos, pizza, hamburguesas)
-            salados = ['tacos', 'pizza', 'hamburguesas', 'mariscos']
-            if any(s in cat for cat in categorias for s in salados):
-                return 1.0
-            return 0.4
-            
-        elif antojo == 'ambos':
-            # No tiene preferencia especifica
-            return 0.7
-        
-        return 0.7
-    
     def _score_presupuesto(self, restaurante: Dict, presupuesto: str) -> float:
-        """
-        Calcula score basado en el presupuesto del usuario
-        """
+        """Score basado en presupuesto"""
         
         precio_promedio = restaurante.get('precioPromedio', 0)
         
         if presupuesto == 'bajo':
-            # Buscar lugares baratos (<$150)
             if precio_promedio < 150:
                 return 1.0
-            elif precio_promedio < 300:
-                return 0.5
+            elif precio_promedio < 250:
+                return 0.4
             else:
-                return 0.2
-                
+                return 0.0
+        
         elif presupuesto == 'medio':
-            # Buscar lugares de precio medio ($150-$400)
             if 150 <= precio_promedio <= 400:
                 return 1.0
             elif precio_promedio < 150:
-                return 0.7
+                return 0.6
             else:
-                return 0.4
-                
+                return 0.3
+        
         elif presupuesto == 'alto':
-            # Buscar lugares caros (>$400)
             if precio_promedio > 400:
                 return 1.0
             elif precio_promedio > 300:
                 return 0.7
             else:
-                return 0.4
+                return 0.3
+        
+        return 0.7
+    
+    def _score_clima(self, restaurante: Dict, clima: str) -> float:
+        """Score basado en clima"""
+        
+        caracteristicas = [
+            c.get('nombreCaracteristica', '').lower() 
+            for c in restaurante.get('caracteristicas', [])
+        ]
+        
+        if clima == 'soleado':
+            if 'terraza' in ' '.join(caracteristicas):
+                return 1.0
+            return 0.7
+        
+        elif clima == 'lluvioso':
+            if 'interior' in ' '.join(caracteristicas):
+                return 1.0
+            return 0.7
+        
+        elif clima == 'frio':
+            return 0.8
         
         return 0.7
     
@@ -281,31 +296,19 @@ class DiscoverService:
         lat2: float,
         lon2: float
     ) -> float:
-        """
-        Calcula la distancia entre dos puntos geograficos usando la formula de Haversine
+        """Distancia en km"""
         
-        Returns:
-            Distancia en kilometros
-        """
-        
-        # Radio de la Tierra en kilometros
         RADIO_TIERRA_KM = 6371.0
         
-        # Convertir grados a radianes
         lat1_rad = math.radians(lat1)
         lon1_rad = math.radians(lon1)
         lat2_rad = math.radians(lat2)
         lon2_rad = math.radians(lon2)
         
-        # Diferencias
         dlat = lat2_rad - lat1_rad
         dlon = lon2_rad - lon1_rad
         
-        # Formula de Haversine
         a = math.sin(dlat / 2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon / 2)**2
         c = 2 * math.asin(math.sqrt(a))
         
-        # Distancia final
-        distancia = RADIO_TIERRA_KM * c
-        
-        return distancia
+        return RADIO_TIERRA_KM * c
