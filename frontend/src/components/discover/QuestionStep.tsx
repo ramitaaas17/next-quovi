@@ -3,22 +3,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check } from 'lucide-react';
-
-// Guardamos el archivo completo
-
-interface QuestionOption {
-  value: string;
-  label: string;
-  icon: string;
-  gradient: string;
-}
-
-interface Question {
-  id: string;
-  title: string;
-  subtitle: string;
-  options: QuestionOption[];
-}
+import { Question } from './questionOptions';
 
 interface QuestionStepProps {
   question: Question;
@@ -30,7 +15,7 @@ interface QuestionStepProps {
 
 /**
  * Componente para cada pregunta del wizard
- * Animaciones suaves al seleccionar opciones
+ * Animaciones suaves al seleccionar opciones con iconos de Lucide
  */
 const QuestionStep: React.FC<QuestionStepProps> = ({
   question,
@@ -92,6 +77,7 @@ const QuestionStep: React.FC<QuestionStepProps> = ({
         {question.options.map((option, index) => {
           const isSelected = selectedValue === option.value;
           const isHovered = hoveredOption === option.value;
+          const IconComponent = option.Icon;
 
           return (
             <motion.button
@@ -102,8 +88,8 @@ const QuestionStep: React.FC<QuestionStepProps> = ({
               whileHover={{ scale: 1.03, y: -4 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelect(option.value)}
-              onHoverStart={() => setHoveredOption(option.value)}
-              onHoverEnd={() => setHoveredOption(null)}
+              onMouseEnter={() => setHoveredOption(option.value)}
+              onMouseLeave={() => setHoveredOption(null)}
               className="relative p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 overflow-hidden group"
               style={{
                 borderColor: isSelected ? '#ec4899' : isHovered ? '#f59e0b' : '#e5e7eb',
@@ -130,21 +116,24 @@ const QuestionStep: React.FC<QuestionStepProps> = ({
 
               {/* Contenido */}
               <div className="relative z-10 flex items-center space-x-4">
-                {/* Icono emoji con animación */}
+                {/* Icono con animación */}
                 <motion.div
                   animate={{
                     scale: isSelected ? [1, 1.2, 1] : isHovered ? 1.1 : 1,
                     rotate: isSelected ? [0, 10, -10, 0] : 0
                   }}
                   transition={{ duration: 0.5 }}
-                  className="text-4xl sm:text-5xl"
+                  className={`flex-shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center bg-gradient-to-br ${option.gradient} shadow-lg`}
                 >
-                  {option.icon}
+                  <IconComponent 
+                    className="w-6 h-6 sm:w-7 sm:h-7 text-white" 
+                    strokeWidth={2.5}
+                  />
                 </motion.div>
 
-                {/* Label */}
+                {/* Label y descripción */}
                 <div className="flex-1 text-left">
-                  <span className={`font-semibold text-sm sm:text-base transition-colors ${
+                  <span className={`font-semibold text-sm sm:text-base transition-colors block ${
                     isSelected 
                       ? 'text-pink-600' 
                       : isHovered 
@@ -153,6 +142,11 @@ const QuestionStep: React.FC<QuestionStepProps> = ({
                   }`}>
                     {option.label}
                   </span>
+                  {option.description && (
+                    <span className="text-xs text-gray-500 mt-1 block">
+                      {option.description}
+                    </span>
+                  )}
                 </div>
 
                 {/* Check mark animado */}
@@ -163,9 +157,9 @@ const QuestionStep: React.FC<QuestionStepProps> = ({
                     rotate: isSelected ? 0 : -180
                   }}
                   transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                  className={`w-7 h-7 rounded-full flex items-center justify-center bg-gradient-to-br ${option.gradient}`}
+                  className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center bg-gradient-to-br ${option.gradient}`}
                 >
-                  <Check className="w-4 h-4 text-white" />
+                  <Check className="w-4 h-4 text-white" strokeWidth={3} />
                 </motion.div>
               </div>
 
@@ -175,7 +169,7 @@ const QuestionStep: React.FC<QuestionStepProps> = ({
                   {[...Array(6)].map((_, i) => (
                     <motion.div
                       key={i}
-                      className="absolute w-1 h-1 bg-pink-400 rounded-full"
+                      className="absolute w-1.5 h-1.5 bg-pink-400 rounded-full"
                       initial={{ 
                         x: '50%', 
                         y: '50%',
