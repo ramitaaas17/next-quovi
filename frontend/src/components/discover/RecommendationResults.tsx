@@ -14,7 +14,7 @@ interface RecommendationResultsProps {
 
 /**
  * Pantalla de resultados con cards de restaurantes
- * Animaciones suaves de entrada y hover con iconos bonitos
+ * ✅ FIXED: Validaciones para campos opcionales como precioPromedio
  */
 const RecommendationResults: React.FC<RecommendationResultsProps> = ({
   recommendations,
@@ -26,10 +26,27 @@ const RecommendationResults: React.FC<RecommendationResultsProps> = ({
   // Redireccionar al mapa con el restaurante seleccionado
   const handleViewOnMap = (restaurant: RestauranteConDistancia) => {
     onClose();
-    // Emitir evento para que el dashboard centre el mapa
     window.dispatchEvent(new CustomEvent('focusRestaurant', {
       detail: { restaurant }
     }));
+  };
+
+  // ✅ Helper para formatear precio con validación
+  const formatPrice = (price: number | undefined | null): string => {
+    if (price === undefined || price === null || price === 0) {
+      return '$$'; // Precio por defecto
+    }
+    return `$${price.toFixed(0)}`;
+  };
+
+  // ✅ Helper para formatear distancia con validación
+  const formatDistance = (distanceKm: number | undefined): string => {
+    if (!distanceKm || distanceKm === 0) {
+      return 'N/A';
+    }
+    return distanceKm < 1 
+      ? `${Math.round(distanceKm * 1000)} m`
+      : `${distanceKm.toFixed(1)} km`;
   };
 
   return (
@@ -44,7 +61,6 @@ const RecommendationResults: React.FC<RecommendationResultsProps> = ({
         animate={{ y: 0, opacity: 1 }}
         className="text-center pb-4 border-b border-gray-200"
       >
-        {/* Icono de éxito animado */}
         <motion.div
           className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-400 to-emerald-500 rounded-2xl mb-4 shadow-lg overflow-hidden relative"
           initial={{ scale: 0, rotate: -180 }}
@@ -107,7 +123,7 @@ const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                   : '0 4px 12px rgba(0, 0, 0, 0.05)'
               }}
             >
-              {/* Badge de posición con gradiente */}
+              {/* Badge de posición */}
               <div className="absolute top-3 left-3 z-10">
                 <motion.div
                   initial={{ scale: 0, rotate: -180 }}
@@ -147,7 +163,7 @@ const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                     </div>
                   )}
 
-                  {/* Badge de estado con icono */}
+                  {/* Badge de estado */}
                   <div className="absolute bottom-2 left-2">
                     <div className={`flex items-center space-x-1 px-2 py-1 rounded-lg text-xs font-semibold shadow-md ${
                       restaurant.estaAbierto
@@ -175,42 +191,38 @@ const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                     </div>
                   </div>
 
-                  {/* Rating y precio con iconos */}
+                  {/* Rating y precio - ✅ CON VALIDACIÓN */}
                   <div className="flex items-center space-x-4 mb-3">
                     <div className="flex items-center space-x-1 bg-yellow-50 px-2 py-1 rounded-lg">
                       <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" strokeWidth={2} />
                       <span className="text-sm font-semibold text-gray-700">
-                        {restaurant.calificacionPromedio.toFixed(1)}
+                        {restaurant.calificacionPromedio?.toFixed(1) || '0.0'}
                       </span>
                       <span className="text-xs text-gray-500">
-                        ({restaurant.totalReseñas})
+                        ({restaurant.totalReseñas || 0})
                       </span>
                     </div>
 
                     <span className="text-sm font-semibold text-orange-600 bg-orange-50 px-2 py-1 rounded-lg">
-                      {restaurant.precioPromedio 
-                        ? `$${restaurant.precioPromedio.toFixed(0)}` 
-                        : '$$'}
+                      {formatPrice(restaurant.precioPromedio)}
                     </span>
                   </div>
 
-                  {/* Distancia y tiempo con iconos */}
+                  {/* Distancia y tiempo - ✅ CON VALIDACIÓN */}
                   <div className="flex items-center space-x-4 text-xs text-gray-600 mb-3">
                     <div className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg">
                       <MapPin className="w-3 h-3 text-orange-500" strokeWidth={2.5} />
                       <span className="font-medium">
-                        {restaurant.distanciaKm < 1 
-                          ? `${Math.round(restaurant.distanciaKm * 1000)} m`
-                          : `${restaurant.distanciaKm.toFixed(1)} km`}
+                        {formatDistance(restaurant.distanciaKm)}
                       </span>
                     </div>
                     <div className="flex items-center space-x-1 bg-gray-50 px-2 py-1 rounded-lg">
                       <Clock className="w-3 h-3 text-orange-500" strokeWidth={2.5} />
-                      <span className="font-medium">{restaurant.tiempoEstimado}</span>
+                      <span className="font-medium">{restaurant.tiempoEstimado || 'N/A'}</span>
                     </div>
                   </div>
 
-                  {/* Botón ver en mapa con icono */}
+                  {/* Botón ver en mapa */}
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
@@ -224,7 +236,7 @@ const RecommendationResults: React.FC<RecommendationResultsProps> = ({
                 </div>
               </div>
 
-              {/* Efecto hover - barra inferior con gradiente */}
+              {/* Efecto hover */}
               <AnimatePresence>
                 {isHovered && (
                   <motion.div

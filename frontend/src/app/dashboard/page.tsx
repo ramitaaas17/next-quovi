@@ -177,9 +177,9 @@ const RealMapComponent: React.FC<RealMapComponentProps> = ({
               ${rest.categorias?.[0]?.nombreCategoria || ''} • ${precioRange}
             </div>
             <div style="margin: 6px 0;">${statusBadge}</div>
-            ${rest.distanciaKm > 0 ? `
+            ${rest.distanciaKm && rest.distanciaKm > 0 ? `
               <div style="font-size: 12px; color: #6b7280;">
-                ${restauranteService.formatearDistancia(rest.distanciaKm)} • ${rest.tiempoEstimado}
+                ${restauranteService.formatearDistancia(rest.distanciaKm)} • ${rest.tiempoEstimado || 'N/A'}
               </div>
             ` : ''}
           </div>
@@ -305,6 +305,31 @@ export default function MapDashboard() {
     cargarRestaurantesIniciales();
   }, [ubicacion]);
 
+  // ✅ ESCUCHAR EVENTOS DEL SISTEMA "DESCUBRE"
+  useEffect(() => {
+    const handleFocusRestaurant = (event: CustomEvent) => {
+      const { restaurant } = event.detail;
+      console.log('🎯 Focus en restaurante:', restaurant);
+      
+      // Agregar el restaurante seleccionado al mapa si no está
+      setRestaurantes(prev => {
+        const exists = prev.some(r => r.idRestaurante === restaurant.idRestaurante);
+        if (exists) return prev;
+        return [...prev, restaurant];
+      });
+      
+      // Abrir panel de detalles
+      setSelectedRestaurant(restaurant);
+      setShowDetails(true);
+    };
+
+    window.addEventListener('focusRestaurant', handleFocusRestaurant as EventListener);
+
+    return () => {
+      window.removeEventListener('focusRestaurant', handleFocusRestaurant as EventListener);
+    };
+  }, []);
+
   // Escuchar eventos de busqueda del SearchBar
   useEffect(() => {
     const handleSearchResults = (event: CustomEvent) => {
@@ -349,9 +374,9 @@ export default function MapDashboard() {
   };
 
   // Datos de ruta para RouteDisplay
-  const routeData = selectedRestaurant ? {
+  const routeData = selectedRestaurant && selectedRestaurant.distanciaKm ? {
     distance: selectedRestaurant.distanciaKm,
-    duration: selectedRestaurant.tiempoEstimado,
+    duration: selectedRestaurant.tiempoEstimado || 'N/A',
     steps: [
       {
         instruction: `Dirígete hacia ${selectedRestaurant.nombre}`,
@@ -443,10 +468,10 @@ export default function MapDashboard() {
           id: selectedRestaurant.idRestaurante,
           name: selectedRestaurant.nombre,
           category: selectedRestaurant.categorias?.[0]?.nombreCategoria || 'Restaurante',
-          rating: selectedRestaurant.calificacionPromedio,
-          reviews: selectedRestaurant.totalReseñas,
-          distance: selectedRestaurant.distanciaKm,
-          estimatedTime: selectedRestaurant.tiempoEstimado,
+          rating: selectedRestaurant.calificacionPromedio || 0,
+          reviews: selectedRestaurant.totalReseñas || 0,
+          distance: selectedRestaurant.distanciaKm || 0,
+          estimatedTime: selectedRestaurant.tiempoEstimado || 'N/A',
           address: selectedRestaurant.direccion,
           phone: selectedRestaurant.telefono,
           website: selectedRestaurant.sitioweb,
