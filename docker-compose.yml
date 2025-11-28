@@ -1,5 +1,3 @@
-# docker-compose.yml - PUERTO 5000 UNIFICADO
-
 services:
   # ==================== BASE DE DATOS ====================
   db:
@@ -57,16 +55,14 @@ services:
       retries: 5
       start_period: 15s
 
-  # ==================== AI SERVICE (Python/FastAPI) - PUERTO 5000 ====================
+  # ==================== AI SERVICE (Python/FastAPI) ====================
   ai-service:
     build:
       context: ./ai-service
       dockerfile: Dockerfile
-      cache_from:
-        - quovi-ai-service:latest
     container_name: quovi_ai_service
     ports:
-      - "5050:5050"  # ✅ UNIFICADO: Host:Container ambos 5050
+      - "5050:5050"
     environment:
       BACKEND_URL: http://backend:8080/api
       PORT: 5050
@@ -74,6 +70,11 @@ services:
       PYTHONUNBUFFERED: 1
       PYTHONDONTWRITEBYTECODE: 1
       OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
+      # ✅ Optimizaciones para evitar OOM
+      OMP_NUM_THREADS: 1
+      MKL_NUM_THREADS: 1
+      OPENBLAS_NUM_THREADS: 1
+      TOKENIZERS_PARALLELISM: false
     depends_on:
       backend:
         condition: service_healthy
@@ -84,12 +85,18 @@ services:
       - ai_cache:/app/cache
       - /app/__pycache__
     restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G  # ✅ Aumentado de 2G a 4G
+        reservations:
+          memory: 2G  # ✅ Aumentado de 1G a 2G
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5050/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 120s
+      retries: 5  # ✅ Más reintentos
+      start_period: 240s  # ✅ 4 minutos para cargar modelo
 
   # ==================== FRONTEND (Next.js) ====================
   frontend:
@@ -98,7 +105,7 @@ services:
       dockerfile: Dockerfile
       args:
         NEXT_PUBLIC_API_URL: http://localhost:8080/api
-        NEXT_PUBLIC_AI_SERVICE_URL: http://localhost:5050  
+        NEXT_PUBLIC_AI_SERVICE_URL: /api/ai
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: 268691260379-gq3u019erlkn68103l7fttpsp3jm7hoo.apps.googleusercontent.com
     container_name: quovi_frontend
     ports:
@@ -107,11 +114,15 @@ services:
       NEXT_TELEMETRY_DISABLED: 1
       NODE_ENV: production
       NEXT_PUBLIC_API_URL: http://localhost:8080/api
-      NEXT_PUBLIC_AI_SERVICE_URL: http://localhost:5050 
+      NEXT_PUBLIC_AI_SERVICE_URL: /api/ai
       NEXT_PUBLIC_GOOGLE_CLIENT_ID: 268691260379-gq3u019erlkn68103l7fttpsp3jm7hoo.apps.googleusercontent.com
+      # ✅ FIX: Usar el SERVICE NAME (ai-service) no el container_name
+      AI_SERVICE_INTERNAL_URL: http://ai-service:5050
     depends_on:
-      - backend
-      - ai-service
+      backend:
+        condition: service_healthy
+      ai-service:
+        condition: service_healthy
     networks:
       - quovi-network
     restart: unless-stopped

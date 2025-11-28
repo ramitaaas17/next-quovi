@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronLeft, Sparkles, Loader2 } from 'lucide-react';
+import { X, ChevronLeft, Sparkles } from 'lucide-react';
 import QuestionStep from './QuestionStep';
 import RecommendationResults from './RecommendationResults';
 import LoadingScreen from './LoadingScreen';
@@ -66,7 +66,7 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
     }, 400);
   };
 
-  // 🔧 CORRECCIÓN PRINCIPAL: URL correcta del endpoint
+  // ✅ USAR PROXY DE NEXT.JS en lugar de conexión directa
   const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
     if (!userLocation) {
       setError('No se pudo obtener tu ubicación');
@@ -77,10 +77,10 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
     setError(null);
 
     try {
-    const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:5050';
-    const endpoint = `${AI_SERVICE_URL}/api/ai/discover`;  
+      // ✅ Usar el proxy de Next.js: /api/ai/discover
+      const endpoint = '/api/ai/discover';
           
-      console.log('🔍 Enviando request a:', endpoint);
+      console.log('🔍 Enviando request a proxy:', endpoint);
       console.log('📍 Ubicación:', userLocation);
       console.log('⚙️ Preferencias:', finalPrefs);
       
@@ -102,24 +102,37 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
       console.log('📡 Response status:', response.status);
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('❌ Error response:', errorText);
-        throw new Error(`Error del servidor (${response.status}). Por favor verifica que los servicios estén corriendo.`);
+        const errorData = await response.json();
+        console.error('❌ Error response:', errorData);
+        throw new Error(errorData.details || errorData.error || 'Error del servidor');
       }
 
       const data = await response.json();
       console.log('✅ Datos recibidos:', data);
       
-      setRecommendations(data.recomendaciones || []);
+      if (!data.recomendaciones || data.recomendaciones.length === 0) {
+        throw new Error('No se encontraron recomendaciones. Intenta con otras preferencias.');
+      }
+      
+      setRecommendations(data.recomendaciones);
       setShowResults(true);
+      
     } catch (err: any) {
       console.error('💥 Error completo:', err);
       
+      let errorMessage = 'Error al procesar tu solicitud. ';
+      
       if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-        setError('❌ No se pudo conectar con el servidor de IA.\n\n🔧 Verifica que:\n1. Docker esté corriendo\n2. El servicio ai-service esté activo\n3. El puerto 5001 esté disponible\n\n💡 Ejecuta: docker-compose ps');
+        errorMessage += 'Verifica tu conexión a internet.';
+      } else if (err.message.includes('timeout')) {
+        errorMessage += 'El servidor tardó demasiado en responder. Intenta de nuevo.';
+      } else if (err.message.includes('unavailable')) {
+        errorMessage += 'El servicio de IA no está disponible en este momento.';
       } else {
-        setError(err.message || 'Error al procesar tu solicitud');
+        errorMessage += err.message;
       }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -255,7 +268,7 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
                         <X className="w-8 h-8 text-red-600" />
                       </div>
                       <h3 className="text-xl font-bold text-red-800 mb-2">Algo salió mal</h3>
-                      <p className="text-red-600 mb-6 whitespace-pre-line text-sm">{error}</p>
+                      <p className="text-red-600 mb-6 text-sm">{error}</p>
                       <button
                         onClick={handleRestart}
                         className="px-6 py-3 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors"
