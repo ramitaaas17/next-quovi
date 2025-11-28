@@ -23,10 +23,6 @@ interface PreferenciasUsuario {
   presupuesto?: string;
 }
 
-/**
- * Modal del asistente de recomendaciones
- * Guía al usuario a través de preguntas para encontrar el lugar perfecto
- */
 const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLocation }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [preferencias, setPreferencias] = useState<PreferenciasUsuario>({});
@@ -45,6 +41,7 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
       setPreferencias({});
       setShowResults(false);
       setError(null);
+      setIsLoading(false);
     }
   }, [isOpen]);
 
@@ -56,7 +53,6 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
     };
     setPreferencias(updatedPrefs);
 
-    // Avanzar al siguiente paso después de una breve pausa
     setTimeout(() => {
       if (currentStep < discoverQuestions.length - 1) {
         setCurrentStep(currentStep + 1);
@@ -126,19 +122,30 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+      {/* Backdrop */}
       <motion.div
-        initial={{ scale: 0.95, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.95, opacity: 0 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+      />
+
+      {/* Modal Content */}
+      <motion.div
+        initial={{ scale: 0.95, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        exit={{ scale: 0.95, opacity: 0, y: 20 }}
+        transition={{ type: "spring", duration: 0.5 }}
         onClick={(e) => e.stopPropagation()}
-        className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] overflow-hidden"
+        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden"
       >
         {/* Header */}
         <div className="relative bg-gradient-to-r from-orange-400 to-orange-500 px-6 py-5 text-white">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+            className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors z-10"
           >
             <X className="w-5 h-5" />
           </button>
@@ -151,7 +158,7 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
           </p>
 
           {/* Barra de progreso */}
-          {!showResults && !isLoading && (
+          {!showResults && !isLoading && !error && (
             <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
               <motion.div
                 className="h-full bg-white"
