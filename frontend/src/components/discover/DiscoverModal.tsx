@@ -76,46 +76,60 @@ const DiscoverModal: React.FC<DiscoverModalProps> = ({ isOpen, onClose, userLoca
   };
 
   // Envía preferencias al backend
-  const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
-    if (!userLocation) {
-      setError('No se pudo obtener tu ubicación');
-      return;
-    }
+const handleSubmit = async (finalPrefs: PreferenciasUsuario) => {
+  if (!userLocation) {
+    setError('No se pudo obtener tu ubicación');
+    return;
+  }
 
-    setIsLoading(true);
-    setError(null);
+  setIsLoading(true);
+  setError(null);
 
-    try {
-      const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:5001/api/ai';
-      
-      const response = await fetch(`${AI_SERVICE_URL}/discover`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+  try {
+    // USAR PUERTO 5001 para Docker
+    const AI_SERVICE_URL = process.env.NEXT_PUBLIC_AI_SERVICE_URL || 'http://localhost:5001/api/ai';
+    
+    console.log('🔍 Enviando request a:', `${AI_SERVICE_URL}/discover`);
+    console.log('📍 Ubicación:', userLocation);
+    console.log('⚙️ Preferencias:', finalPrefs);
+    
+    const response = await fetch(`${AI_SERVICE_URL}/discover`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        preferencias: finalPrefs,
+        ubicacion: {
+          latitud: userLocation.lat,
+          longitud: userLocation.lng
         },
-        body: JSON.stringify({
-          preferencias: finalPrefs,
-          ubicacion: {
-            latitud: userLocation.lat,
-            longitud: userLocation.lng
-          },
-          top_n: 10
-        }),
-      });
+        top_n: 10
+      }),
+    });
 
-      if (!response.ok) {
-        throw new Error('Error al obtener recomendaciones');
-      }
+    console.log('📡 Response status:', response.status);
+    console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
 
-      const data = await response.json();
-      setRecommendations(data.recomendaciones || []);
-      setShowResults(true);
-    } catch (err: any) {
-      setError(err.message || 'Error al procesar tu solicitud');
-    } finally {
-      setIsLoading(false);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Error response:', errorText);
+      throw new Error(`Error ${response.status}: ${errorText}`);
     }
-  };
+
+    const data = await response.json();
+    console.log('✅ Datos recibidos:', data);
+    
+    setRecommendations(data.recomendaciones || []);
+    setShowResults(true);
+  } catch (err: any) {
+    console.error('💥 Error completo:', err);
+    console.error('💥 Error stack:', err.stack);
+    setError(err.message || 'Error al procesar tu solicitud');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleBack = () => {
     if (currentStep > 0) {
