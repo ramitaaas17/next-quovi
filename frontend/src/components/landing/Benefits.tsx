@@ -12,10 +12,7 @@ interface Benefit {
   description: string;
 }
 
-/**
- * Sección de beneficios con animación de scroll
- * Aparece progresivamente al hacer scroll
- */
+
 const Benefits: React.FC = () => {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });

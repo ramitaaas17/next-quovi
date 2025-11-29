@@ -366,7 +366,7 @@ const Login: React.FC<LoginProps> = ({ onSwitchToRegister, onBack, onLogin }) =>
           >
             <button
               type="button"
-              onClick={googleLogin}
+              onClick={() => googleLogin()}
               disabled={isLoading || isGoogleLoading}
               className="w-full flex items-center justify-center gap-2 md:gap-3 px-4 md:px-6 py-2.5 md:py-3 bg-white border-2 border-slate-200 rounded-2xl hover:bg-slate-50 hover:border-slate-300 transition-all duration-300 shadow-sm hover:shadow-md group disabled:opacity-50 disabled:cursor-not-allowed"
             >

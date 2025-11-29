@@ -52,12 +52,14 @@ func main() {
 	restauranteService := services.NewRestauranteService(dbManager)
 	perfilService := services.NewPerfilService(dbManager)
 	platilloService := services.NewPlatilloService(dbManager)
+	tourService := services.NewTourService(dbManager) // NUEVO: Servicio de tours
 
 	// Inicializar handlers
 	authHandler := handlers.NewAuthHandler(authService)
 	restauranteHandler := handlers.NewRestauranteHandler(restauranteService)
 	perfilHandler := handlers.NewPerfilHandler(perfilService)
 	platilloHandler := handlers.NewPlatilloHandler(platilloService)
+	tourHandler := handlers.NewTourHandler(tourService) // NUEVO: Handler de tours
 
 	// Configurar modo de Gin según el entorno
 	if getEnv("ENVIRONMENT", "development") == "production" {
@@ -119,6 +121,12 @@ func main() {
 
 		// Ruta de ciudades (pública)
 		api.GET("/ciudades", restauranteHandler.ObtenerCiudades)
+
+		// NUEVO: Rutas de tours (públicas)
+		tours := api.Group("/tours")
+		{
+			tours.POST("/generate", tourHandler.GenerarTour)
+		}
 
 		// Rutas protegidas (requieren autenticación)
 		protected := api.Group("/")

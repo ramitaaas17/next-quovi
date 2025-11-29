@@ -3,6 +3,7 @@
 -- Proyecto: Mapa interactivo de comida
 -- Con soporte para OAuth (Google, etc.)
 -- =============================================
+
 -- Usar la base de datos
 USE quovi_db;
 

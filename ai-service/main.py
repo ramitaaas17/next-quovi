@@ -1,4 +1,6 @@
-# ai-service/main.py - OPTIMIZADO PARA EVITAR OOM
+# ai-service/main.py
+# Servicio principal de IA para el sistema de recomendaciones de restaurantes
+# Implementa un algoritmo de Recocido Simulado combinado con embeddings semánticos
 
 import os
 import gc
@@ -19,7 +21,7 @@ from services.weather_service import WeatherService
 from models.recommender import SimulatedAnnealingRecommender
 from models.embeddings import EmbeddingGenerator
 
-# Configurar logging
+# Configuración del sistema de logging
 log_level = os.getenv('LOG_LEVEL', 'INFO')
 logging.basicConfig(
     level=getattr(logging, log_level),
@@ -27,19 +29,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Configuración
+# Carga de variables de entorno
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://backend:8080/api')
 OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY', None)
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
 PORT = int(os.getenv('PORT', '5050'))
 
-# Configuración de Recocido Simulado
+# Parámetros del algoritmo de Recocido Simulado
 SA_TEMPERATURA_INICIAL = float(os.getenv('SA_TEMPERATURA_INICIAL', '100.0'))
 SA_TEMPERATURA_MINIMA = float(os.getenv('SA_TEMPERATURA_MINIMA', '0.1'))
 SA_TASA_ENFRIAMIENTO = float(os.getenv('SA_TASA_ENFRIAMIENTO', '0.95'))
 SA_MAX_ITERACIONES = int(os.getenv('SA_MAX_ITERACIONES', '500'))
 
-# ==================== VARIABLES GLOBALES ====================
+# Variables globales que almacenan instancias de los servicios
+# Se inicializan durante el startup de la aplicación
 discover_service = None
 weather_service = None
 sa_recommender = None
@@ -47,31 +50,38 @@ embedding_generator = None
 embeddings_cache = {}
 
 logger.info("=" * 60)
-logger.info(f"🚀 AI Service iniciado - Puerto: {PORT}")
-logger.info(f"📍 Entorno: {ENVIRONMENT}")
-logger.info(f"🔗 Backend: {BACKEND_URL}")
+logger.info(f"AI Service iniciado - Puerto: {PORT}")
+logger.info(f"Entorno: {ENVIRONMENT}")
+logger.info(f"Backend: {BACKEND_URL}")
 logger.info("=" * 60)
 
-# ==================== LIFESPAN EVENTS ====================
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Manejo del ciclo de vida de la aplicación"""
+    """
+    Gestiona el ciclo de vida completo de la aplicación.
+    Se ejecuta al iniciar y al cerrar el servicio.
     
-    # STARTUP
+    Startup: Inicializa todos los servicios y carga modelos
+    Shutdown: Limpia recursos y libera memoria
+    """
+    
+    # STARTUP: Inicialización de servicios
     global discover_service, weather_service, sa_recommender, embedding_generator
     
     logger.info("=" * 60)
-    logger.info("🚀 AI Service INICIANDO...")
-    logger.info(f"📍 Puerto: {PORT}")
-    logger.info(f"🔗 Backend: {BACKEND_URL}")
+    logger.info("AI Service INICIANDO...")
+    logger.info(f"Puerto: {PORT}")
+    logger.info(f"Backend: {BACKEND_URL}")
     logger.info("=" * 60)
     
     try:
-        # Inicializar servicios básicos
-        logger.info("📦 Inicializando servicios...")
+        # Inicializar los servicios de descubrimiento y clima
+        logger.info("Inicializando servicios...")
         discover_service = DiscoverService()
         weather_service = WeatherService(api_key=OPENWEATHER_API_KEY)
+        
+        # Crear instancia del optimizador de Recocido Simulado
         sa_recommender = SimulatedAnnealingRecommender(
             temperatura_inicial=SA_TEMPERATURA_INICIAL,
             temperatura_minima=SA_TEMPERATURA_MINIMA,
@@ -79,39 +89,40 @@ async def lifespan(app: FastAPI):
             max_iteraciones=SA_MAX_ITERACIONES
         )
         
-        # ✅ PRE-CARGAR MODELO DE EMBEDDINGS (sin generar embeddings aún)
-        logger.info("🧠 Pre-cargando modelo de embeddings...")
+        # Pre-cargar el modelo de embeddings en memoria
+        # Esto mejora el tiempo de respuesta del primer request
+        logger.info("Pre-cargando modelo de embeddings...")
         embedding_generator = EmbeddingGenerator()
-        # El modelo se carga aquí, pero no procesamos datos todavía
-        logger.info("✅ Modelo de embeddings listo")
+        logger.info("Modelo de embeddings listo")
         
-        logger.info("✅ Todos los servicios inicializados correctamente")
+        logger.info("Todos los servicios inicializados correctamente")
         
     except Exception as e:
-        logger.error(f"❌ Error en startup: {e}", exc_info=True)
+        logger.error(f"Error en startup: {e}", exc_info=True)
         raise
     
-    yield  # Aplicación corriendo
+    yield  # La aplicación permanece corriendo aquí
     
-    # SHUTDOWN
-    logger.info("👋 AI Service cerrando...")
+    # SHUTDOWN: Limpieza de recursos
+    logger.info("AI Service cerrando...")
     
-    # Limpiar memoria
+    # Limpiar cache de embeddings y forzar garbage collection
     global embeddings_cache
     embeddings_cache.clear()
     gc.collect()
     
-    logger.info("✅ Limpieza completada")
+    logger.info("Limpieza completada")
 
-# Crear aplicación con lifespan
+
+# Crear la aplicación FastAPI con el gestor de ciclo de vida
 app = FastAPI(
     title="Quovi AI Service",
-    description="Microservicio de IA para recomendaciones inteligentes",
+    description="Microservicio de IA para recomendaciones inteligentes de restaurantes",
     version="1.0.0",
     lifespan=lifespan
 )
 
-# ✅ CORS CORREGIDO
+# Configuración de CORS para permitir requests desde el frontend
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -120,7 +131,7 @@ app.add_middleware(
         "http://127.0.0.1:3000",
         "http://127.0.0.1:3001",
         "http://frontend:3000",
-        "*"  # En desarrollo
+        "*"  # En desarrollo permite todos los orígenes
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -128,34 +139,43 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
-# ==================== MODELOS DE DATOS ====================
+
+# Modelos de datos para validación de requests/responses
 
 class PreferenciasUsuario(BaseModel):
+    """Define las preferencias del usuario para la búsqueda"""
     clima_actual: Optional[str] = Field(None, description="soleado, lluvioso, nublado, frio")
     ocasion: str = Field(..., description="cita, amigos, solo, familia")
     distancia: str = Field(..., description="cerca, explorar, lejos")
     antojo: str = Field(..., description="dulce, salado, ambos")
     presupuesto: str = Field(..., description="bajo, medio, alto")
 
+
 class UbicacionUsuario(BaseModel):
+    """Coordenadas geográficas del usuario"""
     latitud: float = Field(..., ge=-90, le=90)
     longitud: float = Field(..., ge=-180, le=180)
 
+
 class DescubrirRequest(BaseModel):
+    """Request completo para el endpoint de descubrimiento"""
     preferencias: PreferenciasUsuario
     ubicacion: UbicacionUsuario
     top_n: int = Field(10, ge=1, le=20, description="Numero de recomendaciones")
 
+
 class DescubrirResponse(BaseModel):
+    """Response con las recomendaciones y estadísticas del proceso"""
     recomendaciones: List[Dict[str, Any]]
     estadisticas: Dict[str, Any]
     clima: Optional[Dict[str, Any]] = None
 
-# ==================== ENDPOINTS ====================
+
+# Endpoints de la API
 
 @app.get("/")
 async def root():
-    """Endpoint raíz"""
+    """Endpoint raíz con información básica del servicio"""
     return {
         "service": "Quovi AI Service",
         "version": "1.0.0",
@@ -163,10 +183,14 @@ async def root():
         "environment": ENVIRONMENT
     }
 
+
 @app.get("/health")
 async def health_check():
-    """Healthcheck para Docker"""
-    logger.info("✅ Healthcheck OK")
+    """
+    Healthcheck para Docker y monitoreo.
+    Verifica que todos los servicios estén operativos.
+    """
+    logger.info("Healthcheck OK")
     return {
         "status": "ok",
         "service": "Quovi AI Service",
@@ -177,18 +201,27 @@ async def health_check():
         "embeddings_cached": len(embeddings_cache)
     }
 
+
 @app.post("/api/ai/discover", response_model=DescubrirResponse)
 async def descubrir_restaurantes(request: DescubrirRequest):
     """
-    Endpoint principal de recomendaciones inteligentes
+    Endpoint principal de recomendaciones inteligentes.
+    
+    Proceso:
+    1. Obtiene todos los restaurantes disponibles del backend
+    2. Consulta el clima actual (si no fue proporcionado)
+    3. Calcula scores individuales según preferencias del usuario
+    4. Genera embeddings semánticos de los restaurantes (primera vez)
+    5. Optimiza las recomendaciones con Recocido Simulado
+    6. Retorna las mejores N recomendaciones con estadísticas
     """
     
     try:
-        logger.info("🔍 Iniciando proceso de recomendaciones...")
+        logger.info("Iniciando proceso de recomendaciones...")
         logger.info(f"Preferencias: {request.preferencias}")
         
-        # Paso 1: Obtener restaurantes
-        logger.info(f"📡 Obteniendo restaurantes de {BACKEND_URL}/restaurantes")
+        # Paso 1: Obtener lista de restaurantes desde el backend
+        logger.info(f"Obteniendo restaurantes de {BACKEND_URL}/restaurantes")
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.get(f"{BACKEND_URL}/restaurantes")
             response.raise_for_status()
@@ -198,14 +231,14 @@ async def descubrir_restaurantes(request: DescubrirRequest):
         if not restaurantes:
             raise HTTPException(status_code=404, detail="No se encontraron restaurantes")
         
-        logger.info(f"✅ {len(restaurantes)} restaurantes obtenidos")
+        logger.info(f"{len(restaurantes)} restaurantes obtenidos")
         
-        # Paso 2: Obtener clima
+        # Paso 2: Obtener información del clima
         clima_info = None
         clima_clasificacion = request.preferencias.clima_actual
         
         if not clima_clasificacion:
-            logger.info("🌤️ Obteniendo clima actual...")
+            logger.info("Obteniendo clima actual...")
             clima_info = await weather_service.get_weather(
                 request.ubicacion.latitud,
                 request.ubicacion.longitud
@@ -213,8 +246,8 @@ async def descubrir_restaurantes(request: DescubrirRequest):
             clima_clasificacion = clima_info['clasificacion']
             logger.info(f"Clima: {clima_clasificacion}")
         
-        # Paso 3: Calcular scores
-        logger.info("🧮 Calculando scores...")
+        # Paso 3: Calcular scores individuales para cada restaurante
+        logger.info("Calculando scores...")
         preferencias_dict = {
             'clima_actual': clima_clasificacion,
             'ocasion': request.preferencias.ocasion,
@@ -228,6 +261,7 @@ async def descubrir_restaurantes(request: DescubrirRequest):
             'longitud': request.ubicacion.longitud
         }
         
+        # Obtener top 50 restaurantes según scoring inicial
         restaurantes_con_score = discover_service.get_recommendations(
             restaurantes=restaurantes,
             preferencias=preferencias_dict,
@@ -235,42 +269,42 @@ async def descubrir_restaurantes(request: DescubrirRequest):
             top_n=min(50, len(restaurantes))
         )
         
-        logger.info(f"✅ Scores calculados para {len(restaurantes_con_score)} restaurantes")
+        logger.info(f"Scores calculados para {len(restaurantes_con_score)} restaurantes")
         
-        # Paso 4: Generar embeddings con manejo de memoria
+        # Paso 4: Generar o recuperar embeddings del cache
         global embeddings_cache
         if not embeddings_cache:
-            logger.info("🧠 Generando embeddings (primera vez)...")
+            logger.info("Generando embeddings (primera vez)...")
             try:
-                # ✅ Usar el generador pre-cargado
+                # Generar embeddings usando el modelo pre-cargado
                 embeddings_cache = embedding_generator.generate_embeddings_batch(
                     restaurantes,
-                    batch_size=8  # Lotes más pequeños para evitar OOM
+                    batch_size=8  # Batches pequeños para evitar Out of Memory
                 )
-                logger.info(f"✅ Cache creado: {len(embeddings_cache)} embeddings")
+                logger.info(f"Cache creado: {len(embeddings_cache)} embeddings")
                 
-                # ✅ Liberar memoria inmediatamente
+                # Liberar memoria inmediatamente
                 gc.collect()
                 
             except Exception as e:
-                logger.error(f"❌ Error generando embeddings: {e}", exc_info=True)
-                # Si falla embeddings, continuar sin ellos
-                logger.warning("⚠️ Continuando sin embeddings...")
+                logger.error(f"Error generando embeddings: {e}", exc_info=True)
+                logger.warning("Continuando sin embeddings...")
                 embeddings_cache = {}
         
-        # Paso 5: Optimizar con Recocido Simulado
-        logger.info("🔥 Optimizando con Recocido Simulado...")
+        # Paso 5: Optimizar recomendaciones con Recocido Simulado
+        logger.info("Optimizando con Recocido Simulado...")
         recomendaciones_optimizadas, estadisticas = sa_recommender.optimize_recommendations(
             restaurantes_con_score=restaurantes_con_score,
             num_recomendaciones=request.top_n,
             embeddings=embeddings_cache if embeddings_cache else None
         )
         
-        logger.info(f"✅ Optimización completada - Mejora: {estadisticas['mejora_porcentual']:.2f}%")
+        logger.info(f"Optimizacion completada - Mejora: {estadisticas['mejora_porcentual']:.2f}%")
         
-        # ✅ Liberar memoria después de cada request
+        # Liberar memoria después de cada request
         gc.collect()
         
+        # Construir response con todas las estadísticas
         return {
             "recomendaciones": recomendaciones_optimizadas,
             "estadisticas": {
@@ -292,29 +326,31 @@ async def descubrir_restaurantes(request: DescubrirRequest):
         }
         
     except httpx.HTTPError as e:
-        logger.error(f"❌ Error comunicación backend: {e}")
+        logger.error(f"Error comunicacion backend: {e}")
         raise HTTPException(status_code=502, detail="Error al obtener restaurantes")
     
     except Exception as e:
-        logger.error(f"❌ Error inesperado: {e}", exc_info=True)
+        logger.error(f"Error inesperado: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
+
 
 @app.get("/api/ai/climate/{lat}/{lng}")
 async def obtener_clima(
     lat: float = Path(..., ge=-90, le=90),
     lng: float = Path(..., ge=-180, le=180)
 ):
-    """Obtener clima actual"""
+    """Obtener clima actual para unas coordenadas específicas"""
     try:
         clima = await weather_service.get_weather(lat, lng)
         return clima
     except Exception as e:
-        logger.error(f"❌ Error clima: {e}")
+        logger.error(f"Error clima: {e}")
         raise HTTPException(status_code=500, detail="Error al obtener clima")
+
 
 @app.get("/api/ai/config")
 async def obtener_configuracion():
-    """Ver configuración del servicio"""
+    """Consultar la configuración actual del servicio"""
     return {
         "backend_url": BACKEND_URL,
         "environment": ENVIRONMENT,
@@ -329,21 +365,23 @@ async def obtener_configuracion():
         "embedding_model_loaded": embedding_generator is not None
     }
 
+
 @app.post("/api/ai/clear-cache")
 async def limpiar_cache():
-    """Limpiar cache de embeddings"""
+    """Limpiar el cache de embeddings para liberar memoria"""
     global embeddings_cache
     cache_size = len(embeddings_cache)
     embeddings_cache = {}
     gc.collect()
-    logger.info(f"🗑️ Cache limpiado ({cache_size} entradas)")
+    logger.info(f"Cache limpiado ({cache_size} entradas)")
     return {
         "success": True,
         "message": f"Cache limpiado ({cache_size} entradas)"
     }
 
+
 if __name__ == "__main__":
-    logger.info(f"🔥 Arrancando Uvicorn en 0.0.0.0:{PORT}")
+    logger.info(f"Arrancando Uvicorn en 0.0.0.0:{PORT}")
     uvicorn.run(
         app,
         host="0.0.0.0",

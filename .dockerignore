@@ -1,3 +1,4 @@
+# /.dockerignore
 # --- IGNORAR CARPETAS GIGANTES DE DEPENDENCIAS ---
 **/node_modules
 **/dist

@@ -146,10 +146,6 @@ func (dm *DBManager) EliminarSesion(token string) error {
 	return dm.db.Where("token = ?", token).Delete(&models.Sesion{}).Error
 }
 
-// ========================================
-// NUEVO: Metodos para Tours
-// ========================================
-
 // ObtenerRestaurantesPorIDs busca varios restaurantes por sus IDs
 func (dm *DBManager) ObtenerRestaurantesPorIDs(ids []uint) ([]models.Restaurante, error) {
 	var restaurantes []models.Restaurante
